@@ -1,0 +1,13 @@
+Entropy: In clustering, entropy can be used to measure the purity of clusters. Lower entropy indicates that the cluster contains elements that are more similar to each other. It's often used in the context of information theory to quantify uncertainty or information content.
+
+Mutual Information: This measures the amount of information that one variable provides about another. In clustering, mutual information can be used to compare the similarity between the clustering result and the true labels (if known). It's particularly useful in evaluating clustering performance in a supervised learning context.
+
+Silhouette Score: This is a measure of how similar an object is to its own cluster compared to other clusters. The silhouette score ranges from -1 to 1, where a high value indicates that the object is well matched to its own cluster and poorly matched to neighboring clusters.
+
+Davies-Bouldin Index: This index is a measure of the quality of a clustering algorithm. It's based on a ratio between within-cluster distances and between-cluster distances. Lower values of the Davies-Bouldin Index indicate better clustering.
+
+Calinski-Harabasz Index: Also known as the Variance Ratio Criterion, this index evaluates clustering by comparing the variance between clusters with the variance within clusters. Higher values typically indicate better-defined clusters.
+
+Cluster Cohesion and Separation: Cohesion measures how closely related objects are within the same cluster, while separation measures how distinct a cluster is from other clusters. Various methods can quantify cohesion and separation, often involving distances within and between clusters.
+
+Gini Coefficient: In the context of clustering, the Gini coefficient can be used to measure the distribution of data points among different clusters. A lower Gini coefficient suggests a more equal distribution of data points across clusters.
