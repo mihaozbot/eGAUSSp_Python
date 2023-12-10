@@ -1,3 +1,4 @@
+from math import inf
 import torch
 
  
@@ -50,7 +51,7 @@ class MathOps():
         # Compute Mahalanobis distances for other clusters
         non_single_sample_mask = ~single_sample_mask
         if non_single_sample_mask.sum() > 0:
-            try:
+            try: 
                 S_inv = torch.linalg.inv(Sigma[non_single_sample_mask])
             except:
                 S_inv = torch.linalg.pinv(Sigma[non_single_sample_mask])
@@ -58,8 +59,15 @@ class MathOps():
             d2_mahalanobis = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
             d2[non_single_sample_mask] = d2_mahalanobis
 
+        if (d2 < 0).any():
+            d2[d2<0]= inf
+            print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
+
         # Compute activations for the candidate clusters
-        Gamma = torch.exp(-d2) #*scaling_factor
+        Gamma = torch.exp(-d2)#*scaling_factor
+
+        if torch.isnan(Gamma).any().item():
+            print("Critical error! NaN detected in Gamma computation")
 
         # Expand activations and distances to the full set of clusters
         full_Gamma = torch.zeros(self.parent.c, dtype=torch.float32, device=self.parent.device)

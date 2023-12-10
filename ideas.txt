@@ -11,3 +11,5 @@ Calinski-Harabasz Index: Also known as the Variance Ratio Criterion, this index 
 Cluster Cohesion and Separation: Cohesion measures how closely related objects are within the same cluster, while separation measures how distinct a cluster is from other clusters. Various methods can quantify cohesion and separation, often involving distances within and between clusters.
 
 Gini Coefficient: In the context of clustering, the Gini coefficient can be used to measure the distribution of data points among different clusters. A lower Gini coefficient suggests a more equal distribution of data points across clusters.
+
+negative memberhip pushes away clusters

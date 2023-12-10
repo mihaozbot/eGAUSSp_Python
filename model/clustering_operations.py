@@ -55,7 +55,23 @@ class ClusteringOps:
         self.parent.S_0 = torch.max(self.parent.S_0, self.parent.S_0_initial)
 
     @profile      
-    def _increment_cluster(self, z):
+    def _increment_cluster(self, z, j):
+
+        e = z - self.parent.mu[j] # Error between the sample and the cluster mean
+        self.parent.mu[j] += 1 / (1 + self.parent.n[j]) * e
+
+        # Check if self.parent.n[j] is equal to 1
+        if self.parent.n[j] == 1:
+            # Update self.parent.S[j] to self.parent.S_0 without gradient calculation
+            with torch.no_grad():
+                self.parent.S[j] = self.parent.S_0.clone()
+
+        self.parent.S[j] += e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
+
+        self.parent.n[j] += 1
+    
+    @profile      
+    def _increment_clusters(self, z):
         ''' Decide whether to increment an existing cluster or add a new cluster based on the current state. '''
         
         #if self.parent.enable_debugging and (j >= len(self.parent.mu) or j < 0):
@@ -64,20 +80,31 @@ class ClusteringOps:
         #Normalize membership functions 
         NGamma = self.parent.Gamma/torch.sum(self.parent.Gamma)  
         
+        if torch.isnan(NGamma).any().item():
+            print("NaN detected in NGamma")
+
         # Calculate the error for the data point for each cluster
         z_expanded = z.unsqueeze(0).expand(self.parent.c, self.parent.feature_dim)
         e_c = z_expanded - self.parent.mu[0:self.parent.c]  # shape [self.parent.current_capacity, feature_dim]
 
         # Update cluster means
-        self.parent.mu[0:self.parent.c] += NGamma.unsqueeze(1) / (1 + self.parent.n[0:self.parent.c].unsqueeze(1)) * e_c
+        self.parent.mu[0:self.parent.c] += NGamma.unsqueeze(1) / (self.parent.n[0:self.parent.c].unsqueeze(1)) * e_c
 
         # e_c_transposed for matrix multiplication, shape [self.parent.current_capacity, feature_dim, 1]
         e_c_transposed = e_c.unsqueeze(-1)  # shape [self.parent.current_capacity, feature_dim, 1]
-        self.parent.S[0:self.parent.c] += NGamma.unsqueeze(-1).unsqueeze(-1) * torch.bmm(e_c_transposed, e_c_transposed.transpose(1, 2))
+        self.parent.S[0:self.parent.c] += NGamma.unsqueeze(-1).unsqueeze(-1) * torch.bmm((z_expanded - self.parent.mu[0:self.parent.c]).unsqueeze(-1), e_c_transposed.transpose(1, 2))
 
         # Update number of samples in each cluster
         self.parent.n[0:self.parent.c] += NGamma
 
+        for i in range(self.parent.c):
+            try:
+                eigenvalues = torch.linalg.eigvalsh(self.parent.S[i])
+                if not torch.all(eigenvalues >= 0):
+                    print(f"Matrix of cluster {i} is not positive semidefinite. Minimum eigenvalue: {torch.min(eigenvalues)}")
+            except RuntimeError as e:
+                print(f"Exception occurred for cluster {i}: {e}")
+                
     @profile      
     def increment_or_add_cluster(self, z, label):
         ''' Increment an existing cluster if a cluster is activated enough, else add a new one'''
@@ -87,14 +114,17 @@ class ClusteringOps:
             #logging.info(f"Info. Added new cluster for label {label} due to no matching clusters. Total clusters now: {self.parent.c}")
             return torch.tensor([1.0], device=self.parent.device)
         
-        _, j_rel = torch.max(self.parent.Gamma[self.parent.matching_clusters], dim=0)
-        j_abs = self.parent.matching_clusters[j_rel].item()  # Map relative index back to full list of clusters
+        #_, j_rel = torch.max(self.parent.Gamma[self.parent.matching_clusters], dim=0)
+        #j_abs = self.parent.matching_clusters[j_rel].item()  # Map relative index back to full list of clusters
         
-        if self.parent.enable_adding and (self.parent.Gamma[j_abs] <= self.Gamma_max):
+        j = torch.argmax(self.parent.Gamma, dim=0)
+
+        if self.parent.enable_adding and (self.parent.Gamma[j] <= self.Gamma_max):
             self._add_new_cluster(z, label)
             #logging.info(f"Info. Added new cluster for label {label} due to low Gamma value. Total clusters now: {self.parent.c}")
         else:
-            self._increment_cluster(z)
+            self._increment_cluster(z,j)
+            #self._increment_clusters(z)
             
     def update_global_statistics(self, z):
         ''' Update the global mean, covariance, and count based on the new data point. '''

@@ -19,6 +19,8 @@ def train_supervised(model, client_data):
 
         if (idx + 1) % 1000 == 0 or (idx + 1) == len(data):
             print(f"Processed {idx + 1} points.Number of clusters: {model.c}")
+    
+    print(f"Batch done. Number of clusters = {torch.sum(model.n>model.N_max)}")
 
 def train_models_in_threads(models, datasets):
     threads = []
