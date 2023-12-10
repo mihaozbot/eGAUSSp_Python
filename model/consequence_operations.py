@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 
 # Attempt to load the line_profiler extension
 try:
@@ -16,8 +17,8 @@ class ConsequenceOps():
     @profile
     def defuzzify(self, z):
         
-        # Normalize Gamma by dividing each element by the sum of all elements
-        normalized_gamma = self.parent.Gamma[0:self.parent.c] / self.parent.Gamma[0:self.parent.c].sum()
+        # Normalize Gamma by dividing each element by the sum of all elements)
+        normalized_gamma = self.parent.Gamma[0:self.parent.c] / (self.parent.Gamma[0:self.parent.c].sum() + 1e-30)
 
         # Filter out unlabeled cluster labels (assuming -1 indicates unlabeled)
         labeled_indices = self.parent.cluster_labels[0:self.parent.c] != -1
@@ -27,7 +28,7 @@ class ConsequenceOps():
         labeled_cluster_labels = self.parent.cluster_labels[0:self.parent.c][labeled_indices]
 
         # Convert labeled cluster labels to one-hot encoding
-        one_hot_labels = torch.nn.functional.one_hot(
+        one_hot_labels = nn.functional.one_hot(
             labeled_cluster_labels.to(torch.int64),
             num_classes=self.parent.num_classes
         )

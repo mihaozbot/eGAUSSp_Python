@@ -1,5 +1,6 @@
 import torch
 
+ 
 # Attempt to load the line_profiler extension
 try:
     from line_profiler import LineProfiler
@@ -38,18 +39,21 @@ class MathOps():
         # Mask for clusters with a single sample
         single_sample_mask = n == 1
         
-        # Compute distances for clusters with a single sample
+        # Compute distances for clusters with a single sample,
         if single_sample_mask.sum() > 0:
             diff_single_sample = z_expanded[single_sample_mask] - mu[single_sample_mask]
-            inv_cov_diag = torch.linalg.pinv(self.parent.S_0).repeat(single_sample_mask.sum(), 1, 1).diagonal(dim1=-2, dim2=-1)
+            #inv_cov_diag = torch.linalg.pinv(self.parent.S_0).repeat(single_sample_mask.sum(), 1, 1).diagonal(dim1=-2, dim2=-1)
+            inv_cov_diag = 1 / self.parent.S_0.diagonal()
             d2_single_sample = torch.sum(diff_single_sample**2 * inv_cov_diag, dim=1)
             d2[single_sample_mask] = d2_single_sample
-
 
         # Compute Mahalanobis distances for other clusters
         non_single_sample_mask = ~single_sample_mask
         if non_single_sample_mask.sum() > 0:
-            S_inv = torch.linalg.pinv(Sigma[non_single_sample_mask])
+            try:
+                S_inv = torch.linalg.inv(Sigma[non_single_sample_mask])
+            except:
+                S_inv = torch.linalg.pinv(Sigma[non_single_sample_mask])
             diff = (z_expanded[non_single_sample_mask] - mu[non_single_sample_mask]).unsqueeze(-1)
             d2_mahalanobis = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
             d2[non_single_sample_mask] = d2_mahalanobis

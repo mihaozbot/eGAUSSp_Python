@@ -1,6 +1,7 @@
 import logging
 import torch
 import torch.nn as nn
+from torch.nn import Parameter
 
 # Attempt to load the line_profiler extension
 try:

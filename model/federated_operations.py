@@ -47,7 +47,7 @@ class FederalOps:
         self.parent.S_glo = (self.parent.S_glo + model.S_glo) + (self.parent.n_glo * model.n_glo / (self.parent.n_glo + model.n_glo)) * (self.parent.mu_glo - model.mu_glo)
         self.parent.mu_glo = (self.parent.n_glo * self.parent.mu_glo + model.n_glo * model.mu_glo) / (self.parent.n_glo + model.n_glo)
         self.parent.n_glo += model.n_glo
-        self.parent.s_glo = torch.sqrt(torch.diag(self.parent.S_glo) / self.parent.n_glo)
+        self.parent.s_glo = torch.sqrt(self.parent.S_glo / self.parent.n_glo)
 
         # Update the minimum cluster size
         self.parent.clustering.update_S_0()

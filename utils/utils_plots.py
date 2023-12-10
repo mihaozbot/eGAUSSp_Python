@@ -4,13 +4,150 @@ import torch
 from matplotlib import cm
 from matplotlib.patches import Ellipse
 from IPython.display import clear_output
+import seaborn as sns
 
-def plot_first_feature(data, labels, model, N_max, num_sigma, colormap='tab10'):
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+from matplotlib import cm
+from matplotlib.patches import Ellipse
+from IPython.display import clear_output
+import seaborn as sns
+
+   
+def plot_all_features_upper_triangle(data, labels, model, N_max, num_sigma, colormap='tab10'):
+    """
+    Function to plot the upper triangle combinations of features against each other, including model's cluster information.
+
+    :param data: Data points (numpy array or torch tensor).
+    :param labels: True labels of data points.
+    :param model: Model containing cluster information.
+    :param N_max: Threshold for the number of data points in a cluster to be visualized.
+    :param num_sigma: Number of standard deviations to plot the ellipses.
+    :param colormap: Colormap for plotting.
+    """
+    # Convert data and labels to numpy if they are torch tensors
+    data = data.cpu().detach().numpy() if isinstance(data, torch.Tensor) else data
+    labels = labels.cpu().detach().numpy() if isinstance(labels, torch.Tensor) else labels
+
+    n_features = data.shape[1]
+
+    # Unique color for each label
+    unique_labels = np.unique(labels)
+    label_colors = cm.get_cmap(colormap)(np.linspace(0, 0.5, len(unique_labels)))
+    label_color_dict = dict(zip(unique_labels, label_colors))
+
+    # Create a grid of subplots for the upper triangle
+    fig, axes = plt.subplots(n_features, n_features, figsize=(15, 15))
+
+    for i in range(n_features):
+        for j in range(i + 1, n_features):
+            ax = axes[i, j]
+
+            # Scatter plot of feature i vs feature j
+            data_colors = [label_color_dict[label.item()] for label in labels]
+            ax.scatter(data[:, j], data[:, i], c=data_colors, alpha=0.5)
+
+            # Plotting ellipses for clusters
+            for cluster_idx in range(model.c):
+                if model.n[cluster_idx] > N_max:
+                    mu_val = model.mu[cluster_idx].cpu().detach().numpy()
+                    S = model.S[cluster_idx].cpu().detach().numpy()
+                    cov_matrix = (S / model.n[cluster_idx].cpu().detach().numpy())
+                    cov_submatrix = cov_matrix[[j, i]][:, [j, i]]
+                    mu_subvector = mu_val[[j, i]]
+
+                    vals, vecs = np.linalg.eigh(cov_submatrix)
+                    angle = np.degrees(np.arctan2(*vecs[:, 0][::-1]))
+                    factor = num_sigma
+                    width, height = factor * np.sqrt(vals)
+                    ell = Ellipse(xy=(mu_subvector[0], mu_subvector[1]), width=width, height=height, angle=angle, edgecolor='black', lw=2, facecolor='none')
+                    ax.add_patch(ell)
+
+            ax.set_xlabel(f'Feature {j}')
+            ax.set_ylabel(f'Feature {i}')
+            ax.grid(True)
+
+            # Hide plots for the lower triangle and diagonal
+            axes[j, i].axis('off')
+            if i == j:
+                ax.axis('off')
+
+    plt.tight_layout()
+    plt.show()
+    
+def plot_all_features_combinations(data, labels, model, N_max, num_sigma, colormap='tab10'):
+    """
+    Function to plot all combinations of features against each other, including model's cluster information.
+
+    :param data: Data points (numpy array or torch tensor).
+    :param labels: True labels of data points.
+    :param model: Model containing cluster information.
+    :param N_max: Threshold for the number of data points in a cluster to be visualized.
+    :param num_sigma: Number of standard deviations to plot the ellipses.
+    :param colormap: Colormap for plotting.
+    """
+    # Convert data and labels to numpy if they are torch tensors
+    data = data.cpu().detach().numpy() if isinstance(data, torch.Tensor) else data
+    labels = labels.cpu().detach().numpy() if isinstance(labels, torch.Tensor) else labels
+
+    n_features = data.shape[1]
+
+    # Unique color for each label
+    unique_labels = np.unique(labels)
+    label_colors = cm.get_cmap(colormap)(np.linspace(0, 0.5, len(unique_labels)))
+    label_color_dict = dict(zip(unique_labels, label_colors))
+
+    # Create a grid of subplots
+    fig, axes = plt.subplots(n_features, n_features, figsize=(15, 15))
+
+    for i in range(n_features):
+        for j in range(n_features):
+            ax = axes[i, j]
+
+            if i == j:
+                # Diagonal: plot distribution of feature i
+                ax.hist(data[:, i], bins=30, color='gray', alpha=0.7)
+            else:
+                # Scatter plot of feature i vs feature j
+                data_colors = [label_color_dict[label.item()] for label in labels]
+                ax.scatter(data[:, j], data[:, i], c=data_colors, alpha=0.5)
+
+                # Plotting ellipses for clusters
+                for cluster_idx in range(model.c):
+                    if model.n[cluster_idx] > N_max:
+                        mu_val = model.mu[cluster_idx].cpu().detach().numpy()
+                        S = model.S[cluster_idx].cpu().detach().numpy()
+                        cov_matrix = (S / model.n[cluster_idx].cpu().detach().numpy())
+                        cov_submatrix = cov_matrix[[j, i]][:, [j, i]]
+                        mu_subvector = mu_val[[j, i]]
+
+                        vals, vecs = np.linalg.eigh(cov_submatrix)
+                        angle = np.degrees(np.arctan2(*vecs[:, 0][::-1]))
+                        factor = num_sigma
+                        width, height = factor * np.sqrt(vals)
+                        ell = Ellipse(xy=(mu_subvector[0], mu_subvector[1]), width=width, height=height, angle=angle, edgecolor='black', lw=2, facecolor='none')
+                        ax.add_patch(ell)
+
+            ax.set_xlabel(f'Feature {j}')
+            ax.set_ylabel(f'Feature {i}')
+            ax.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+    
+def plot_first_feature(dataset, model, N_max, num_sigma, colormap='tab10'):
     """Function to color data points based on their true labels against the first feature."""
+
+    # Extract data and labels from the TensorDataset
+    data, labels = dataset
+    data = data.cpu().detach().numpy() if isinstance(data, torch.Tensor) else data
+    labels = labels.cpu().detach().numpy() if isinstance(labels, torch.Tensor) else labels
     
         # Assign a unique color to each label based on its index
         # Convert labels to numpy if it's a torch tensor
-    data = data.cpu().detach().numpy() if isinstance(data, torch.Tensor) else data
+    
 
     if len(data.shape) == 1:
         data = data.unsqueeze(0)
@@ -21,15 +158,11 @@ def plot_first_feature(data, labels, model, N_max, num_sigma, colormap='tab10'):
 
     n_features = data.shape[1]
 
-    # Assign a unique color to each label based on its index
-        # Convert labels to numpy if it's a torch tensor
-    labels_np = labels.cpu().detach().numpy() if isinstance(labels, torch.Tensor) else labels
-
     # Convert model.cluster_labels to numpy if it's a torch tensor
     model_cluster_labels_np = model.cluster_labels[0:model.c].clone().cpu().numpy() if isinstance(model.cluster_labels[0:model.c], torch.Tensor) else model.cluster_labels[0:model.c]
 
     # Concatenate both arrays and find unique labels
-    combined_labels = np.concatenate((labels_np, model_cluster_labels_np))
+    combined_labels = np.concatenate((labels, model_cluster_labels_np))
     unique_labels = np.unique(combined_labels)
 
     label_colors = cm.get_cmap(colormap)(np.linspace(0, 0.5, len(unique_labels)))
@@ -48,8 +181,8 @@ def plot_first_feature(data, labels, model, N_max, num_sigma, colormap='tab10'):
     fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 5 * rows))
 
     # Check if axes is an instance of AxesSubplot and wrap it in a list if it is
-    if isinstance(axes, plt.Axes):
-        axes = [axes]
+    #if isinstance(axes, plt.Axes):
+    #    axes = [axes]
 
     # Now use axes.ravel() for iterating
     for idx, ax in enumerate(np.array(axes).ravel()[:num_plots]):

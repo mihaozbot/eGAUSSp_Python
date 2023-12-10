@@ -53,7 +53,6 @@ class ClusteringOps:
         #Update smallest cluster covariance matrix
         self.parent.S_0 = torch.diag(S_0)
         self.parent.S_0 = torch.max(self.parent.S_0, self.parent.S_0_initial)
-    
 
     @profile      
     def _increment_cluster(self, z):
