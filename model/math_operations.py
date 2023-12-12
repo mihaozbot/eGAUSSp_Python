@@ -1,25 +1,16 @@
 from math import inf
 import torch
 
- 
-# Attempt to load the line_profiler extension
-try:
-    from line_profiler import LineProfiler
-    profile = LineProfiler()  # If line_profiler is available, use it
-except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
-    def profile(func): 
-        return func
-    
+ # Attempt to load the line_profiler extension
+
 class MathOps():
     def __init__(self, parent):
         self.parent = parent
         self.feature_dim = parent.feature_dim
 
-    @profile
     def compute_activation(self, z):
         """Compute membership of the current sample z to the exisiting rules/clusters"""
-        
+         
         if self.parent.c == 0:
             return torch.empty(0, device=self.parent.device, requires_grad=True)
 

@@ -1,13 +1,6 @@
 import torch
 
 # Attempt to load the line_profiler extension
-try:
-    from line_profiler import LineProfiler
-    profile = LineProfiler()  # If line_profiler is available, use it
-except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
-    def profile(func): 
-        return func
     
 class FederalOps:
     def __init__(self, parent):
@@ -29,10 +22,6 @@ class FederalOps:
                 # Identify clusters with the current label
                 self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c] == label)[0]
                 self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                
-                # Check if there are enough clusters to merge
-                if len(self.parent.merging_mech.valid_clusters) < 2:
-                    merge = False  # Merge cannot happen with less than two clusters
                 
                 with torch.no_grad():
                     # Check merging conditions and merge clusters if applicable
@@ -101,7 +90,7 @@ class FederalOps:
         # Ensure the federated model has enough capacity for the new clusters
         before_size = self.parent.c  # Current size of the model
         after_size = self.parent.c + num_valid_clusters  # Size after merging
-        self.parent.overseer.ensure_capacity(after_size + 1)  # Ensure there's enough space
+        self.parent.overseer.ensure_capacity(after_size)  # Ensure there's enough space
 
         # Initialize a counter for the new index in self.parent
         new_index = before_size
@@ -114,6 +103,7 @@ class FederalOps:
                     self.parent.S.data[new_index] = model.S.data[i]
                     self.parent.n.data[new_index] = model.n.data[i]
 
+                        
                     # Update cluster labels and the label-to-cluster mapping
                     cluster_label = model.cluster_labels[i]
                     self.parent.cluster_labels[new_index] = cluster_label

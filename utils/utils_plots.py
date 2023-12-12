@@ -13,6 +13,7 @@ from matplotlib import cm
 from matplotlib.patches import Ellipse
 from IPython.display import clear_output
 import seaborn as sns
+from matplotlib.ticker import FormatStrFormatter
 
    
 def plot_all_features_upper_triangle(data, labels, model, N_max, num_sigma, colormap='tab10'):
@@ -178,7 +179,7 @@ def plot_first_feature(dataset, model, N_max, num_sigma, colormap='tab10'):
     rows = int(np.ceil(np.sqrt(num_plots)))
     cols = rows if rows * (rows - 1) < num_plots else rows - 1
 
-    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 5 * rows))
+    fig, axes = plt.subplots(rows, cols, figsize=(3 * cols, 3 * rows))
 
     # Check if axes is an instance of AxesSubplot and wrap it in a list if it is
     #if isinstance(axes, plt.Axes):
@@ -223,3 +224,123 @@ def plot_first_feature(dataset, model, N_max, num_sigma, colormap='tab10'):
 
     plt.tight_layout()
     plt.show()
+
+def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title="", colormap='tab10', legend=False):
+    """Function to color data points based on their true labels against the first feature."""
+
+    # Extract data and labels from the TensorDataset
+    data, labels = dataset
+    data = data.cpu().detach().numpy() if isinstance(data, torch.Tensor) else data
+    labels = labels.cpu().detach().numpy() if isinstance(labels, torch.Tensor) else labels
+
+    if len(data.shape) == 1:
+        data = data.unsqueeze(0)
+
+    if len(labels.shape) == 0:
+        labels = labels.unsqueeze(0)
+
+    n_features = data.shape[1]
+
+    # Convert model.cluster_labels to numpy if it's a torch tensor
+    model_cluster_labels_np = model.cluster_labels[0:model.c].clone().cpu().numpy() if isinstance(model.cluster_labels[0:model.c], torch.Tensor) else model.cluster_labels[0:model.c]
+
+    # Concatenate both arrays and find unique labels
+    combined_labels = np.concatenate((labels, model_cluster_labels_np))
+    unique_labels = np.unique(combined_labels)
+
+    label_colors = cm.get_cmap(colormap)(np.linspace(0, 0.5, len(unique_labels)))
+
+    # Map data points to the color of their label
+    label_color_dict = dict(zip(unique_labels, label_colors))
+    data_colors = [label_color_dict[label.item()] for label in labels]
+
+    # Plotting logic
+    num_plots = n_features - 1
+
+    # Create a horizontal line of figures
+    fig, axes = plt.subplots(1, num_plots, figsize=(2.5* num_plots, 2.5))
+
+    # If only one plot, wrap axes in a list
+    if num_plots == 1:
+        axes = [axes]
+
+    for idx, ax in enumerate(axes):
+            
+        # Track if a label has already been added
+        added_labels = {'scatter': set(), 'ellipse': set()}
+        
+        feature_idx = idx + 1
+        # Scatter plot with labels
+        for label in unique_labels:
+            class_data = data[labels == label]
+            class_feature_data = class_data[:, [0, feature_idx]]
+            if label not in added_labels['scatter']:
+                ax.scatter(class_feature_data[:, 0], class_feature_data[:, 1], c=[label_color_dict[label.item()]], alpha=0.5, label=f'Class {label.item()+1}')
+                added_labels['scatter'].add(label)
+            else:
+                ax.scatter(class_feature_data[:, 0], class_feature_data[:, 1], c=[label_color_dict[label.item()]], alpha=0.5)
+
+        for cluster_idx in range(model.c):  # loop through all clusters
+            ellipse_color = label_color_dict[model.cluster_labels[cluster_idx].item()]
+
+            # Darken the ellipse color
+            ellipse_color_rgba = plt.cm.colors.to_rgba(ellipse_color)  # type: ignore
+            dark_factor = 0.8
+            darker_ellipse_color = (ellipse_color_rgba[0] * dark_factor, 
+                                    ellipse_color_rgba[1] * dark_factor, ellipse_color_rgba[2] * dark_factor, 1)
+
+            if model.n[cluster_idx] > N_max:
+                mu_val = model.mu[cluster_idx].cpu().detach().numpy()
+                S = model.S[cluster_idx].cpu().detach().numpy()
+                cov_matrix = (S / model.n[cluster_idx].cpu().detach().numpy())
+                cov_submatrix = cov_matrix[[0, feature_idx]][:, [0, feature_idx]]
+                mu_subvector = mu_val[[0, feature_idx]]
+                vals, vecs = np.linalg.eigh(cov_submatrix)
+                angle = np.degrees(np.arctan2(*vecs[:, 0][::-1]))
+                factor = num_sigma
+                width, height = factor * np.sqrt(vals)
+                if model.cluster_labels[cluster_idx].item() not in added_labels['ellipse']:
+                    ell = Ellipse(xy=(mu_subvector[0], mu_subvector[1]), width=width, height=height, 
+                                  angle=angle, edgecolor=darker_ellipse_color, lw=2, facecolor='none', label=f'Cluster {model.cluster_labels[cluster_idx].item()+1}')
+                    added_labels['ellipse'].add(model.cluster_labels[cluster_idx].item())
+                else:
+                    ell = Ellipse(xy=(mu_subvector[0], mu_subvector[1]), width=width, height=height,
+                                  angle=angle, edgecolor=darker_ellipse_color, lw=2, facecolor='none')
+
+                                
+                ax.add_patch(ell)
+                ax.scatter(mu_subvector[0], mu_subvector[1], color='black', s=10, marker='o')
+
+        ax.set_xlabel(f"Feature 1", fontsize=10)
+        ax.set_ylabel(f"Feature {feature_idx + 1}", fontsize=10)
+        ax.grid(False)
+
+    for ax in axes:
+        ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+
+    # Adjust the subplots to shift them to the right
+
+    fig.text(-0.02, 0.5, title, va='center', rotation='vertical', fontsize=12)
+    
+    if legend:
+            # Adding legend outside the plot
+            # Adding legend to the last axis
+        axes[-1].legend(loc='best')
+        
+    plt.tight_layout()
+    plt.show()
+ 
+    return fig
+
+def save_figure(figure, filename, format='pdf'):
+    """
+    Saves the last generated matplotlib figure to the specified file format.
+
+    :param figure: The matplotlib figure object to save.
+    :param filename: The name of the file where the figure will be saved.
+    :param format: The format of the file ('pdf', 'svg', etc.).
+    """
+
+    figure.savefig(filename, format=format, bbox_inches='tight')
+    print(f"Figure saved as {filename} in {format} format.")

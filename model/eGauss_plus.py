@@ -1,15 +1,6 @@
 import torch
 import torch.nn as nn
 
-# Attempt to load the line_profiler extension
-try:
-    from line_profiler import LineProfiler
-    profile = LineProfiler()  # If line_profiler is available, use it
-except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
-    def profile(func): 
-        return func
-
 from model.clustering_operations import ClusteringOps
 from model.removal_mechanism import RemovalMechanism 
 from model.merging_mechanism import MergingMechanism
@@ -18,6 +9,15 @@ from model.consequence_operations import ConsequenceOps
 from model.model_operations import ModelOps
 from model.federated_operations import FederalOps
 
+# Attempt to load the line_profiler extension
+try:
+    from line_profiler import LineProfiler
+    profile = LineProfiler()  # If line_profiler is available, use it
+except ImportError:
+    # If line_profiler is not available, define a dummy profile decorator
+    def profile(func): 
+        return func
+    
 class eGAUSSp(torch.nn.Module):
     def __init__(self, feature_dim, num_classes, N_max, num_sigma, kappa_join, S_0, c_max, device):
         super(eGAUSSp, self).__init__()
@@ -82,7 +82,7 @@ class eGAUSSp(torch.nn.Module):
         
         self.federal_agent.federated_merging()
 
-    @profile
+
     def forward(self, z, label):
 
         # Check if the model is in evaluation mode
@@ -114,6 +114,6 @@ class eGAUSSp(torch.nn.Module):
                 self.merging_mech.merging_mechanism()
 
         # Defuzzify label scores
-        label_scores = self.consequence.defuzzify(z)
+        label_scores = self.consequence.defuzzify()
 
         return label_scores

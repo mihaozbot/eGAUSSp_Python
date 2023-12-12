@@ -8,24 +8,13 @@ import torch
 import logging
 import os
 
-# Attempt to load the line_profiler extension
-try:
-    from line_profiler import LineProfiler
-    profile = LineProfiler()  # If line_profiler is available, use it
-except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
-    def profile(func): 
-        return func
-    
-
 class MergingMechanism:
     def __init__(self, parent):
         self.parent = parent
         self.feature_dim = parent.feature_dim
         self.V_factor = (2 * torch.pi ** (self.feature_dim/2) / 
                         (self.feature_dim * torch.exp(torch.lgamma(torch.tensor(float(self.feature_dim) / 2, device=self.parent.device)))))
-        
-    @profile      
+             
     def perform_merge(self, i_all, j_all):
         
         # Start plotting BEFORE the merge, for debugging
@@ -77,8 +66,7 @@ class MergingMechanism:
 
             # Close the figure
             plt.close()
-    
-    @profile         
+          
     def plot_cluster(self, index, label, color, alpha=1):
         """Helper function to plot a cluster given its index. Mainly for debugging the merging procedure."""
 
@@ -105,10 +93,9 @@ class MergingMechanism:
         ell = Ellipse(xy=mu_2d, width=width, height=height, angle=angle, edgecolor=color, lw=2, facecolor='none', alpha=alpha)
         plt.gca().add_patch(ell)
 
-    @profile
-    def compute_cluster_parameters(self):
+    def compute_merging_condition(self):
         """
-        Compute the volume 'V' between pairs of clusters in the provided set of matching clusters. Merge the cluster with the best conditions to merge.
+        Compute the volume 'V' between pairs of clusters in the provided set of matching clusters. Merge clusters that meet the specified condition.
         """
         
         # Prepare necessary tensors for valid clusters
@@ -127,19 +114,60 @@ class MergingMechanism:
         det_matrix = torch.exp(torch.linalg.slogdet(Sigma_ij)[1]) # [1] is the log determinant
 
         # Normalize the determinant matrix and extract the upper triangle
-        det_matrix_upper = torch.triu(det_matrix, diagonal=0)
+        det_matrix_upper = torch.triu(det_matrix, diagonal=1)
 
         # Vectorized computation of volume V for upper triangle
-        V_matrix = torch.sqrt(det_matrix_upper)
+        V = torch.sqrt(det_matrix_upper)
         
-        #Compute merging condition kappa
-        kappa, kappa_min = self.compute_kappa_matrix(V_matrix)
+        # Compute merging condition kappa
+        kappa = self.compute_kappa_matrix(V)
+    
+        return kappa
         
-        #Merge is best condition is smaller than the threshold
+    def update_merging_condition(self, i, j):
+        
+        # Prepare necessary tensors for valid clusters
+        n = self.parent.n[self.valid_clusters]
+        mu = self.parent.mu[self.valid_clusters]
+        S = self.parent.S[self.valid_clusters]
+
+        # Compute Sigma_ij only for valid clusters (vectorized computation)
+        mu_diff = mu[:, None, :] - mu[None, :, :]
+        mu_outer_product = mu_diff[..., None] * mu_diff[:, :, None, :]
+        n_matrix = n[:, None] + n[None, :]
+        Sigma = (S[None, :, :, :] + S[:, None, :, :]) + (n[:, None, None, None] * n[None, :, None, None] / n_matrix[:, :, None, None]) * mu_outer_product
+        Sigma = Sigma/(n_matrix[:, :, None, None]-1)
+
+        # Compute log-determinant for numerical stability
+        det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1]) # [1] is the log determinant
+
+        # Normalize the determinant matrix and extract the upper triangle
+        det_matrix_upper = torch.triu(det_matrix, diagonal=1)
+
+        # Vectorized computation of volume V for upper triangle
+        V = torch.sqrt(det_matrix_upper)
+        
+        # Compute merging condition kappa
+        kappa = self.compute_kappa_matrix(V)
+    
+        return kappa, valid_clusters
+                
+    def merge_clusters(self):
+        
+        # Check if the filtered kappa tensor is empty
+        if self.kappa.numel() > 0:
+            kappa_min = torch.min(self.kappa)
+        else:
+            # Handle the empty tensor case (e.g., set kappa_min to None or a default value)
+            kappa_min = float('inf') # or some default value, or raise an error
+    
+        # Track if any merge has occurred
+        merge_occurred = False
+        
         if kappa_min < self.parent.kappa_join:
 
             # Find the indices with the minimum kappa value
-            i_valid, j_valid = (kappa == kappa_min).nonzero(as_tuple=True)
+            i_valid, j_valid = (self.kappa == kappa_min).nonzero(as_tuple=True)
             i_valid, j_valid = i_valid[0].item(), j_valid[0].item()  # Convert tensor indices to integers
 
             # Map local indices i_valid, j_valid to global indices i_all, j_all
@@ -148,34 +176,32 @@ class MergingMechanism:
         
             self.perform_merge(i_all, j_all)
             
-            logging.info(f"Info. Clusters merged. Total clusters now: {self.parent.c}")
-        
-            return True  # A merge happened
-        else:
-            return False # No merge
-        
-    @profile      
+            self.kappa, self.valid_clusters = self.update_merging_condition(i_valid, j_valid)
+            
+            merge_occurred = True
+            
+        return merge_occurred  # Return True if any merge happened, otherwise False
+  
     def merging_mechanism(self, max_iterations=100):
     
         iteration = 0 # Iteration counter
+        
+            #Check which clusters have the necesary conditions to allow them to merge
+        #The point is that we do not want to check all the clusters at every time step, but only the relevant ones
+        threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
+        self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
+                                                                (self.parent.n[self.parent.matching_clusters] >= np.sqrt(self.parent.feature_dim))] # 
+        #Compute the initial merging candidates
+        self.kappa = self.compute_merging_condition()
+        
+        #Merge until you can not merge no mo
         merge = True  # initial condition to enter the loop
         while merge and iteration < max_iterations:
-            
-            #Check which clusters have the necesary conditions to allow them to merge
-            #The point is that we do not want to check all the clusters at every time step, but only the relevant ones
-            threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
-            self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
-                                                                    (self.parent.n[self.parent.matching_clusters] > np.sqrt(self.parent.feature_dim))] # 
         
-            # Check the total number of clusters
-            if (len(self.valid_clusters) < 2):
-                merge = False # merge can not happen
-            
             #Check merging condition, merge rules, and return True if merge happened
-            merge = self.compute_cluster_parameters()
+            merge = self.merge_clusters()
             iteration += 1
     
-    @profile          
     def compute_kappa_matrix(self, V):
         # Create diagonal matrix with shape (c, c) containing V[i, i] + V[j, j] for all i and j
         diag_sum = V.diag().unsqueeze(0) + V.diag().unsqueeze(1)
@@ -195,12 +221,5 @@ class MergingMechanism:
         #Remove
         filtered_kappa = kappa[kappa_filter]
                     
-        # Check if the filtered kappa tensor is empty
-        if filtered_kappa.numel() > 0:
-            kappa_min = torch.min(filtered_kappa)
-        else:
-            # Handle the empty tensor case (e.g., set kappa_min to None or a default value)
-            kappa_min = float('inf') # or some default value, or raise an error
-    
         #min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
-        return kappa, kappa_min
+        return filtered_kappa

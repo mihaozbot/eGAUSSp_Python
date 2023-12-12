@@ -1,19 +1,11 @@
-# Attempt to load the line_profiler extension
-try:
-    from line_profiler import LineProfiler
-    profile = LineProfiler()  # If line_profiler is available, use it
-except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
-    def profile(func): 
-        return func
-    
+
 class RemovalMechanism:
     def __init__(self, parent):
         self.parent = parent
 
-    @profile
+
     def remove_cluster(self, cluster_index):
-        ''' Remove a specified cluster by replacing it with the last active cluster and updating relevant parameters. '''
+        '''Remove a specified cluster by replacing it with the last active cluster and updating relevant parameters. '''
         
         last_active_index = self.parent.c - 1
 

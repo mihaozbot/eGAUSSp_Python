@@ -3,21 +3,22 @@ import torch
 import numpy as np
 
 # Attempt to load the line_profiler extension
+'''
 try:
     from line_profiler import LineProfiler
     profile = LineProfiler()  # If line_profiler is available, use it
 except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
+    #If line_profiler is not available, define a dummy profile decorator
     def profile(func): 
         return func
-    
+''' 
 class ClusteringOps:
     def __init__(self, parent):
         self.parent = parent # Reference to the parent class
         self.feature_dim = parent.feature_dim # Number of features in the dataset
         self.Gamma_max = np.exp(-parent.num_sigma**2) # Maximum value of Gamma (used to determine if a new cluster should be added)
 
-    @profile             
+           
     def _add_new_cluster(self, z, label):
         ''' Add a new cluster to the model. This is called when no matching clusters are found or when the Gamma value is too low.'''
         
@@ -43,7 +44,7 @@ class ClusteringOps:
 
         self.parent.c += 1# Increment the number of clusters
     
-    @profile 
+
     def update_S_0(self):
         ''' Update the smallest cluster covariance matrix based on global statistics, before adding a new cluster. '''
         
@@ -54,7 +55,7 @@ class ClusteringOps:
         self.parent.S_0 = torch.diag(S_0)
         self.parent.S_0 = torch.max(self.parent.S_0, self.parent.S_0_initial)
 
-    @profile      
+     
     def _increment_cluster(self, z, j):
 
         e = z - self.parent.mu[j] # Error between the sample and the cluster mean
@@ -70,7 +71,7 @@ class ClusteringOps:
 
         self.parent.n[j] += 1
     
-    @profile      
+    
     def _increment_clusters(self, z):
         ''' Decide whether to increment an existing cluster or add a new cluster based on the current state. '''
         
@@ -105,7 +106,7 @@ class ClusteringOps:
             except RuntimeError as e:
                 print(f"Exception occurred for cluster {i}: {e}")
                 
-    @profile      
+    
     def increment_or_add_cluster(self, z, label):
         ''' Increment an existing cluster if a cluster is activated enough, else add a new one'''
         

@@ -2,15 +2,6 @@ import logging
 import torch
 import torch.nn as nn
 from torch.nn import Parameter
-
-# Attempt to load the line_profiler extension
-try:
-    from line_profiler import LineProfiler
-    profile = LineProfiler()  # If line_profiler is available, use it
-except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
-    def profile(func): 
-        return func
 import math
 
 class ModelOps:
@@ -26,22 +17,22 @@ class ModelOps:
         self.initialize_logging()
     
     def ensure_capacity(self, new_c):
-        # new_c is the number of clusters that will be active after the process
-        
+        """
+        Adjust the capacity of the model to accommodate a new number of active clusters.
+        """
         with torch.no_grad():  # Disable gradient tracking for tensor resizing
             
-            # Expand the capacity of the model if necessary
-            if new_c >= self.parent.current_capacity:
-                self.modify_capacity(new_c)
+            # Determine whether to expand or contract the model capacity
+            should_expand = new_c >= self.parent.current_capacity
+            should_contract = (self.parent.current_capacity > 2 * self.parent.c_max) and (new_c < (self.parent.current_capacity / 2 - 1))
 
-            # Expand the capacity of the model if necessary
-            elif (self.parent.current_capacity) > 2*self.parent.c_max and new_c < (self.parent.current_capacity/2):
-                #2*self.parent.c_max is the minimal capacity, also handles c = 1
-                self.modify_capacity(self.parent.c)
-        
+            if should_expand or should_contract:
+                self.modify_capacity(new_c)
+                #Note that, 2*self.parent.c_max is the minimal capacity, which also handles c = 1
+            
     def modify_capacity(self, new_c):
         
-        new_capacity = 2 ** math.ceil(math.log2(new_c)+1)  # Find the next power of two greater than the given number
+        new_capacity = 2 ** math.ceil(math.log2(new_c))  # Find the next power of two greater than the given number
         
         self.parent.mu = nn.Parameter(self._resize_tensor(self.parent.mu, (new_capacity, self.parent.feature_dim)), requires_grad=True)
         self.parent.S = nn.Parameter(self._resize_tensor(self.parent.S, (new_capacity, self.parent.feature_dim, self.parent.feature_dim)), requires_grad=True)

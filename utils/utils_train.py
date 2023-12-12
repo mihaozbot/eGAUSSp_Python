@@ -1,9 +1,7 @@
-import torch
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from itertools import cycle
 import threading
-from torch.utils.data import DataLoader
-
+import numpy as np
+import torch
 
 def train_supervised(model, client_data):
         
@@ -19,8 +17,6 @@ def train_supervised(model, client_data):
 
         if (idx + 1) % 1000 == 0 or (idx + 1) == len(data):
             print(f"Processed {idx + 1} points.Number of clusters: {model.c}")
-    
-    print(f"Batch done. Number of clusters = {torch.sum(model.n>model.N_max)}")
 
 def train_models_in_threads(models, datasets):
     threads = []
@@ -71,4 +67,29 @@ def test_model(model, test_dataset):
     recall = recall_score(test_labels, pred_max, average='weighted', zero_division=1)
     f1 = f1_score(test_labels, pred_max, average='weighted', zero_division=1)
 
-    print(f"Test Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1 Score: {f1}")
+    # Create a dictionary to return the metrics
+    metrics = {
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "f1_score": f1
+    }
+
+    return metrics
+
+def calculate_metrics_statistics(metrics_list):
+    """Calculate the average and standard deviation of given metrics."""
+    mean_metrics = {key: np.mean([metrics[key] for metrics in metrics_list]) for key in metrics_list[0]}
+    std_metrics = {key: np.std([metrics[key] for metrics in metrics_list], ddof=1) for key in metrics_list[0]}
+    return format_metrics(mean_metrics, std_metrics)
+
+def format_metrics(mean_metrics, std_metrics):
+    """Format the metrics as 'mean ± standard deviation'."""
+    formatted = {key: f"{mean_metrics[key]:.2f} ± {std_metrics[key]:.2f}" for key in mean_metrics}
+    return formatted
+
+def calculate_cluster_stats(cluster_counts):
+    """Calculate the average and standard deviation of cluster counts."""
+    avg_clusters = np.mean(cluster_counts)
+    std_clusters = np.std(cluster_counts, ddof=1)
+    return avg_clusters, std_clusters

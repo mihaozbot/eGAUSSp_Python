@@ -51,20 +51,14 @@ def prepare_dataset(X, y, num_clients):
     # Split the dataset into the Training set and Test set
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
-    # Split the training data among clients in a non-IID fashion
-    train_data = []
-    for i in range(num_clients):
-        indices = np.random.choice(len(X_train), len(X_train) // num_clients, replace=False)
-        X_client = X_train[indices]
-        y_client = y_train[indices]
-
-        # Remove the selected indices from the training data
-        X_train = np.delete(X_train, indices, axis=0)
-        y_train = np.delete(y_train, indices, axis=0)
-
-        # Convert to PyTorch tensors
-        train_data.append((torch.tensor(X_client, dtype=torch.float32), 
-                           torch.tensor(y_client, dtype=torch.int64)))
+    # Split the training data among clients
+    X_train_split = np.array_split(X_train, num_clients)
+    y_train_split = np.array_split(y_train, num_clients)
+    
+    # Convert the training data to PyTorch tensors and distribute to clients
+    train_data = [(torch.tensor(X_train_split[i], dtype=torch.float32), 
+                    torch.tensor(y_train_split[i], dtype=torch.int64)) 
+                   for i in range(num_clients)]
 
     # Convert X_test and y_test to tensors and pack together
     test_data = (torch.tensor(X_test, dtype=torch.float32), 
@@ -143,50 +137,61 @@ def display_dataset_split(client_data, test_dataset):
     print(f"\nTotal Number of Samples Across All Datasets: {total_samples}")
 
 def plot_dataset_split(client_data, test_dataset):
-    
-        # Extract y_test from the test dataset
     _, y_test = test_dataset
 
     num_clients = len(client_data)
     classes, _ = np.unique(y_test.numpy(), return_counts=True)
     num_classes = len(classes)
-    
-    # Initialize counts
+
     client_counts = np.zeros((num_clients, num_classes))
     test_counts = np.zeros(num_classes)
 
-    # Count the samples per class for each client
     for i, (_, y_client) in enumerate(client_data):
         unique, counts = np.unique(y_client.numpy(), return_counts=True)
         for class_label, count in zip(unique, counts):
             client_counts[i, class_label] = count
 
-    # Count the samples per class for the test set
     unique, counts = np.unique(y_test.numpy(), return_counts=True)
     for class_label, count in zip(unique, counts):
         test_counts[class_label] = count
 
-    # Create an array for the x-axis labels
     labels = [f'Client {i+1}' for i in range(num_clients)] + ['Test Set']
 
-    # Plotting
-    bar_width = 0.3
+    fig_width = 5
+    fig_height = 3
+
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    bar_width = 0.5
     opacity = 0.8
 
-    # Plot for each class
-    for class_label in range(num_classes):
-        plt.bar(np.arange(num_clients + 1) + bar_width * class_label, 
-                np.append(client_counts[:, class_label], test_counts[class_label]),
-                bar_width, alpha=opacity, label=f'Class {class_label}')
+    bottom = np.zeros(num_clients + 1)
 
-    plt.xlabel('Dataset')
-    plt.ylabel('Number of Samples')
-    #plt.title('Number of Samples per Dataset')
-    plt.xticks(np.arange(num_clients + 1) + bar_width / 2, labels)
-    plt.legend()
+    for class_label in range(num_classes):
+        bar_values = np.append(client_counts[:, class_label], test_counts[class_label])
+        bars = ax.bar(np.arange(num_clients + 1), bar_values, bar_width, alpha=opacity, label=f'Class {class_label}', bottom=bottom)
+
+        # Label each bar segment
+        for bar_index, bar in enumerate(bars):
+            height = bar.get_height()
+            if height > 0:  # Only label bars with a non-zero height
+                ax.annotate(f'{int(height)}',
+                            xy=(bar.get_x() + bar.get_width() / 2, bottom[bar_index] + height / 2),
+                            xytext=(0, 0),  # Center the text
+                            textcoords="offset points",
+                            ha='center', va='center')
+
+        bottom += bar_values
+
+    ax.set_xlabel('Dataset')
+    ax.set_ylabel('Number of Samples')
+    ax.set_xticks(np.arange(num_clients + 1))
+    ax.set_xticklabels(labels)
+    ax.legend()
 
     plt.tight_layout()
-    plt.show()
+    return fig
+
 
 import pandas as pd
 
@@ -213,10 +218,55 @@ def balance_dataset(data, class_column='Class', random_state=None):
 
     # Randomly sample from the larger class to match the size of the smaller class
     class_1_data_balanced = class_1_data.sample(n=minority_size, random_state=random_state)
-    class_0_data_balanced = class_0_data.sample(n=minority_size, random_state=random_state)
+    class_0_data_balanced = class_0_data.sample(n=10*minority_size, random_state=random_state)
 
     # Combine the balanced datasets
     balanced_data = pd.concat([class_1_data_balanced, class_0_data_balanced])
 
     # Shuffle the dataset (optional but recommended)
     return balanced_data.sample(frac=1, random_state=random_state).reset_index(drop=True)
+
+
+def prepare_k_fold_non_iid_dataset(X, y, train_index, test_index, num_clients):
+    """
+    Prepares a dataset for federated learning under a non-IID setting. The dataset is split into training 
+    and testing sets based on provided indices. The training set is then further split among the specified 
+    number of clients in a non-IID fashion, where different classes are unevenly distributed among clients.
+
+    :param X: Features in the dataset
+    :param y: Labels in the dataset
+    :param train_index: Indices for the training set
+    :param test_index: Indices for the testing set
+    :param num_clients: The number of clients to distribute the data among
+    :return: A tuple containing the training data for each client, the testing data, and the entire dataset
+    """
+
+    # Shuffle the training indices for randomness
+    train_index = shuffle(train_index)
+    test_index = shuffle(test_index)
+
+    # Create the training and testing sets using provided indices
+    X_train, y_train = X[train_index], y[train_index]
+    X_test, y_test = X[test_index], y[test_index]
+
+    # Split the training data among clients
+    X_train_split = np.array_split(X_train, num_clients)
+    y_train_split = np.array_split(y_train, num_clients)
+
+    # Move class 0 data from first client to second client
+    X_train_split, y_train_split = non_iid_data(X_train_split, y_train_split, num_clients)
+    
+    # Convert the training data to PyTorch tensors and distribute to clients
+    train_data = [(torch.tensor(X_train_split[i], dtype=torch.float32), 
+                    torch.tensor(y_train_split[i], dtype=torch.int64)) 
+                   for i in range(num_clients)]
+
+    # Convert X_test and y_test to tensors and pack together
+    test_data = (torch.tensor(X_test, dtype=torch.float32), 
+                 torch.tensor(y_test, dtype=torch.int64))
+
+    # Convert the entire dataset to tensors and pack together
+    all_data = (torch.tensor(X, dtype=torch.float32), 
+                torch.tensor(y, dtype=torch.int64))
+
+    return train_data, test_data, all_data

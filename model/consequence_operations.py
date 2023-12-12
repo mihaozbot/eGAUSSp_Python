@@ -1,23 +1,13 @@
 import torch
 import torch.nn as nn
 
-# Attempt to load the line_profiler extension
-try:
-    from line_profiler import LineProfiler
-    profile = LineProfiler()  # If line_profiler is available, use it
-except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
-    def profile(func): 
-        return func
-
 class ConsequenceOps():
     def __init__(self, parent):
         self.parent = parent
 
-    @profile
-    def defuzzify(self, z):
+    def defuzzify(self):
         
-        # Normalize Gamma by dividing each element by the sum of all elements)
+        #  Normalize Gamma by dividing each element by the sum of all elements)
         normalized_gamma = self.parent.Gamma[0:self.parent.c] / (self.parent.Gamma[0:self.parent.c].sum())
 
         # Filter out unlabeled cluster labels (assuming -1 indicates unlabeled)
