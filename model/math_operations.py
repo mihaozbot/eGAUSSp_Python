@@ -55,7 +55,7 @@ class MathOps():
             print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
 
         # Compute activations for the candidate clusters
-        Gamma = torch.exp(-d2)#*scaling_factor
+        Gamma = torch.exp(-d2) + 1e-30 #*scaling_factor
 
         if torch.isnan(Gamma).any().item():
             print("Critical error! NaN detected in Gamma computation")

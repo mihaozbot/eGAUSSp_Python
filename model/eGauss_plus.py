@@ -10,6 +10,7 @@ from model.model_operations import ModelOps
 from model.federated_operations import FederalOps
 
 # Attempt to load the line_profiler extension
+'''
 try:
     from line_profiler import LineProfiler
     profile = LineProfiler()  # If line_profiler is available, use it
@@ -17,7 +18,7 @@ except ImportError:
     # If line_profiler is not available, define a dummy profile decorator
     def profile(func): 
         return func
-    
+'''
 class eGAUSSp(torch.nn.Module):
     def __init__(self, feature_dim, num_classes, N_max, num_sigma, kappa_join, S_0, c_max, device):
         super(eGAUSSp, self).__init__()

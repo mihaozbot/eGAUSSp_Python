@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Ellipse
-import torch
 import logging
 import os
 
@@ -126,7 +125,10 @@ class MergingMechanism:
 
 
     def update_merging_condition(self, i, j):
-
+        
+        if len(torch.unique(self.parent.cluster_labels[self.valid_clusters]))>1:
+            pass
+        
         j_all = self.valid_clusters[j]
         #Note due to how torch.min() works we assume that i_all < j_all always holds
 
@@ -134,7 +136,7 @@ class MergingMechanism:
         #If self.parent.c-1 is not on the list, we need to remove j
          #Note the -1 is because self.parent.c starts at 1
         #We want to know if self.parent.c-1 is on the list...If self.valid_clusters[-1] is sorted, and it should be, the last element is the largest index.
-        if (j_all == (self.parent.c - 1)) or (self.valid_clusters[-1] != (self.parent.c - 1)):
+        if (j_all == (self.parent.c-1)) or (self.valid_clusters[-1] != (self.parent.c-1)):
             # Remove the j-th element from valid_clusters
             self.valid_clusters = torch.cat((self.valid_clusters[:j], self.valid_clusters[j + 1:]))
 
@@ -177,7 +179,30 @@ class MergingMechanism:
 
         # Update kappa for the i-th row and column
         self.compute_kappa_matrix()
- 
+    
+            # Debugging checks
+        if self.parent.enable_debugging:
+
+            # Convert tensors to sets for set operation (if they are not large)
+            set_valid_clusters = set(self.valid_clusters.tolist())
+            set_matching_clusters = set(self.parent.matching_clusters.tolist())
+
+            # Check if valid_clusters is a subset of matching_clusters
+            is_subset = set_valid_clusters.issubset(set_matching_clusters)
+            if not is_subset:
+                print("Is valid_clusters a subset of matching_clusters:", is_subset)
+
+
+            # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
+            labels_matching_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters])) == 1
+            if not labels_matching_check:
+                print("Labels consistency in matching clusters:", labels_matching_check)
+                                
+            # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
+            labels_valid_check = len(torch.unique(self.parent.cluster_labels[self.valid_clusters])) == 1
+            if not labels_valid_check:
+                print("Labels consistency in valid clusters:", labels_valid_check)
+
     def merge_clusters(self):
         
         # Track if any merge has occurred
@@ -195,12 +220,12 @@ class MergingMechanism:
             i_all = self.valid_clusters[i_valid]
             j_all = self.valid_clusters[j_valid]
 
+            #Recompute condition for i and potenitionally j
+            self.update_merging_condition(i_valid, j_valid)
+            
             #Actual merging of clusters
             with torch.no_grad():
                 self.perform_merge(i_all, j_all)
-            
-            #Recompute condition for i and potenitionally j
-            self.update_merging_condition(i_valid, j_valid)
 
             merge_occurred = True
             
