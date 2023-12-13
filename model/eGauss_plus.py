@@ -104,15 +104,18 @@ class eGAUSSp(torch.nn.Module):
         self.Gamma = self.mathematician.compute_activation(z)
 
         # Evolving mechanisms
-        with torch.no_grad():
+    
+        if self.evolving:
+            with torch.no_grad():
             
-            #Incremental clustering and cluster addition
-            if self.enable_adding:
+                #Incremental clustering and cluster addition
                 self.clustering.increment_or_add_cluster(z, label)
 
-            #Cluster merging
-            if self.enable_merging:
+                #Cluster merging
                 self.merging_mech.merging_mechanism()
+            
+                #Removal mechanism
+                self.removal_mech.removal_mechanism()
 
         # Defuzzify label scores
         label_scores = self.consequence.defuzzify()

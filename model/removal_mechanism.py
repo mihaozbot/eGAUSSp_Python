@@ -1,10 +1,25 @@
 import torch
+import numpy as np
 
 class RemovalMechanism:
     def __init__(self, parent):
         self.parent = parent
 
+    def removal_mechanism(self):
+        ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
+        if len(self.parent.matching_clusters) < 10 * np.sqrt(self.parent.feature_dim):
+            return
+        
+        # Continue removing the smallest clusters while the condition is not met
+        while len(self.parent.matching_clusters) >= 5 * np.sqrt(self.parent.feature_dim):
+            # Identify the smallest cluster
+            # Assuming 'n' holds the size of each cluster, find the index of the smallest cluster
+            smallest_cluster_index = np.argmin(self.parent.n[self.parent.matching_clusters ])
 
+            # Remove the smallest cluster
+            self.remove_cluster(self.parent.matching_clusters[smallest_cluster_index])
+
+    
     def remove_cluster(self, cluster_index):
         '''Remove a specified cluster by replacing it with the last active cluster and updating relevant parameters. '''
         #Copy everhing from the last active cluster to the remove cluster index

@@ -196,7 +196,7 @@ def plot_dataset_split(client_data, test_dataset):
 import pandas as pd
 
 
-def balance_dataset(data, class_column='Class', random_state=None):
+def balance_dataset(data,  proportion, class_column='Class', random_state=None):
     """
     Balances a dataset by undersampling the majority class to match the size of the minority class.
 
@@ -218,7 +218,7 @@ def balance_dataset(data, class_column='Class', random_state=None):
 
     # Randomly sample from the larger class to match the size of the smaller class
     class_1_data_balanced = class_1_data.sample(n=minority_size, random_state=random_state)
-    class_0_data_balanced = class_0_data.sample(n=10*minority_size, random_state=random_state)
+    class_0_data_balanced = class_0_data.sample(n=proportion*minority_size, random_state=random_state)
 
     # Combine the balanced datasets
     balanced_data = pd.concat([class_1_data_balanced, class_0_data_balanced])

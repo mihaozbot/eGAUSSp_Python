@@ -1,12 +1,12 @@
 import torch
+import numpy as np
 
-# Attempt to load the line_profiler extension
     
 class FederalOps:
     def __init__(self, parent):
         ''' Initialize the FederalOps with a reference to the parent class. '''
         self.parent = parent
-
+        
     def federated_merging(self, max_iterations=1000):
         ''' Perform federated merging of clusters based on labels within a specified number of iterations. '''
         
@@ -15,7 +15,7 @@ class FederalOps:
                 
             # Identify clusters with the current label
             self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c] == label)[0]
-            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
+            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters[(self.parent.n[self.parent.matching_clusters] >= 0)]
 
             #Compute the initial merging candidates
             self.parent.merging_mech.compute_merging_condition()
@@ -31,7 +31,7 @@ class FederalOps:
                 #Check merging condition, merge rules, and return True if merge happened
                 merge = self.parent.merging_mech.merge_clusters()
                 iteration += 1  # Increment the iteration counter
-
+                
     def merge_model_statistics(self, model):
         ''' Merge the global statistical parameters of another model into the current federated model. '''
 

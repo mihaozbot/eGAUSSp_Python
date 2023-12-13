@@ -2,6 +2,10 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import threading
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_auc_score, roc_curve
 
 def train_supervised(model, client_data):
         
@@ -44,38 +48,60 @@ def train_unsupervised(model, client_data):
 
 
 def test_model(model, test_dataset):
+    test_data, _ = test_dataset
     
-    # Extract features and labels from the dataset
-    test_data, test_labels = test_dataset
-    
-    #y_test = y_test.numpy()  # Convert y_test to numpy array for evaluation metrics
-
-    #Toggle evaluation mode
+    #Turn off training
     model.toggle_evolving(False)
     model.eval()
 
-    pred_max = []
+    all_scores = []  # List to store scores of the positive class
+    pred_max = []    # List to store predicted class labels
     for z in test_data:
-        output = model.forward(z, -1)  # Forward pass
-        pred_max.append(output.argmax())  # Assuming pred is a tensor of class scores
+        output = model(z, -1)  # Forward pass
+        all_scores.append(output.detach())  # Extract and store scores for the positive class
+        pred_max.append(output.argmax().detach())  # Extract and store class predictions
 
-    pred_max = torch.tensor(pred_max)
+    all_scores = torch.tensor(np.vstack(all_scores))  # Convert list to numpy array
+    pred_max = torch.tensor(pred_max)      # Convert list to numpy array
 
-    # Evaluation metrics with zero_division parameter
+    return all_scores, pred_max
+
+
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+def calculate_metrics(pred_max, test_dataset):
+    _, test_labels = test_dataset
+        
     accuracy = accuracy_score(test_labels, pred_max)
-    precision = precision_score(test_labels, pred_max, average='weighted', zero_division=1)
-    recall = recall_score(test_labels, pred_max, average='weighted', zero_division=1)
-    f1 = f1_score(test_labels, pred_max, average='weighted', zero_division=1)
+    precision = precision_score(test_labels, pred_max, average='weighted', zero_division='warn')
+    recall = recall_score(test_labels, pred_max, average='weighted', zero_division='warn')
+    f1 = f1_score(test_labels, pred_max, average='weighted', zero_division='warn')
 
-    # Create a dictionary to return the metrics
-    metrics = {
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1_score": f1
-    }
+    return {"accuracy": accuracy, "precision": precision, "recall": recall, "f1_score": f1}
 
-    return metrics
+def calculate_roc_auc(outputs, test_dataset):
+    
+    _, test_labels = test_dataset
+        
+    positive_class_scores = outputs[:, 1]  # Assuming index 1 is the positive class
+    roc_auc = roc_auc_score(test_labels, positive_class_scores)
+    
+    # Calculate ROC Curve
+    fpr, tpr, _ = roc_curve(test_labels, positive_class_scores)
+
+    # Plot ROC Curve
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, color='blue', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='gray', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic')
+    plt.legend(loc="lower right")
+    plt.show()
+
+    return roc_auc
 
 def calculate_metrics_statistics(metrics_list):
     """Calculate the average and standard deviation of given metrics."""
@@ -93,3 +119,34 @@ def calculate_cluster_stats(cluster_counts):
     avg_clusters = np.mean(cluster_counts)
     std_clusters = np.std(cluster_counts, ddof=1)
     return avg_clusters, std_clusters
+
+def plot_confusion_matrix(pred_max, test_dataset):
+    """
+    Plots the confusion matrix.
+    
+    Args:
+    pred_max: Predicted labels.
+    test_labels: True labels.
+    class_names: List of class names for the labels.
+    """
+        
+    _, test_labels = test_dataset
+    
+    # Determine the number of unique classes
+    num_classes = len(np.unique(test_labels))
+    class_names = [str(i) for i in range(num_classes)]
+
+    # Compute the confusion matrix
+    cm = confusion_matrix(test_labels, pred_max)
+
+    # Define the figure size
+    fig_width = 4
+    fig_height = 3
+    plt.figure(figsize=(fig_width, fig_height))
+    
+    sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+    
+    plt.xlabel('Predicted labels')
+    plt.ylabel('True labels')
+    plt.title('Confusion Matrix')
+    plt.show()

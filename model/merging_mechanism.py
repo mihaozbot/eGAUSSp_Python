@@ -192,7 +192,6 @@ class MergingMechanism:
             if not is_subset:
                 print("Is valid_clusters a subset of matching_clusters:", is_subset)
 
-
             # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
             labels_matching_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters])) == 1
             if not labels_matching_check:
@@ -237,9 +236,14 @@ class MergingMechanism:
         
         #Check which clusters have the necesary conditions to allow them to merge
         #The point is that we do not want to check all the clusters at every time step, but only the relevant ones
-        threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
+        if self.parent.c > 10*np.sqrt(self.parent.feature_dim):
+            threshold = 0
+        else:
+            threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
+        
         self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
-                                                                (self.parent.n[self.parent.matching_clusters] >= np.sqrt(self.parent.feature_dim))] # 
+                                                                (self.parent.n[self.parent.matching_clusters] >= np.sqrt(self.parent.feature_dim))]
+        
         #Compute the initial merging candidates
         self.compute_merging_condition()
 
@@ -253,7 +257,7 @@ class MergingMechanism:
             #Check merging condition, merge rules, and return True if merge happened
             merge = self.merge_clusters()
             iteration += 1
-    
+
     def compute_kappa_matrix(self):
         # Create diagonal matrix with shape (c, c) containing V[i, i] + V[j, j] for all i and j
         diag_sum = self.V.diag().unsqueeze(0) + self.V.diag().unsqueeze(1)
