@@ -113,56 +113,77 @@ class MergingMechanism:
         # Compute log-determinant for numerical stability
         det_matrix = torch.exp(torch.linalg.slogdet(Sigma_ij)[1]) # [1] is the log determinant
 
-        # Normalize the determinant matrix and extract the upper triangle
-        det_matrix_upper = torch.triu(det_matrix, diagonal=1)
-
         # Vectorized computation of volume V for upper triangle
-        V = torch.sqrt(det_matrix_upper)
-        
+        self.V = torch.sqrt(det_matrix)
+
+        #Extract the upper triangle
+        self.V = torch.triu(self.V , diagonal=0)
+
         # Compute merging condition kappa
-        kappa = self.compute_kappa_matrix(V)
+        kappa = self.compute_kappa_matrix()
     
         return kappa
-        
+
+
     def update_merging_condition(self, i, j):
-        
+
+        j_all = self.valid_clusters[j]
+        #Note due to how torch.min() works we assume that i_all < j_all always holds
+
+        #If j_all happends to be the last active cluster just remove it from self.valid_clusters and self.kappa
+        #If self.parent.c-1 is not on the list, we need to remove j
+         #Note the -1 is because self.parent.c starts at 1
+        #We want to know if self.parent.c-1 is on the list...If self.valid_clusters[-1] is sorted, and it should be, the last element is the largest index.
+        if (j_all == (self.parent.c - 1)) or (self.valid_clusters[-1] != (self.parent.c - 1)):
+            # Remove the j-th element from valid_clusters
+            self.valid_clusters = torch.cat((self.valid_clusters[:j], self.valid_clusters[j + 1:]))
+
+            # Remove the j-th row and column from V
+            self.V = torch.cat((self.V[:j], self.V[j + 1:]), dim=0)  # Remove j-th row
+            self.V = torch.cat((self.V[:, :j], self.V[:, j + 1:]), dim=1)  # Remove j-th column
+
+        else:
+            # (self.parent.c - 1) is on the list, and the last cluster was copied to the j-th place
+            # Remove the last element from valid_clusters
+            self.valid_clusters = self.valid_clusters[:-1] 
+
+            # Move the last row and column of V to the j-th position, then remove the last row and column
+            self.V[j] = self.V[-1]  # Move last row to j-th position
+            self.V[:, j] = self.V[:, -1]  # Move last column to j-th position
+            self.V = self.V[:-1, :-1]  # Remove last row and column
+
+        if len(self.valid_clusters) < 2:
+            return #Further computation does not matter in this case
+            
         # Prepare necessary tensors for valid clusters
         n = self.parent.n[self.valid_clusters]
         mu = self.parent.mu[self.valid_clusters]
         S = self.parent.S[self.valid_clusters]
 
-        # Compute Sigma_ij only for valid clusters (vectorized computation)
-        mu_diff = mu[:, None, :] - mu[None, :, :]
-        mu_outer_product = mu_diff[..., None] * mu_diff[:, :, None, :]
-        n_matrix = n[:, None] + n[None, :]
-        Sigma = (S[None, :, :, :] + S[:, None, :, :]) + (n[:, None, None, None] * n[None, :, None, None] / n_matrix[:, :, None, None]) * mu_outer_product
-        Sigma = Sigma/(n_matrix[:, :, None, None]-1)
+        # Compute Sigma_ij only for the i-th row and column
+        mu_diff = mu[i, None, :] - mu
+        mu_outer_product = mu_diff[..., None] * mu_diff[:, None, :]
+        n_matrix = n[i, None] + n
+        Sigma = (S[i, None, :, :] + S) + (n[i, None, None, None] * n[:, None, None] / n_matrix[:, None, None]) * mu_outer_product
+        Sigma = Sigma / (n_matrix[:, None, None] - 1)
 
         # Compute log-determinant for numerical stability
-        det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1]) # [1] is the log determinant
-
-        # Normalize the determinant matrix and extract the upper triangle
-        det_matrix_upper = torch.triu(det_matrix, diagonal=1)
+        det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1])  # [1] is the log determinant
 
         # Vectorized computation of volume V for upper triangle
-        V = torch.sqrt(det_matrix_upper)
-        
-        # Compute merging condition kappa
-        kappa = self.compute_kappa_matrix(V)
-    
-        return kappa, valid_clusters
-                
+        V_i = torch.sqrt(det_matrix)
+        self.V[i,:], self.V[:,i]  = V_i, V_i
+        self.V = torch.triu(self.V , diagonal=0)
+
+        # Update kappa for the i-th row and column
+        self.compute_kappa_matrix()
+ 
     def merge_clusters(self):
         
-        # Check if the filtered kappa tensor is empty
-        if self.kappa.numel() > 0:
-            kappa_min = torch.min(self.kappa)
-        else:
-            # Handle the empty tensor case (e.g., set kappa_min to None or a default value)
-            kappa_min = float('inf') # or some default value, or raise an error
-    
         # Track if any merge has occurred
         merge_occurred = False
+        
+        kappa_min = torch.min(self.kappa)
         
         if kappa_min < self.parent.kappa_join:
 
@@ -173,11 +194,14 @@ class MergingMechanism:
             # Map local indices i_valid, j_valid to global indices i_all, j_all
             i_all = self.valid_clusters[i_valid]
             j_all = self.valid_clusters[j_valid]
-        
-            self.perform_merge(i_all, j_all)
+
+            #Actual merging of clusters
+            with torch.no_grad():
+                self.perform_merge(i_all, j_all)
             
-            self.kappa, self.valid_clusters = self.update_merging_condition(i_valid, j_valid)
-            
+            #Recompute condition for i and potenitionally j
+            self.update_merging_condition(i_valid, j_valid)
+
             merge_occurred = True
             
         return merge_occurred  # Return True if any merge happened, otherwise False
@@ -186,40 +210,38 @@ class MergingMechanism:
     
         iteration = 0 # Iteration counter
         
-            #Check which clusters have the necesary conditions to allow them to merge
+        #Check which clusters have the necesary conditions to allow them to merge
         #The point is that we do not want to check all the clusters at every time step, but only the relevant ones
         threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
         self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
                                                                 (self.parent.n[self.parent.matching_clusters] >= np.sqrt(self.parent.feature_dim))] # 
         #Compute the initial merging candidates
-        self.kappa = self.compute_merging_condition()
-        
+        self.compute_merging_condition()
+
         #Merge until you can not merge no mo
         merge = True  # initial condition to enter the loop
         while merge and iteration < max_iterations:
-        
+            
+            if len(self.valid_clusters) < 2:
+                break
+
             #Check merging condition, merge rules, and return True if merge happened
             merge = self.merge_clusters()
             iteration += 1
     
-    def compute_kappa_matrix(self, V):
+    def compute_kappa_matrix(self):
         # Create diagonal matrix with shape (c, c) containing V[i, i] + V[j, j] for all i and j
-        diag_sum = V.diag().unsqueeze(0) + V.diag().unsqueeze(1)
+        diag_sum = self.V.diag().unsqueeze(0) + self.V.diag().unsqueeze(1)
 
         # Create the upper triangular part of kappa matrix
-        kappa = torch.triu(V / diag_sum, diagonal=1)
+        self.kappa = torch.triu(self.V / diag_sum, diagonal=1)
 
         #Compute volume of default cluster covariance matrix
         V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
        
         #Compare cluster volume to standard volume
-        V_ratio = V/V_S_0
+        V_ratio = self.V/V_S_0
         
         # Filtering kappa based on conditions
-        kappa_filter = (kappa != 0) * (V_ratio < np.sqrt(self.feature_dim))
-
-        #Remove
-        filtered_kappa = kappa[kappa_filter]
-                    
-        #min(): Expected reduction dim to be specified for input.numel() == 0. Specify the reduction dim with the 'dim' argument.
-        return filtered_kappa
+        kappa_filter = (self.kappa == 0) + (V_ratio > np.sqrt(self.feature_dim))
+        self.kappa[kappa_filter] = float("inf")

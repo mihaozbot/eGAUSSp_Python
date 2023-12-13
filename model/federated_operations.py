@@ -13,20 +13,23 @@ class FederalOps:
         # Iterate over unique labels in the cluster labels
         for label in torch.unique(self.parent.cluster_labels[:self.parent.c]):
                 
-            iteration = 0 # Counter to track the number of iterations
-            merge = True  # Flag to control the merging process
+            # Identify clusters with the current label
+            self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c] == label)[0]
+            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
 
+            #Compute the initial merging candidates
+            self.parent.merging_mech.compute_merging_condition()
+            
             # Continue merging while the flag is True and iterations are below the maximum
+            merge = True  # Flag to control the merging process
+            iteration = 0 # Counter to track the number of iterations
             while merge and iteration < max_iterations:
-                
-                # Identify clusters with the current label
-                self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c] == label)[0]
-                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                
-                with torch.no_grad():
-                    # Check merging conditions and merge clusters if applicable
-                    merge = self.parent.merging_mech.compute_cluster_parameters()
-                
+            
+                if len(self.parent.merging_mech.valid_clusters) < 2:
+                    break
+
+                #Check merging condition, merge rules, and return True if merge happened
+                merge = self.parent.merging_mech.merge_clusters()
                 iteration += 1  # Increment the iteration counter
 
     def merge_model_statistics(self, model):
