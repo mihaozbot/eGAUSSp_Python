@@ -11,11 +11,12 @@ class FederalOps:
         ''' Perform federated merging of clusters based on labels within a specified number of iterations. '''
         
         # Iterate over unique labels in the cluster labels
-        for label in torch.unique(self.parent.cluster_labels[:self.parent.c]):
+        for label in range(0, self.parent.num_classes):
                 
             # Identify clusters with the current label
-            self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c] == label)[0]
-            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters[(self.parent.n[self.parent.matching_clusters] >= self.parent.feature_dim)]
+                        # In training mode, match clusters based on the label
+            self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
+            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters[(self.parent.n[self.parent.matching_clusters] >= 1)]
 
             #Compute the initial merging candidates
             self.parent.merging_mech.compute_merging_condition()

@@ -35,7 +35,7 @@ class ClusteringOps:
 
         # Update cluster_labels
         # If cluster_labels is not a Parameter and does not require gradients, update as a regular tensor
-        self.parent.cluster_labels[self.parent.c] = label
+        self.parent.cluster_labels[self.parent.c] = self.parent.one_hot_labels[label]
     
         #Add a new Gamma value for the new cluster equal to 1 (Gamma is the weight of the cluster) 
         self.parent.Gamma = torch.cat((self.parent.Gamma, torch.tensor([1.0], dtype=torch.float32, device=self.parent.device)))

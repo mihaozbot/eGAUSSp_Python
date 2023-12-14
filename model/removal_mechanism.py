@@ -11,7 +11,7 @@ class RemovalMechanism:
             return
         
         # Continue removing the smallest clusters while the condition is not met
-        while len(self.parent.matching_clusters) >= 5 * np.sqrt(self.parent.feature_dim):
+        while len(self.parent.matching_clusters) >= 10 * np.sqrt(self.parent.feature_dim):
             # Identify the smallest cluster
             # Assuming 'n' holds the size of each cluster, find the index of the smallest cluster
             smallest_cluster_index = np.argmin(self.parent.n[self.parent.matching_clusters ])
@@ -57,18 +57,7 @@ class RemovalMechanism:
 
         # Debugging checks
         if self.parent.enable_debugging:
-            '''
-            print("Debugging merging Information:")
-            print("Removed Cluster Index:", cluster_index)
-            print("Last Active Cluster Index:", last_active_index)
-            print("Updated Active Clusters Count:", self.parent.c)
-            print("Updated Matching Clusters:", self.parent.matching_clusters)
-            print("Cluster Labels for Matching Clusters:", self.parent.cluster_labels[self.parent.matching_clusters])
-            print("Cluster Labels for Valid Clusters:", self.parent.cluster_labels[self.parent.merging_mech.valid_clusters])
-            print("Valid Clusters:", self.parent.merging_mech.valid_clusters)
-            print("Matching Clusters:", self.parent.matching_clusters)
-            '''
-            
+
             # Check if cluster_index is in matching_clusters and points to the same data as the old last_active_index
             label_match_check = True
             if cluster_index in self.parent.matching_clusters:
@@ -77,6 +66,6 @@ class RemovalMechanism:
                 print("Label of cluster index is in labels of matching clusters:", label_match_check)
             
             # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
-            labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters])) == 1
+            labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) == 1
             if not labels_consistency_check:
                 print("Labels consistency in matching clusters:", labels_consistency_check)

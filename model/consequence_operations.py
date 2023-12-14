@@ -15,18 +15,9 @@ class ConsequenceOps():
 
         # Select only labeled data for Gamma and cluster labels
         #labeled_gamma = normalized_gamma[labeled_indices]
-        labeled_cluster_labels = self.parent.cluster_labels[0:self.parent.c]
-
-        # Convert labeled cluster labels to one-hot encoding
-        one_hot_labels = nn.functional.one_hot(
-            labeled_cluster_labels.to(torch.int64),
-            num_classes=self.parent.num_classes
-        )
+        labeled_cluster_labels = self.parent.cluster_labels[:self.parent.c]
 
         # Multiply normalized memberships with one-hot labels and sum across clusters
-        label_scores = torch.sum(
-            normalized_gamma.unsqueeze(-1) * one_hot_labels.float(),
-            dim=0
-        )
+        label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * labeled_cluster_labels, dim=0)
 
         return label_scores

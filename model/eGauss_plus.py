@@ -10,6 +10,7 @@ from model.model_operations import ModelOps
 from model.federated_operations import FederalOps
 
 # Attempt to load the line_profiler extension
+
 '''
 try:
     from line_profiler import LineProfiler
@@ -19,6 +20,7 @@ except ImportError:
     def profile(func): 
         return func
 '''
+
 class eGAUSSp(torch.nn.Module):
     def __init__(self, feature_dim, num_classes, N_max, num_sigma, kappa_join, S_0, c_max, device):
         super(eGAUSSp, self).__init__()
@@ -36,8 +38,10 @@ class eGAUSSp(torch.nn.Module):
         self.c = 0 # Number of active clusters
         self.Gamma = torch.empty(0, dtype=torch.float32, device=device,requires_grad=True)
         self.current_capacity = 2*c_max #Initialize current capacity, which will be expanded as needed during training 
-        self.cluster_labels = torch.empty((self.current_capacity), dtype=torch.int32, device=device) #Initialize cluster labels
+        self.cluster_labels = torch.empty((self.current_capacity, num_classes), dtype=torch.int32, device=device) #Initialize cluster labels
         self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
+        
+        self.one_hot_labels = torch.eye(num_classes, dtype=torch.int64) #One hot labels 
         
         # Trainable parameters
         self.n = nn.Parameter(torch.zeros((self.current_capacity), requires_grad=True, device = device)) #Initialize cluster sizes 
@@ -98,7 +102,7 @@ class eGAUSSp(torch.nn.Module):
             self.clustering.update_global_statistics(z)
             
             # In training mode, match clusters based on the label
-            self.matching_clusters = torch.where(self.cluster_labels[:self.c] == label)[0]
+            self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
 
         # Compute activation
         self.Gamma = self.mathematician.compute_activation(z)

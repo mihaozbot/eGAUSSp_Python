@@ -126,9 +126,6 @@ class MergingMechanism:
 
     def update_merging_condition(self, i, j):
         
-        if len(torch.unique(self.parent.cluster_labels[self.valid_clusters]))>1:
-            pass
-        
         j_all = self.valid_clusters[j]
         #Note due to how torch.min() works we assume that i_all < j_all always holds
 
@@ -191,16 +188,6 @@ class MergingMechanism:
             is_subset = set_valid_clusters.issubset(set_matching_clusters)
             if not is_subset:
                 print("Is valid_clusters a subset of matching_clusters:", is_subset)
-
-            # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
-            labels_matching_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters])) == 1
-            if not labels_matching_check:
-                print("Labels consistency in matching clusters:", labels_matching_check)
-                                
-            # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
-            labels_valid_check = len(torch.unique(self.parent.cluster_labels[self.valid_clusters])) == 1
-            if not labels_valid_check:
-                print("Labels consistency in valid clusters:", labels_valid_check)
 
     def merge_clusters(self):
         
