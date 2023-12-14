@@ -41,11 +41,8 @@ class MathOps():
 
         # Compute Mahalanobis distances for other clusters
         non_single_sample_mask = ~single_sample_mask
-        if non_single_sample_mask.sum() > 0:
-            try: 
-                S_inv = torch.linalg.inv(Sigma[non_single_sample_mask])
-            except:
-                S_inv = torch.linalg.pinv(Sigma[non_single_sample_mask])
+        if non_single_sample_mask.sum() > 0: 
+            S_inv = torch.linalg.inv(Sigma[non_single_sample_mask])
             diff = (z_expanded[non_single_sample_mask] - mu[non_single_sample_mask]).unsqueeze(-1)
             d2_mahalanobis = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
             d2[non_single_sample_mask] = d2_mahalanobis

@@ -237,12 +237,11 @@ class MergingMechanism:
         #Check which clusters have the necesary conditions to allow them to merge
         #The point is that we do not want to check all the clusters at every time step, but only the relevant ones
         if self.parent.c > 10*np.sqrt(self.parent.feature_dim):
-            threshold = 0
+            self.valid_clusters = self.parent.matching_clusters
         else:
             threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
-        
-        self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
-                                                                (self.parent.n[self.parent.matching_clusters] >= np.sqrt(self.parent.feature_dim))]
+            self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
+                                                                (self.parent.n[self.parent.matching_clusters] >= self.parent.feature_dim)] #np.sqrt(
         
         #Compute the initial merging candidates
         self.compute_merging_condition()

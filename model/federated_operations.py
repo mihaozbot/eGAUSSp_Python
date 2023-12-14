@@ -15,7 +15,7 @@ class FederalOps:
                 
             # Identify clusters with the current label
             self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c] == label)[0]
-            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters[(self.parent.n[self.parent.matching_clusters] >= 0)]
+            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters[(self.parent.n[self.parent.matching_clusters] >= self.parent.feature_dim)]
 
             #Compute the initial merging candidates
             self.parent.merging_mech.compute_merging_condition()
