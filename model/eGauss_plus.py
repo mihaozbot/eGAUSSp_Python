@@ -11,16 +11,6 @@ from model.federated_operations import FederalOps
 
 # Attempt to load the line_profiler extension
 
-'''
-try:
-    from line_profiler import LineProfiler
-    profile = LineProfiler()  # If line_profiler is available, use it
-except ImportError:
-    # If line_profiler is not available, define a dummy profile decorator
-    def profile(func): 
-        return func
-'''
-
 class eGAUSSp(torch.nn.Module):
     def __init__(self, feature_dim, num_classes, N_max, num_sigma, kappa_join, S_0, c_max, device):
         super(eGAUSSp, self).__init__()
@@ -87,41 +77,50 @@ class eGAUSSp(torch.nn.Module):
         
         self.federal_agent.federated_merging()
 
+    def forward(self, data, labels):
 
-    def forward(self, z, label):
+        all_scores = []  # List to store scores of the positive class
+        pred_max = []    # List to store predicted class labels
+        for (z, label) in zip(data, labels):
 
-        # Check if the model is in evaluation mode
-        if not self.training: #In evaluation mode
-            
-            # In evaluation mode, match all clusters
-            self.matching_clusters = torch.arange(self.c, dtype=torch.int64, device=self.device)
-            
-        else: #In training mode
-            
-            # Update global statistics
-            self.clustering.update_global_statistics(z)
-            
-            # In training mode, match clusters based on the label
-            self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
+            # Check if the model is in evaluation mode
+            if not self.training: #In evaluation mode
+                
+                # In evaluation mode, match all clusters
+                self.matching_clusters = torch.arange(self.c, dtype=torch.int64, device=self.device)
+                
+            else: #In training mode
+                
+                # Update global statistics
+                self.clustering.update_global_statistics(z)
+                
+                # In training mode, match clusters based on the label
+                self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
 
-        # Compute activation
-        self.Gamma = self.mathematician.compute_activation(z)
+            # Compute activation
+            self.Gamma = self.mathematician.compute_activation(z)
 
-        # Evolving mechanisms
-    
-        if self.evolving:
-            with torch.no_grad():
-            
-                #Incremental clustering and cluster addition
-                self.clustering.increment_or_add_cluster(z, label)
+            # Evolving mechanisms
+        
+            if self.evolving:
+                with torch.no_grad():
+                
+                    #Incremental clustering and cluster addition
+                    self.clustering.increment_or_add_cluster(z, label)
 
-                #Cluster merging
-                self.merging_mech.merging_mechanism()
-            
-                #Removal mechanism
-                self.removal_mech.removal_mechanism()
+                    #Cluster merging
+                    self.merging_mech.merging_mechanism()
+                
+                    #Removal mechanism
+                    self.removal_mech.removal_mechanism()
 
-        # Defuzzify label scores
-        label_scores = self.consequence.defuzzify()
+            # Defuzzify label scores
+            label_scores = self.consequence.defuzzify()
 
-        return label_scores
+            all_scores.append(label_scores)  # Extract and store scores for the positive class
+            pred_max.append(label_scores.argmax())  # Extract and store class predictions
+
+        all_scores = torch.vstack(all_scores).clone().detach().requires_grad_(True)
+        pred_max = torch.tensor(pred_max)      # Convert list to numpy array
+
+        return all_scores, pred_max

@@ -18,9 +18,7 @@ class FederalOps:
             self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
             self.parent.merging_mech.valid_clusters = self.parent.matching_clusters[(self.parent.n[self.parent.matching_clusters] >= 1)]
 
-            #Compute the initial merging candidates
-            self.parent.merging_mech.compute_merging_condition()
-            
+
             # Continue merging while the flag is True and iterations are below the maximum
             merge = True  # Flag to control the merging process
             iteration = 0 # Counter to track the number of iterations
@@ -29,6 +27,9 @@ class FederalOps:
                 if len(self.parent.merging_mech.valid_clusters) < 2:
                     break
 
+                #Compute the initial merging candidates
+                self.parent.merging_mech.compute_merging_condition()
+                
                 #Check merging condition, merge rules, and return True if merge happened
                 merge = self.parent.merging_mech.merge_clusters()
                 iteration += 1  # Increment the iteration counter

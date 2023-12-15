@@ -6,14 +6,14 @@ from matplotlib.markers import MarkerStyle
 from matplotlib.patches import Ellipse
 import logging
 import os
-
+    
 class MergingMechanism:
     def __init__(self, parent):
         self.parent = parent
         self.feature_dim = parent.feature_dim
         self.V_factor = (2 * torch.pi ** (self.feature_dim/2) / 
                         (self.feature_dim * torch.exp(torch.lgamma(torch.tensor(float(self.feature_dim) / 2, device=self.parent.device)))))
-             
+
     def perform_merge(self, i_all, j_all):
         
         # Start plotting BEFORE the merge, for debugging
@@ -65,7 +65,7 @@ class MergingMechanism:
 
             # Close the figure
             plt.close()
-          
+
     def plot_cluster(self, index, label, color, alpha=1):
         """Helper function to plot a cluster given its index. Mainly for debugging the merging procedure."""
 
@@ -105,12 +105,15 @@ class MergingMechanism:
         # Compute Sigma_ij only for valid clusters (vectorized computation)
         mu_diff = mu[:, None, :] - mu[None, :, :]
         mu_outer_product = mu_diff[..., None] * mu_diff[:, :, None, :]
-        n_ij_matrix = n[:, None] + n[None, :]
-        Sigma_ij = (S[None, :, :, :] + S[:, None, :, :]) + (n[:, None, None, None] * n[None, :, None, None] / n_ij_matrix[:, :, None, None]) * mu_outer_product
-        Sigma_ij = Sigma_ij/(n_ij_matrix[:, :, None, None]-1)
+        n_matrix = n[:, None] + n[None, :]
+        Sigma = (S[None, :, :, :] + S[:, None, :, :]) + (n[:, None, None, None] * n[None, :, None, None] / n_matrix[:, :, None, None]) * mu_outer_product
+        Sigma = Sigma/(n_matrix[:, :, None, None]-1)
 
         # Compute log-determinant for numerical stability
-        det_matrix = torch.exp(torch.linalg.slogdet(Sigma_ij)[1]) # [1] is the log determinant
+        # Compute log-determinant for numerical stability
+        #L = torch.linalg.cholesky(Sigma)
+        #det_matrix = torch.prod(torch.diag(L))**2
+        det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1]) # [1] is the log determinant
 
         # Vectorized computation of volume V for upper triangle
         self.V = torch.sqrt(det_matrix)
@@ -123,19 +126,19 @@ class MergingMechanism:
     
         return kappa
 
-
     def update_merging_condition(self, i, j):
-        
-        j_all = self.valid_clusters[j]
+        #i and j are local to self.valid_clusters
         #Note due to how torch.min() works we assume that i_all < j_all always holds
 
         #If j_all happends to be the last active cluster just remove it from self.valid_clusters and self.kappa
         #If self.parent.c-1 is not on the list, we need to remove j
          #Note the -1 is because self.parent.c starts at 1
         #We want to know if self.parent.c-1 is on the list...If self.valid_clusters[-1] is sorted, and it should be, the last element is the largest index.
-        if (j_all == (self.parent.c-1)) or (self.valid_clusters[-1] != (self.parent.c-1)):
+        if (self.valid_clusters[j] == (self.parent.c-1)) or (self.valid_clusters[-1] != (self.parent.c-1)):
+
             # Remove the j-th element from valid_clusters
-            self.valid_clusters = torch.cat((self.valid_clusters[:j], self.valid_clusters[j + 1:]))
+            #self.valid_clusters = torch.cat((self.valid_clusters[:j], self.valid_clusters[j + 1:]))
+            self.valid_clusters = self.valid_clusters[self.valid_clusters != self.valid_clusters[j]]
 
             # Remove the j-th row and column from V
             self.V = torch.cat((self.V[:j], self.V[j + 1:]), dim=0)  # Remove j-th row
@@ -151,6 +154,7 @@ class MergingMechanism:
             self.V[:, j] = self.V[:, -1]  # Move last column to j-th position
             self.V = self.V[:-1, :-1]  # Remove last row and column
 
+        
         if len(self.valid_clusters) < 2:
             return #Further computation does not matter in this case
             
@@ -167,27 +171,19 @@ class MergingMechanism:
         Sigma = Sigma / (n_matrix[:, None, None] - 1)
 
         # Compute log-determinant for numerical stability
-        det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1])  # [1] is the log determinant
+        #L = torch.linalg.cholesky(Sigma)
+        #det_matrix = torch.prod(torch.diag(L))**2
+        det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1]) # [1] is the log determinant
 
         # Vectorized computation of volume V for upper triangle
         V_i = torch.sqrt(det_matrix)
-        self.V[i,:], self.V[:,i]  = V_i, V_i
+        self.V[i,:], self.V[:,i]  = V_i, V_i #Save the ith row and column
         self.V = torch.triu(self.V , diagonal=0)
 
         # Update kappa for the i-th row and column
         self.compute_kappa_matrix()
-    
-            # Debugging checks
-        if self.parent.enable_debugging:
+        
 
-            # Convert tensors to sets for set operation (if they are not large)
-            set_valid_clusters = set(self.valid_clusters.tolist())
-            set_matching_clusters = set(self.parent.matching_clusters.tolist())
-
-            # Check if valid_clusters is a subset of matching_clusters
-            is_subset = set_valid_clusters.issubset(set_matching_clusters)
-            if not is_subset:
-                print("Is valid_clusters a subset of matching_clusters:", is_subset)
 
     def merge_clusters(self):
         
@@ -216,7 +212,7 @@ class MergingMechanism:
             merge_occurred = True
             
         return merge_occurred  # Return True if any merge happened, otherwise False
-  
+    
     def merging_mechanism(self, max_iterations=100):
     
         iteration = 0 # Iteration counter
@@ -226,7 +222,7 @@ class MergingMechanism:
         if self.parent.c > 10*np.sqrt(self.parent.feature_dim):
             self.valid_clusters = self.parent.matching_clusters
         else:
-            threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
+            threshold = np.exp(-(self.parent.num_sigma) ** 2)
             self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
                                                                 (self.parent.n[self.parent.matching_clusters] >= self.parent.feature_dim)] #np.sqrt(
         
@@ -236,7 +232,7 @@ class MergingMechanism:
         #Merge until you can not merge no mo
         merge = True  # initial condition to enter the loop
         while merge and iteration < max_iterations:
-            
+
             if len(self.valid_clusters) < 2:
                 break
 

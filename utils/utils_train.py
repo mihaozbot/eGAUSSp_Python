@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_auc_score, roc_curve
+from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+from sklearn.metrics.cluster import adjusted_rand_score, normalized_mutual_info_score
+from sklearn.metrics import homogeneity_score, completeness_score, v_measure_score
 
 def train_supervised(model, client_data):
         
@@ -16,11 +19,7 @@ def train_supervised(model, client_data):
     data, labels = client_data
     
     # Training loop
-    for idx, (z, label) in enumerate(zip(data, labels)):
-        model.forward(z, label)  # Train the model
-
-        if (idx + 1) % 1000 == 0 or (idx + 1) == len(data):
-            print(f"Processed {idx + 1} points.Number of clusters: {model.c}")
+    model.forward(data, labels)  # Train the model
 
 def train_models_in_threads(models, datasets):
     threads = []
@@ -35,16 +34,16 @@ def train_models_in_threads(models, datasets):
 
 
 def train_unsupervised(model, client_data):
-        
-    data, labels = client_data
-    
+
     #Toggle training mode
     model.toggle_evolving(True)
     model.train()
 
+    data, _ = client_data
+    dummy_labels = torch.full((len(data),), 0, dtype=torch.int32)
+
     # Training loop
-    for z in data:
-        model.forward(z, torch.tensor(-1, dtype=torch.int64))  # Train the model
+    model.forward(data, dummy_labels)  # Train the model
 
 
 def test_model(model, test_dataset):
@@ -54,15 +53,8 @@ def test_model(model, test_dataset):
     model.toggle_evolving(False)
     model.eval()
 
-    all_scores = []  # List to store scores of the positive class
-    pred_max = []    # List to store predicted class labels
-    for z in test_data:
-        output = model(z, -1)  # Forward pass
-        all_scores.append(output.detach())  # Extract and store scores for the positive class
-        pred_max.append(output.argmax().detach())  # Extract and store class predictions
-
-    all_scores = torch.tensor(np.vstack(all_scores))  # Convert list to numpy array
-    pred_max = torch.tensor(pred_max)      # Convert list to numpy array
+    dummy_labels = torch.full((len(test_data),), -1, dtype=torch.int32)
+    all_scores, pred_max = model(test_data, dummy_labels)  # Forward pass
 
     return all_scores, pred_max
 
@@ -83,7 +75,7 @@ def calculate_roc_auc(outputs, test_dataset):
     
     _, test_labels = test_dataset
         
-    positive_class_scores = outputs[:, 1]  # Assuming index 1 is the positive class
+    positive_class_scores = outputs[:, 1].detach().numpy() # Assuming index 1 is the positive class
     roc_auc = roc_auc_score(test_labels, positive_class_scores)
     
     # Calculate ROC Curve
@@ -150,3 +142,36 @@ def plot_confusion_matrix(pred_max, test_dataset):
     plt.ylabel('True labels')
     plt.title('Confusion Matrix')
     plt.show()
+
+
+def calculate_unsupervised_metrics(X, labels):
+    """
+    Calculate unsupervised clustering metrics for the given data and labels.
+
+    :param X: Feature set.
+    :param labels: Predicted labels for each data point.
+    :return: A dictionary containing the computed metrics.
+    """
+
+    silhouette = silhouette_score(X, labels)
+    davies_bouldin = davies_bouldin_score(X, labels)
+    calinski_harabasz = calinski_harabasz_score(X, labels)
+
+    # Note: The following metrics require true labels to be meaningful.
+    # They are included here for completeness, but should be used only if true labels are available.
+    # adjusted_rand = adjusted_rand_score(true_labels, labels)
+    # normalized_mutual_info = normalized_mutual_info_score(true_labels, labels)
+    # homogeneity = homogeneity_score(true_labels, labels)
+    # completeness = completeness_score(true_labels, labels)
+    # v_measure = v_measure_score(true_labels, labels)
+
+    return {
+        "silhouette_score": silhouette,
+        "davies_bouldin_score": davies_bouldin,
+        "calinski_harabasz_score": calinski_harabasz,
+        # "adjusted_rand_score": adjusted_rand,
+        # "normalized_mutual_info_score": normalized_mutual_info,
+        # "homogeneity_score": homogeneity,
+        # "completeness_score": completeness,
+        # "v_measure_score": v_measure
+    }
