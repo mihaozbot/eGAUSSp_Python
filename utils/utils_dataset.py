@@ -275,3 +275,51 @@ def prepare_k_fold_non_iid_dataset(X, y, train_index, test_index, num_clients):
                 torch.tensor(y, dtype=torch.int64))
 
     return train_data, test_data, all_data
+
+
+def prepare_k_fold_federated_dataset(X, y, train_index, test_index, num_clients, percentage):
+    """
+    Prepares a dataset for federated learning by distributing only a specified percentage of the training data 
+    among the clients. The dataset is split into training and testing sets based on provided indices. 
+    Only a portion of the training set, determined by the percentage, is further split among the specified 
+    number of clients.
+
+    :param X: Features in the dataset
+    :param y: Labels in the dataset
+    :param train_index: Indices for the training set
+    :param test_index: Indices for the testing set
+    :param num_clients: The number of clients to distribute the data among
+    :param percentage: The percentage of the training data to be used
+    :return: A tuple containing the training data for each client, the testing data, and the entire dataset
+    """
+
+    # Shuffle the training indices for randomness
+    train_index = shuffle(train_index)
+    test_index = shuffle(test_index)
+
+    # Determine the subset of the training indices to use
+    num_train_samples = int(percentage*num_clients*len(train_index))
+    train_index_subset = train_index[:num_train_samples]
+
+    # Create the training and testing sets using the subset of indices
+    X_train_subset, y_train_subset = X[train_index_subset], y[train_index_subset]
+    X_test, y_test = X[test_index], y[test_index]
+
+    # Distribute the training data among clients
+    X_train_split = np.array_split(X_train_subset, num_clients)
+    y_train_split = np.array_split(y_train_subset, num_clients)
+
+    # Convert the training data to PyTorch tensors and distribute to clients
+    train_data = [(torch.tensor(X_train_split[i], dtype=torch.float32), 
+                   torch.tensor(y_train_split[i], dtype=torch.int64)) 
+                  for i in range(num_clients)]
+
+    # Convert X_test and y_test to tensors and pack together
+    test_data = (torch.tensor(X_test, dtype=torch.float32), 
+                 torch.tensor(y_test, dtype=torch.int64))
+
+    # Convert the entire dataset to tensors and pack together
+    all_data = (torch.tensor(X, dtype=torch.float32), 
+                torch.tensor(y, dtype=torch.int64))
+
+    return train_data, test_data, all_data

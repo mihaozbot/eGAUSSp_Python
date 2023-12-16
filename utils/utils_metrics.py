@@ -33,7 +33,7 @@ def calculate_roc_auc(outputs, test_dataset):
 
     # Plot ROC Curve
     plt.figure(figsize=(8, 6))
-    plt.plot(fpr, tpr, color='blue', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot(fpr, tpr, color='blue', lw=2, label='ROC curve (area = %0.1f)' % roc_auc)
     plt.plot([0, 1], [0, 1], color='gray', lw=2, linestyle='--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.0])
@@ -45,15 +45,15 @@ def calculate_roc_auc(outputs, test_dataset):
 
     return roc_auc
 
-def calculate_metrics_statistics(metrics_list):
+def calculate_metrics_statistics(metrics_list, resolution=2):
     """Calculate the average and standard deviation of given metrics."""
     mean_metrics = {key: np.mean([metrics[key] for metrics in metrics_list]) for key in metrics_list[0]}
     std_metrics = {key: np.std([metrics[key] for metrics in metrics_list], ddof=1) for key in metrics_list[0]}
-    return format_metrics(mean_metrics, std_metrics)
+    return format_metrics(mean_metrics, std_metrics, resolution)
 
-def format_metrics(mean_metrics, std_metrics):
+def format_metrics(mean_metrics, std_metrics, resolution):
     """Format the metrics as 'mean ± standard deviation'."""
-    formatted = {key: f"{mean_metrics[key]:.2f} ± {std_metrics[key]:.2f}" for key in mean_metrics}
+    formatted = {key: f"{mean_metrics[key]:.{resolution}f}"+ r"{±}" +f"{std_metrics[key]:.{resolution}f}" for key in mean_metrics}
     return formatted
 
 def calculate_cluster_stats(cluster_counts):
