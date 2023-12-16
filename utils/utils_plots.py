@@ -224,7 +224,7 @@ def plot_first_feature(dataset, model, N_max, num_sigma, colormap='tab10'):
     plt.tight_layout()
     plt.show()
 
-def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title="", colormap='tab10', legend=False):
+def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title="", colormap='tab10', legend=False, format = '%.1f'):
     """Function to color data points based on their true labels against the first feature."""
 
     # Extract data and labels from the TensorDataset
@@ -313,17 +313,17 @@ def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title=""
                 ax.add_patch(ell)
                 ax.scatter(mu_subvector[0], mu_subvector[1], color='black', s=10, marker='o')
 
-        ax.set_xlabel(f"Feature 1", fontsize=10)
-        ax.set_ylabel(f"Feature {feature_idx + 1}", fontsize=10)
+        ax.set_xlabel(f"Feature 1", fontsize=8)
+        ax.set_ylabel(f"Feature {feature_idx + 1}", fontsize=8)
         ax.grid(False)
 
     for ax in axes:
-        ax.xaxis.set_major_formatter(FormatStrFormatter('%.1f'))
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%.1f'))
+        ax.xaxis.set_major_formatter(FormatStrFormatter(format))
+        ax.yaxis.set_major_formatter(FormatStrFormatter(format))
 
     # Adjust the subplots to shift them to the right
 
-    fig.text(-0.02, 0.5, title, va='center', rotation='vertical', fontsize=12)
+    fig.text(-0.02, 0.55, title, va='center', rotation='vertical', fontsize=12)
     
     if legend:
             # Adding legend outside the plot

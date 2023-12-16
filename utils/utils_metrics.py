@@ -11,13 +11,13 @@ from sklearn.metrics.cluster import adjusted_rand_score, normalized_mutual_info_
 from sklearn.metrics import homogeneity_score, completeness_score, v_measure_score
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-def calculate_metrics(pred_max, test_dataset):
+def calculate_metrics(pred_max, test_dataset, weight):
     _, test_labels = test_dataset
-        
+
     accuracy = accuracy_score(test_labels, pred_max)
-    precision = precision_score(test_labels, pred_max, average='weighted', zero_division='warn')
-    recall = recall_score(test_labels, pred_max, average='weighted', zero_division='warn')
-    f1 = f1_score(test_labels, pred_max, average='weighted', zero_division='warn')
+    precision = precision_score(test_labels, pred_max, average=weight, zero_division='warn')
+    recall = recall_score(test_labels, pred_max, average=weight, zero_division='warn')
+    f1 = f1_score(test_labels, pred_max, average=weight, zero_division='warn')
 
     return {"accuracy": accuracy, "precision": precision, "recall": recall, "f1_score": f1}
 
@@ -25,7 +25,7 @@ def calculate_roc_auc(outputs, test_dataset):
     
     _, test_labels = test_dataset
         
-    positive_class_scores = outputs[:, 1].detach().numpy() # Assuming index 1 is the positive class
+    positive_class_scores = outputs[:, 1].detach().cpu().numpy() # Assuming index 1 is the positive class
     roc_auc = roc_auc_score(test_labels, positive_class_scores)
     
     # Calculate ROC Curve
@@ -36,7 +36,7 @@ def calculate_roc_auc(outputs, test_dataset):
     plt.plot(fpr, tpr, color='blue', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
     plt.plot([0, 1], [0, 1], color='gray', lw=2, linestyle='--')
     plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
+    plt.ylim([0.0, 1.0])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     plt.title('Receiver Operating Characteristic')
@@ -94,34 +94,55 @@ def plot_confusion_matrix(pred_max, test_dataset):
     plt.show()
 
 
-def calculate_unsupervised_metrics(X, labels):
+def calculate_unsupervised_metrics(assignments, dataset):
     """
     Calculate unsupervised clustering metrics for the given data and labels.
 
-    :param X: Feature set.
-    :param labels: Predicted labels for each data point.
+    :param assignments: Cluster with highest membership for each data point.
+    :param dataset: Feature set.
     :return: A dictionary containing the computed metrics.
-    """
+    """    
+    data, labels = dataset
 
-    silhouette = silhouette_score(X, labels)
-    davies_bouldin = davies_bouldin_score(X, labels)
-    calinski_harabasz = calinski_harabasz_score(X, labels)
+    silhouette = silhouette_score(data, assignments)
+    davies_bouldin = davies_bouldin_score(data, assignments)
+    calinski_harabasz = calinski_harabasz_score(data, assignments)
 
     # Note: The following metrics require true labels to be meaningful.
     # They are included here for completeness, but should be used only if true labels are available.
-    # adjusted_rand = adjusted_rand_score(true_labels, labels)
-    # normalized_mutual_info = normalized_mutual_info_score(true_labels, labels)
-    # homogeneity = homogeneity_score(true_labels, labels)
-    # completeness = completeness_score(true_labels, labels)
-    # v_measure = v_measure_score(true_labels, labels)
+    adjusted_rand = adjusted_rand_score(labels, assignments)
+    normalized_mutual_info = normalized_mutual_info_score(labels, assignments)
+    homogeneity = homogeneity_score(labels, assignments)
+    completeness = completeness_score(labels, assignments)
+    v_measure = v_measure_score(labels, assignments)
 
     return {
         "silhouette_score": silhouette,
-        "davies_bouldin_score": davies_bouldin,
-        "calinski_harabasz_score": calinski_harabasz,
-        # "adjusted_rand_score": adjusted_rand,
-        # "normalized_mutual_info_score": normalized_mutual_info,
-        # "homogeneity_score": homogeneity,
-        # "completeness_score": completeness,
-        # "v_measure_score": v_measure
+        #"davies_bouldin_score": davies_bouldin,
+        #"calinski_harabasz_score": calinski_harabasz,
+        #"adjusted_rand_score": adjusted_rand,
+        "normalized_mutual_info_score": normalized_mutual_info,
+        #"homogeneity_score": homogeneity,
+        #"completeness_score": completeness,
+        "v_measure_score": v_measure
     }
+
+def compute_bic(memberships, num_params):
+    """
+    Compute the BIC, given the membership probabilities and the number of parameters.
+
+    :param assignments: An array where each row corresponds to a data point and each column to a cluster.
+    :param n_params: The number of parameters in the model.
+    :return: The computed BIC.
+    """
+    # Number of data points
+    n = memberships.shape[0]
+
+    one_hot_encodings = np.eye(np.unique(memberships))[memberships]
+
+    # Calculate the log-likelihood
+    log_likelihood = np.sum(np.log(one_hot_encodings + 1e-15)) # Avoid log(0)
+
+    # Calculate BIC
+    bic = -2 * log_likelihood + num_params * np.log(n)
+    return bic

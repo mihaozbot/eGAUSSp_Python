@@ -21,6 +21,7 @@ class MergingMechanism:
             plt.figure(figsize = (6, 6))
             self.plot_cluster(i_all, 'Cluster i (Before)', 'blue')
             self.plot_cluster(j_all, 'Cluster j (Before)', 'red')
+            print("\n")
 
         #Compute combined number of samples and new center
         n_ij = self.parent.n[i_all] + self.parent.n[j_all]
@@ -77,7 +78,7 @@ class MergingMechanism:
         plt.ylim(min_values[1], max_values[1])
         
         mu = self.parent.mu[index].clone().cpu().detach().numpy()
-        S = self.parent.S[index].clone().cpu().detach().numpy()/(self.parent.n[index].cpu().detach().numpy()-1)
+        S = self.parent.S[index].clone().cpu().detach().numpy()/(self.parent.n[index].cpu().detach().numpy())
 
         # Only use the first two dimensions of mu and S
         mu_2d = mu[:2]
@@ -141,8 +142,8 @@ class MergingMechanism:
             self.valid_clusters = self.valid_clusters[self.valid_clusters != self.valid_clusters[j]]
 
             # Remove the j-th row and column from V
-            self.V = torch.cat((self.V[:j], self.V[j + 1:]), dim=0)  # Remove j-th row
-            self.V = torch.cat((self.V[:, :j], self.V[:, j + 1:]), dim=1)  # Remove j-th column
+            #self.V = torch.cat((self.V[:j], self.V[j + 1:]), dim=0)  # Remove j-th row
+            #self.V = torch.cat((self.V[:, :j], self.V[:, j + 1:]), dim=1)  # Remove j-th column
 
         else:
             # (self.parent.c - 1) is on the list, and the last cluster was copied to the j-th place
@@ -150,11 +151,11 @@ class MergingMechanism:
             self.valid_clusters = self.valid_clusters[:-1] 
 
             # Move the last row and column of V to the j-th position, then remove the last row and column
-            self.V[j] = self.V[-1]  # Move last row to j-th position
-            self.V[:, j] = self.V[:, -1]  # Move last column to j-th position
-            self.V = self.V[:-1, :-1]  # Remove last row and column
+            #self.V[j] = self.V[-1]  # Move last row to j-th position
+            #self.V[:, j] = self.V[:, -1]  # Move last column to j-th position
+            #self.V = self.V[:-1, :-1]  # Remove last row and column
 
-        
+        '''
         if len(self.valid_clusters) < 2:
             return #Further computation does not matter in this case
             
@@ -182,15 +183,15 @@ class MergingMechanism:
 
         # Update kappa for the i-th row and column
         self.compute_kappa_matrix()
-        
-
+                
+        '''
 
     def merge_clusters(self):
         
         # Track if any merge has occurred
         merge_occurred = False
         
-        kappa_min = torch.min(self.kappa)
+        kappa_min = torch.min(self.kappa[self.kappa==self.kappa])
         
         if kappa_min < self.parent.kappa_join:
 
@@ -219,15 +220,12 @@ class MergingMechanism:
         
         #Check which clusters have the necesary conditions to allow them to merge
         #The point is that we do not want to check all the clusters at every time step, but only the relevant ones
-        if self.parent.c > 10*np.sqrt(self.parent.feature_dim):
-            self.valid_clusters = self.parent.matching_clusters
-        else:
-            threshold = np.exp(-(self.parent.num_sigma) ** 2)
-            self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
-                                                                (self.parent.n[self.parent.matching_clusters] >= self.parent.feature_dim)] #np.sqrt(
-        
-        #Compute the initial merging candidates
-        self.compute_merging_condition()
+        #if self.parent.c > 10*np.sqrt(self.parent.feature_dim):
+        #    self.valid_clusters = self.parent.matching_clusters
+        #else:
+        threshold = np.exp(-(self.parent.num_sigma) ** 2)
+        self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
+                                                            (self.parent.n[self.parent.matching_clusters] >= self.parent.kappa_n)] #np.sqrt(
 
         #Merge until you can not merge no mo
         merge = True  # initial condition to enter the loop
@@ -235,6 +233,9 @@ class MergingMechanism:
 
             if len(self.valid_clusters) < 2:
                 break
+            
+            #Compute the initial merging candidates
+            self.compute_merging_condition()
 
             #Check merging condition, merge rules, and return True if merge happened
             merge = self.merge_clusters()

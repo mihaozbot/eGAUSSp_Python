@@ -7,17 +7,18 @@ class RemovalMechanism:
 
     def removal_mechanism(self):
         ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
-        if len(self.parent.matching_clusters) < 10 * np.sqrt(self.parent.feature_dim):
+        if len(self.parent.matching_clusters) < 10 * self.parent.feature_dim:
             return
         
         # Continue removing the smallest clusters while the condition is not met
-        while len(self.parent.matching_clusters) >= 10 * np.sqrt(self.parent.feature_dim):
+        while len(self.parent.matching_clusters) >= 10 * self.parent.feature_dim:
             # Identify the smallest cluster
             # Assuming 'n' holds the size of each cluster, find the index of the smallest cluster
-            smallest_cluster_index = np.argmin(self.parent.n[self.parent.matching_clusters ])
+            smallest_cluster_index = torch.argmin(self.parent.n[self.parent.matching_clusters])
 
             # Remove the smallest cluster
-            self.remove_cluster(self.parent.matching_clusters[smallest_cluster_index])
+            with torch.no_grad():
+                self.remove_cluster(self.parent.matching_clusters[smallest_cluster_index])
 
     
     def remove_cluster(self, cluster_index):
@@ -60,7 +61,7 @@ class RemovalMechanism:
 
             # Check if cluster_index is in matching_clusters and points to the same data as the old last_active_index
             label_match_check = True
-            if cluster_index in self.parent.matching_clusters:
+            if cluster_index not in self.parent.matching_clusters:
                 # Check if the label of cluster_index is among the labels of clusters in matching_clusters
                 label_match_check = self.parent.cluster_labels[cluster_index] in self.parent.cluster_labels[self.parent.matching_clusters]
                 print("Label of cluster index is in labels of matching clusters:", label_match_check)

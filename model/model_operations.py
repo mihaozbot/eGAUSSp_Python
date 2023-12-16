@@ -99,7 +99,7 @@ class ModelOps:
         # Log initial parameters
         logging.info(f"Feature Dimension: {self.parent.feature_dim}")
         logging.info(f"Number of Classes: {self.parent.c}")  # Assuming you want to log this as well
-        logging.info(f"N_max: {self.parent.N_max}")
+        logging.info(f"Number of samples: {self.parent.kappa_n}")
         logging.info(f"Number of Sigmas: {self.parent.num_sigma}")
         logging.info(f"Kappa Join: {self.parent.kappa_join}")
         logging.info(f"S_0: {self.parent.S_0}")

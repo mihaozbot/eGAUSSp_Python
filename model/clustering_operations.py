@@ -49,7 +49,7 @@ class ClusteringOps:
         ''' Update the smallest cluster covariance matrix based on global statistics, before adding a new cluster. '''
         
         #Compute the parameter spread from the global statistics
-        S_0 = (self.parent.num_sigma*self.parent.s_glo)**2/(self.parent.c_max)
+        S_0 = (self.parent.s_glo)**2/(self.parent.c_max)
 
         #Update smallest cluster covariance matrix
         self.parent.S_0 = torch.diag(S_0)

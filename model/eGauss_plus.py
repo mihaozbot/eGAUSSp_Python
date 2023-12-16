@@ -12,11 +12,11 @@ from model.federated_operations import FederalOps
 # Attempt to load the line_profiler extension
 
 class eGAUSSp(torch.nn.Module):
-    def __init__(self, feature_dim, num_classes, N_max, num_sigma, kappa_join, S_0, c_max, device):
+    def __init__(self, feature_dim, num_classes, kappa_n, num_sigma, kappa_join, S_0, c_max, device):
         super(eGAUSSp, self).__init__()
         self.device = device
         self.feature_dim = feature_dim
-        self.N_max = N_max
+        self.kappa_n = kappa_n
         self.num_sigma = num_sigma
         self.kappa_join = kappa_join
         self.S_0 = S_0 * torch.eye(self.feature_dim, device=self.device)
@@ -79,8 +79,9 @@ class eGAUSSp(torch.nn.Module):
 
     def forward(self, data, labels):
 
-        all_scores = []  # List to store scores of the positive class
-        pred_max = []    # List to store predicted class labels
+        scores = []  # List to store scores of the positive class
+        pred = []    # List to store predicted class labels
+        clusters = []    # List to store predicted class labels
         for (z, label) in zip(data, labels):
 
             # Check if the model is in evaluation mode
@@ -117,10 +118,12 @@ class eGAUSSp(torch.nn.Module):
             # Defuzzify label scores
             label_scores = self.consequence.defuzzify()
 
-            all_scores.append(label_scores)  # Extract and store scores for the positive class
-            pred_max.append(label_scores.argmax())  # Extract and store class predictions
+            scores.append(label_scores)  # Extract and store scores for the positive class
+            pred.append(label_scores.argmax())  # Extract and store class predictions
+            clusters.append(self.Gamma.argmax())  # Extract and store class predictions
 
-        all_scores = torch.vstack(all_scores).clone().detach().requires_grad_(True)
-        pred_max = torch.tensor(pred_max)      # Convert list to numpy array
+        scores = torch.vstack(scores).clone().detach().requires_grad_(True)
+        pred = torch.tensor(pred)
+        clusters = torch.tensor(clusters)
 
-        return all_scores, pred_max
+        return scores, pred, clusters

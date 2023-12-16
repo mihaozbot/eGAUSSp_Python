@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import TensorDataset
 from sklearn.utils import shuffle
+#from imblearn.over_sampling import SMOTE
 
 def non_iid_data(X, y, num_clients):
     """
@@ -37,7 +38,7 @@ def non_iid_data(X, y, num_clients):
     return X, y
 
 
-def prepare_dataset(X, y, num_clients):
+def prepare_dataset(X, y, num_clients, smote = False):
     """
     Prepares a dataset for federated learning under a non-IID setting. The dataset is first split 
     into training and testing sets. The training set is then further split among the specified number 
@@ -55,6 +56,10 @@ def prepare_dataset(X, y, num_clients):
     X_train_split = np.array_split(X_train, num_clients)
     y_train_split = np.array_split(y_train, num_clients)
     
+    if smote: 
+        smote = SMOTE(random_state=42)
+        X_train_split, y_train_split = smote.fit_resample(X_train_split, y_train_split)
+
     # Convert the training data to PyTorch tensors and distribute to clients
     train_data = [(torch.tensor(X_train_split[i], dtype=torch.float32), 
                     torch.tensor(y_train_split[i], dtype=torch.int64)) 
@@ -169,7 +174,7 @@ def plot_dataset_split(client_data, test_dataset):
 
     for class_label in range(num_classes):
         bar_values = np.append(client_counts[:, class_label], test_counts[class_label])
-        bars = ax.bar(np.arange(num_clients + 1), bar_values, bar_width, alpha=opacity, label=f'Class {class_label}', bottom=bottom)
+        bars = ax.bar(np.arange(num_clients + 1), bar_values, bar_width, alpha=opacity, label=f'Class {class_label+1}', bottom=bottom)
 
         # Label each bar segment
         for bar_index, bar in enumerate(bars):
