@@ -21,7 +21,6 @@ class MergingMechanism:
             plt.figure(figsize = (6, 6))
             self.plot_cluster(i_all, 'Cluster i (Before)', 'blue')
             self.plot_cluster(j_all, 'Cluster j (Before)', 'red')
-            print("\n")
 
         #Compute combined number of samples and new center
         n_ij = self.parent.n[i_all] + self.parent.n[j_all]
