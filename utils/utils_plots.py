@@ -224,8 +224,9 @@ def plot_first_feature(dataset, model, N_max, num_sigma, colormap='tab10'):
     plt.tight_layout()
     plt.show()
 
-def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title="", colormap='tab10', legend=False, format = '%.1f'):
+def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title="", colormap='tab10', legend=False, format = '%.1f', data_name = "Class"):
     """Function to color data points based on their true labels against the first feature."""
+
 
     # Extract data and labels from the TensorDataset
     data, labels = dataset
@@ -242,29 +243,33 @@ def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title=""
 
     unique_labels = model.num_classes
 
-    # Get a colormap instance
-    #cmap = cm.get_cmap(colormap)
+    # Check the number of unique labels and assign color accordingly
+    if len(np.unique(model.cluster_labels[:model.c], axis=0)) == 1:
+        # All clusters are red if there's only one unique label
+        cluster_colors = np.array([[1.0, 0.0, 0.0, 1.0]] * unique_labels)
 
-    label_colors = cm.get_cmap(colormap)(np.linspace(0, 0.5, unique_labels))
+    else:
+        # Use the given colormap for multiple labels
+        cluster_colors = plt.cm.get_cmap(colormap)(np.linspace(0, 0.5, unique_labels))
 
+
+    # Use the given colormap for multiple labels
+        
+    label_colors = plt.cm.get_cmap(colormap)(np.linspace(0, 0.5, unique_labels))
     # Map data points to the color of their label
     label_color_dict = dict(zip(range(unique_labels), label_colors))
-    
-    # Generate colors for each unique label
-    #label_colors = [cmap(i/unique_labels) for i in range(unique_labels)]
 
     # Map data points to the color of their label
-    #label_color_dict = {label: color for label, color in zip(range(unique_labels), label_colors)}
+    cluster_color_dict = dict(zip(range(unique_labels), cluster_colors))
 
     # Plotting logic
     num_plots = n_features - 1
-
-    # Create a horizontal line of figures
-    fig, axes = plt.subplots(1, num_plots, figsize=(2.5* num_plots, 2.5))
+    fig, axes = plt.subplots(1, num_plots, figsize=(2.5 * num_plots, 2.5))
 
     # If only one plot, wrap axes in a list
     if num_plots == 1:
         axes = [axes]
+
 
     for idx, ax in enumerate(axes):
             
@@ -277,13 +282,13 @@ def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title=""
             class_data = data[labels == label]
             class_feature_data = class_data[:, [0, feature_idx]]
             if label not in added_labels['scatter']:
-                ax.scatter(class_feature_data[:, 0], class_feature_data[:, 1], c=[label_color_dict[label]], alpha=0.5, label=f'Class {label+1}')
+                ax.scatter(class_feature_data[:, 0], class_feature_data[:, 1], c=[label_color_dict[label]], alpha=0.5, label= data_name + f'{label+1}')
                 added_labels['scatter'].add(label)
             else:
                 ax.scatter(class_feature_data[:, 0], class_feature_data[:, 1], c=[label_color_dict[label]], alpha=0.5)
 
         for cluster_idx in range(model.c):  # loop through all clusters
-            ellipse_color = label_color_dict[torch.where(model.cluster_labels[cluster_idx] == 1)[0].item()]
+            ellipse_color = cluster_color_dict[torch.where(model.cluster_labels[cluster_idx] == 1)[0].item()]
 
             # Darken the ellipse color
             ellipse_color_rgba = plt.cm.colors.to_rgba(ellipse_color)  # type: ignore
@@ -292,6 +297,7 @@ def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title=""
                                     ellipse_color_rgba[1] * dark_factor, ellipse_color_rgba[2] * dark_factor, 1)
 
             if model.n[cluster_idx] > N_max:
+
                 mu_val = model.mu[cluster_idx].cpu().detach().numpy()
                 S = model.S[cluster_idx].cpu().detach().numpy()
                 cov_matrix = (S / model.n[cluster_idx].cpu().detach().numpy())
@@ -301,17 +307,28 @@ def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title=""
                 angle = np.degrees(np.arctan2(*vecs[:, 0][::-1]))
                 factor = num_sigma
                 width, height = factor * np.sqrt(vals)
+
+                if cluster_idx == 0:
+                    ax.scatter(mu_subvector[0], mu_subvector[1], color='black', s=10, marker='o', label=f'Centers')
+                else:
+                    ax.scatter(mu_subvector[0], mu_subvector[1], color='black', s=10, marker='o')
+
                 if torch.where(model.cluster_labels[cluster_idx] == 1)[0].item() not in added_labels['ellipse']:
+                    if len(np.unique(model.cluster_labels[:model.c], axis=0)) == 1:
+                        cluster_name = "Clusters"
+                    else:
+                        cluster_name = f'Cluster {torch.where(model.cluster_labels[cluster_idx] == 1)[0].item()+1}'
                     ell = Ellipse(xy=(mu_subvector[0], mu_subvector[1]), width=width, height=height, 
-                                  angle=angle, edgecolor=darker_ellipse_color, lw=2, facecolor='none', label=f'Cluster {torch.where(model.cluster_labels[cluster_idx] == 1)[0].item()+1}')
+                                  angle=angle, edgecolor=darker_ellipse_color, lw=2, facecolor='none', label=cluster_name)
+
                     added_labels['ellipse'].add(torch.where(model.cluster_labels[cluster_idx] == 1)[0].item())
                 else:
                     ell = Ellipse(xy=(mu_subvector[0], mu_subvector[1]), width=width, height=height,
                                   angle=angle, edgecolor=darker_ellipse_color, lw=2, facecolor='none')
-
+                   
                                 
                 ax.add_patch(ell)
-                ax.scatter(mu_subvector[0], mu_subvector[1], color='black', s=10, marker='o')
+
 
         ax.set_xlabel(f"Feature 1", fontsize=8)
         ax.set_ylabel(f"Feature {feature_idx + 1}", fontsize=8)
@@ -328,7 +345,7 @@ def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title=""
     if legend:
             # Adding legend outside the plot
             # Adding legend to the last axis
-        axes[-1].legend(loc='best')
+        axes[-1].legend(loc='best', fontsize = 6)
         
     plt.tight_layout()
     plt.show()

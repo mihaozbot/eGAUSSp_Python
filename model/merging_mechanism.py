@@ -31,8 +31,8 @@ class MergingMechanism:
 
         # Determine the correct S values to use based on the number of samples in each cluster
         # Check if either cluster has only one sample
-        S_i = self.parent.S_0 if self.parent.n[i_all] == 1 else self.parent.S[i_all]
-        S_j = self.parent.S_0 if self.parent.n[j_all] == 1 else self.parent.S[j_all]
+        S_i = self.parent.S_0 if self.parent.n[i_all] < 2 else self.parent.S[i_all]
+        S_j = self.parent.S_0 if self.parent.n[j_all] < 2 else self.parent.S[j_all]
 
         # Calculate the new covariance matrix for the merged cluster
         S_ij = (S_i + S_j) + (self.parent.n[i_all] * self.parent.n[j_all] / n_ij * torch.outer(mu_diff, mu_diff))

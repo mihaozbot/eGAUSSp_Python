@@ -6,12 +6,13 @@ class RemovalMechanism:
         self.parent = parent
 
     def removal_mechanism(self):
+
         ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
-        if len(self.parent.matching_clusters) < 10 * self.parent.feature_dim:
+        if len(self.parent.matching_clusters) < 10*np.sqrt(self.parent.feature_dim):
             return
         
         # Continue removing the smallest clusters while the condition is not met
-        while len(self.parent.matching_clusters) >= 10 * self.parent.feature_dim:
+        while len(self.parent.matching_clusters) >= 10*np.sqrt(self.parent.feature_dim):
             # Identify the smallest cluster
             # Assuming 'n' holds the size of each cluster, find the index of the smallest cluster
             smallest_cluster_index = torch.argmin(self.parent.n[self.parent.matching_clusters])

@@ -62,7 +62,7 @@ class ClusteringOps:
         self.parent.mu[j] += 1 / (1 + self.parent.n[j]) * e
 
         # Check if self.parent.n[j] is equal to 1
-        if self.parent.n[j] == 1:
+        if self.parent.n[j] < 2:
             # Update self.parent.S[j] to self.parent.S_0 without gradient calculation
             with torch.no_grad():
                 self.parent.S[j] = self.parent.S_0.clone()
@@ -77,27 +77,28 @@ class ClusteringOps:
         
         #if self.parent.enable_debugging and (j >= len(self.parent.mu) or j < 0):
         #    logging.warning(f"Warning rule increment! Invalid cluster index: {j}. Valid indices are between 0 and {len(self.parent.mu)-1}.")
-           
+        
         #Normalize membership functions 
-        NGamma = self.parent.Gamma/torch.sum(self.parent.Gamma)  
+        NGamma = self.parent.Gamma[self.parent.matching_clusters]/torch.sum(self.parent.Gamma[self.parent.matching_clusters])  
         
         if torch.isnan(NGamma).any().item():
             print("NaN detected in NGamma")
 
         # Calculate the error for the data point for each cluster
-        z_expanded = z.unsqueeze(0).expand(self.parent.c, self.parent.feature_dim)
-        e_c = z_expanded - self.parent.mu[0:self.parent.c]  # shape [self.parent.current_capacity, feature_dim]
+        z_expanded = z.unsqueeze(0).expand(len(self.parent.matching_clusters), self.parent.feature_dim)
+        e_c = z_expanded - self.parent.mu[self.parent.matching_clusters]  # shape [self.parent.current_capacity, feature_dim]
 
         # Update cluster means
-        self.parent.mu[0:self.parent.c] += NGamma.unsqueeze(1) / (self.parent.n[0:self.parent.c].unsqueeze(1)) * e_c
+        #self.parent.mu[0:self.parent.c] += NGamma.unsqueeze(1) / (self.parent.n[0:self.parent.c].unsqueeze(1)) * e_c
+        self.parent.mu[self.parent.matching_clusters] += NGamma.unsqueeze(1) / (self.parent.n[self.parent.matching_clusters].unsqueeze(1)) * e_c
 
         # e_c_transposed for matrix multiplication, shape [self.parent.current_capacity, feature_dim, 1]
         e_c_transposed = e_c.unsqueeze(-1)  # shape [self.parent.current_capacity, feature_dim, 1]
-        self.parent.S[0:self.parent.c] += NGamma.unsqueeze(-1).unsqueeze(-1) * torch.bmm((z_expanded - self.parent.mu[0:self.parent.c]).unsqueeze(-1), e_c_transposed.transpose(1, 2))
+        self.parent.S[self.parent.matching_clusters] += NGamma.unsqueeze(-1).unsqueeze(-1) * torch.bmm((z_expanded - self.parent.mu[self.parent.matching_clusters]).unsqueeze(-1), e_c_transposed.transpose(1, 2))
 
         # Update number of samples in each cluster
-        self.parent.n[0:self.parent.c] += NGamma
-
+        self.parent.n[self.parent.matching_clusters] += NGamma
+        
         for i in range(self.parent.c):
             try:
                 eigenvalues = torch.linalg.eigvalsh(self.parent.S[i])
@@ -124,8 +125,8 @@ class ClusteringOps:
             self._add_new_cluster(z, label)
             #logging.info(f"Info. Added new cluster for label {label} due to low Gamma value. Total clusters now: {self.parent.c}")
         else:
-            self._increment_cluster(z,j)
-            #self._increment_clusters(z)
+            #self._increment_cluster(z, j)
+            self._increment_clusters(z)
             
     def update_global_statistics(self, z):
         ''' Update the global mean, covariance, and count based on the new data point. '''
