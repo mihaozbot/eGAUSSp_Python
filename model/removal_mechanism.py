@@ -8,11 +8,11 @@ class RemovalMechanism:
     def removal_mechanism(self):
 
         ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
-        if len(self.parent.matching_clusters) < 10*np.sqrt(self.parent.feature_dim):
+        if len(self.parent.matching_clusters) < self.parent.c_max:
             return
         
         # Continue removing the smallest clusters while the condition is not met
-        while len(self.parent.matching_clusters) >= 10*np.sqrt(self.parent.feature_dim):
+        while len(self.parent.matching_clusters) > self.parent.c_max:
             # Identify the smallest cluster
             # Assuming 'n' holds the size of each cluster, find the index of the smallest cluster
             smallest_cluster_index = torch.argmin(self.parent.n[self.parent.matching_clusters])
@@ -32,30 +32,48 @@ class RemovalMechanism:
 
         #Instead of removing just copy last cluster in the place of the removed on
         if cluster_index != last_active_index: #The target cluster is not the last cluster
-        
+     
+             # Update matching_clusters list
+            #The last index was moved to j, 
+            #we need to check if this new j is the right label
+            if not torch.equal(self.parent.cluster_labels[cluster_index], self.parent.cluster_labels[last_active_index]):
+                self.parent.matching_clusters = self.parent.matching_clusters[self.parent.matching_clusters != cluster_index]
+            
+            #If the last_active_index is on the matching cluster list, it has to be removed as it will not exist after this:
+            if self.parent.matching_clusters[-1] == last_active_index:
+                self.parent.matching_clusters = self.parent.matching_clusters[:-1]
+                
             # Move the last active cluster to the position of the cluster to be removed
             self.parent.mu[cluster_index] = self.parent.mu[last_active_index]
             self.parent.S[cluster_index] = self.parent.S[last_active_index]
             self.parent.n[cluster_index] = self.parent.n[last_active_index]
-            
+
             # Update the label of the cluster that is moved
             self.parent.cluster_labels[cluster_index] = self.parent.cluster_labels[last_active_index]
 
             # Update the Gamma value for the cluster 
             self.parent.Gamma[cluster_index] = self.parent.Gamma[last_active_index]
-
-            # Update matching_clusters list
-            if last_active_index == self.parent.matching_clusters[-1]: #if the last cluster is on the list, it is the last elements as the list is ordered
+            
+            #if last_active_index == self.parent.matching_clusters[-1]: #if the last cluster is on the list, it is the last elements as the list is ordered
                 # The last cluster was moved to the where the jth index is pointing so just remove the last cluster from the list
                 # Remove the last index if last_active_index is in matching_clusters
-                self.parent.matching_clusters = self.parent.matching_clusters[:-1]
-            else: #The last cluster is not a matching cluster so we can remove the cluster index
-                # Else, remove the cluster_index from matching_clusters
-                self.parent.matching_clusters = self.parent.matching_clusters[self.parent.matching_clusters  != cluster_index]
-                
+            #    self.parent.matching_clusters = self.parent.matching_clusters[:-1]
+            #else: #The last cluster is not a matching cluster so we can remove the cluster index
+            # Else, remove the cluster_index from matching_clusters
+            
+            #We need to remove j from the list
+
+        else: #The cluster_index is the last index, so we just need to remove it
+            self.parent.matching_clusters = self.parent.matching_clusters[:-1]
+         
         #If the cluster was the last cluster just reduce the number of clusters 
         # Decrement the count of active clusters
         self.parent.c -= 1
+
+        # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
+        labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) == 1
+        if not labels_consistency_check:
+            print("Critical error: Labels consistency in matching clusters after removal:", labels_consistency_check)
 
         # Debugging checks
         if self.parent.enable_debugging:
@@ -67,7 +85,3 @@ class RemovalMechanism:
                 label_match_check = self.parent.cluster_labels[cluster_index] in self.parent.cluster_labels[self.parent.matching_clusters]
                 print("Label of cluster index is in labels of matching clusters:", label_match_check)
             
-            # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
-            labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) == 1
-            if not labels_consistency_check:
-                print("Labels consistency in matching clusters:", labels_consistency_check)

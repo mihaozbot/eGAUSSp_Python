@@ -49,7 +49,7 @@ class ClusteringOps:
         ''' Update the smallest cluster covariance matrix based on global statistics, before adding a new cluster. '''
         
         #Compute the parameter spread from the global statistics
-        S_0 = (self.parent.s_glo)**2/(self.parent.c_max)
+        S_0 = self.parent.num_sigma*(self.parent.s_glo)**2/(self.parent.N_r)
 
         #Update smallest cluster covariance matrix
         self.parent.S_0 = torch.diag(S_0)
@@ -67,11 +67,11 @@ class ClusteringOps:
             with torch.no_grad():
                 self.parent.S[j] = self.parent.S_0.clone()
 
-        self.parent.S[j] += e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
+        self.parent.S[j] = self.parent.S[j]*self.parent.forgeting_factor + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
 
-        self.parent.n[j] += 1
+        self.parent.n[j] = self.parent.n[j]*self.parent.forgeting_factor + 1 #
     
-    
+
     def _increment_clusters(self, z):
         ''' Decide whether to increment an existing cluster or add a new cluster based on the current state. '''
         
@@ -94,10 +94,10 @@ class ClusteringOps:
 
         # e_c_transposed for matrix multiplication, shape [self.parent.current_capacity, feature_dim, 1]
         e_c_transposed = e_c.unsqueeze(-1)  # shape [self.parent.current_capacity, feature_dim, 1]
-        self.parent.S[self.parent.matching_clusters] += NGamma.unsqueeze(-1).unsqueeze(-1) * torch.bmm((z_expanded - self.parent.mu[self.parent.matching_clusters]).unsqueeze(-1), e_c_transposed.transpose(1, 2))
+        self.parent.S[self.parent.matching_clusters]  = self.parent.S[self.parent.matching_clusters]*self.parent.forgeting_factor + NGamma.unsqueeze(-1).unsqueeze(-1) * torch.bmm((z_expanded - self.parent.mu[self.parent.matching_clusters]).unsqueeze(-1), e_c_transposed.transpose(1, 2))
 
         # Update number of samples in each cluster
-        self.parent.n[self.parent.matching_clusters] += NGamma
+        self.parent.n[self.parent.matching_clusters] = self.parent.n[self.parent.matching_clusters]*self.parent.forgeting_factor + NGamma
         
         for i in range(self.parent.c):
             try:
@@ -125,14 +125,14 @@ class ClusteringOps:
             self._add_new_cluster(z, label)
             #logging.info(f"Info. Added new cluster for label {label} due to low Gamma value. Total clusters now: {self.parent.c}")
         else:
-            #self._increment_cluster(z, j)
-            self._increment_clusters(z)
+            self._increment_cluster(z, j)
+            #self._increment_clusters(z)
             
     def update_global_statistics(self, z):
         ''' Update the global mean, covariance, and count based on the new data point. '''
         
         e_glo = z - self.parent.mu_glo  # Error between the sample and the global mean
         self.parent.mu_glo += e_glo / (self.parent.n_glo + 1)  # Mean
-        self.parent.S_glo += self.parent.n_glo / (self.parent.n_glo + 1) * e_glo * e_glo # Variance, (not normalized to reduce computation)
-        self.parent.n_glo += 1 #Number of samples
+        self.parent.S_glo = self.parent.S_glo*self.parent.forgeting_factor + self.parent.n_glo / (self.parent.n_glo + 1) * e_glo * e_glo # Variance, (not normalized to reduce computation)
+        self.parent.n_glo = self.parent.n_glo*self.parent.forgeting_factor + 1 #Number of samples
         self.parent.s_glo = torch.sqrt(self.parent.S_glo / self.parent.n_glo) #Standard deviation

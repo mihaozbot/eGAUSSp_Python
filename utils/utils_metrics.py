@@ -104,17 +104,29 @@ def calculate_unsupervised_metrics(assignments, dataset):
     """    
     data, labels = dataset
 
-    silhouette = silhouette_score(data, assignments)
-    davies_bouldin = davies_bouldin_score(data, assignments)
-    calinski_harabasz = calinski_harabasz_score(data, assignments)
+    if len(np.unique(assignments))>1:
+        silhouette = silhouette_score(data, assignments, metric="euclidean")
+        davies_bouldin = davies_bouldin_score(data, assignments)
+        calinski_harabasz = calinski_harabasz_score(data, assignments)
 
-    # Note: The following metrics require true labels to be meaningful.
-    # They are included here for completeness, but should be used only if true labels are available.
-    adjusted_rand = adjusted_rand_score(labels, assignments)
-    normalized_mutual_info = normalized_mutual_info_score(labels, assignments)
-    homogeneity = homogeneity_score(labels, assignments)
-    completeness = completeness_score(labels, assignments)
-    v_measure = v_measure_score(labels, assignments)
+        # Note: The following metrics require true labels to be meaningful.
+        # They are included here for completeness, but should be used only if true labels are available.
+        adjusted_rand = adjusted_rand_score(labels, assignments)
+        normalized_mutual_info = normalized_mutual_info_score(labels, assignments)
+        homogeneity = homogeneity_score(labels, assignments)
+        completeness = completeness_score(labels, assignments)
+        v_measure = v_measure_score(labels, assignments)
+    else:
+        silhouette = 0
+        davies_bouldin = 0
+        calinski_harabasz = 0
+        adjusted_rand = 0
+        normalized_mutual_info = 0
+        homogeneity = 0
+        completeness = 0
+        v_measure = 0
+
+
 
     return {
         "silhouette_score": silhouette,

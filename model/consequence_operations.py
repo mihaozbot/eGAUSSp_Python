@@ -14,10 +14,12 @@ class ConsequenceOps():
         #labeled_indices = self.parent.cluster_labels[0:self.parent.c] != -1
 
         # Select only labeled data for Gamma and cluster labels
-        #labeled_gamma = normalized_gamma[labeled_indices]
-        labeled_cluster_labels = self.parent.cluster_labels[:self.parent.c]
+        label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * self.parent.cluster_labels[:self.parent.c], dim=0)
 
-        # Multiply normalized memberships with one-hot labels and sum across clusters
-        label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * labeled_cluster_labels, dim=0)
+        # Find the index of the maximum value in Gamma
+        max_index = torch.argmax(normalized_gamma)
 
-        return label_scores
+        # Retrieve the corresponding label
+        max_label = torch.argmax(self.parent.cluster_labels[max_index])
+
+        return label_scores, max_label

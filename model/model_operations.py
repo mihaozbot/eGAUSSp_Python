@@ -24,7 +24,7 @@ class ModelOps:
             
             # Determine whether to expand or contract the model capacity
             should_expand = new_c >= self.parent.current_capacity
-            should_contract = (self.parent.current_capacity > 2 * self.parent.c_max) and (new_c < (self.parent.current_capacity / 2 - 1))
+            should_contract = (new_c > 2 * self.parent.c_max) and (self.parent.current_capacity > 2 * self.parent.N_r) and (new_c < (self.parent.current_capacity / 2 - 1))
 
             if should_expand or should_contract:
                 self.modify_capacity(new_c)

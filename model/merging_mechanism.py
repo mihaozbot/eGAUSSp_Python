@@ -233,6 +233,11 @@ class MergingMechanism:
             if len(self.valid_clusters) < 2:
                 break
             
+            # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
+            labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) == 1
+            if not labels_consistency_check:
+                print("Critical error: Labels consistency in matching clusters in merging mechanism:", labels_consistency_check)
+
             #Compute the initial merging candidates
             self.compute_merging_condition()
 

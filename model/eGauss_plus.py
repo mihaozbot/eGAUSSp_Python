@@ -12,22 +12,26 @@ from model.federated_operations import FederalOps
 # Attempt to load the line_profiler extension
 
 class eGAUSSp(torch.nn.Module):
-    def __init__(self, feature_dim, num_classes, kappa_n, num_sigma, kappa_join, S_0, c_max, device):
+    def __init__(self, feature_dim, num_classes, kappa_n, num_sigma, kappa_join, S_0, N_r, c_max, device, num_samples = 100):
         super(eGAUSSp, self).__init__()
         self.device = device
-        self.feature_dim = feature_dim
-        self.kappa_n = kappa_n
-        self.num_sigma = num_sigma
-        self.kappa_join = kappa_join
-        self.S_0 = S_0 * torch.eye(self.feature_dim, device=self.device)
-        self.S_0_initial = self.S_0.clone() 
-        self.c_max = c_max
-        self.num_classes = num_classes
-        
+        self.feature_dim = feature_dim #Dimensionality of the features
+        self.kappa_n = kappa_n #Minimal number of samples
+        self.num_sigma = num_sigma #Activation distancethreshold
+        self.kappa_join = kappa_join #Merging threshold
+        self.S_0 = S_0 * torch.eye(self.feature_dim, device=self.device) #Initialization covariance matrix
+        self.S_0_initial = self.S_0.clone() #Initial covariance matrix
+        self.N_r = N_r #Quantization number
+        self.num_classes = num_classes #Max number of samples in clusters
+        self.c_max = c_max #Max number of clusters
+
+        #Forgetting factor for the number of samples of the clusters
+        self.forgeting_factor = 1 - 1/num_samples
+
         # Dynamic properties initialized with tensors
         self.c = 0 # Number of active clusters
         self.Gamma = torch.empty(0, dtype=torch.float32, device=device,requires_grad=True)
-        self.current_capacity = 2*c_max #Initialize current capacity, which will be expanded as needed during training 
+        self.current_capacity = 2*N_r #Initialize current capacity, which will be expanded as needed during training 
         self.cluster_labels = torch.empty((self.current_capacity, num_classes), dtype=torch.int32, device=device) #Initialize cluster labels
         self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
         
@@ -46,7 +50,7 @@ class eGAUSSp(torch.nn.Module):
         # Initialize subclasses
         self.overseer = ModelOps(self)
         self.mathematician = MathOps(self)
-        self.clustering = ClusteringOps(self)
+        self.clusterer = ClusteringOps(self)
         self.merging_mech = MergingMechanism(self)
         self.removal_mech = RemovalMechanism(self)
         self.consequence = ConsequenceOps(self)
@@ -77,6 +81,35 @@ class eGAUSSp(torch.nn.Module):
         
         self.federal_agent.federated_merging()
 
+    def clustering(self, data, labels):
+
+        for (z, label) in zip(data, labels):
+
+            # Check if the model is in evaluation mode
+            # In evaluation mode, match all clusters
+                # Update global statistics
+            self.clusterer.update_global_statistics(z)
+            
+            # In training mode, match clusters based on the label
+            self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
+            
+            # Compute activation
+            self.Gamma = self.mathematician.compute_activation(z)
+
+            # Evolving mechanisms
+            if self.evolving:
+                with torch.no_grad():
+                
+                    #Incremental clustering and cluster addition
+                    self.clusterer.increment_or_add_cluster(z, label)
+
+                    #Cluster merging
+                    self.merging_mech.merging_mechanism()
+                
+                    #Removal mechanism
+                    self.removal_mech.removal_mechanism()
+
+
     def forward(self, data, labels):
 
         scores = []  # List to store scores of the positive class
@@ -93,7 +126,7 @@ class eGAUSSp(torch.nn.Module):
             else: #In training mode
                 
                 # Update global statistics
-                self.clustering.update_global_statistics(z)
+                self.clusterer.update_global_statistics(z)
                 
                 # In training mode, match clusters based on the label
                 self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
@@ -107,7 +140,7 @@ class eGAUSSp(torch.nn.Module):
                 with torch.no_grad():
                 
                     #Incremental clustering and cluster addition
-                    self.clustering.increment_or_add_cluster(z, label)
+                    self.clusterer.increment_or_add_cluster(z, label)
 
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
@@ -116,10 +149,10 @@ class eGAUSSp(torch.nn.Module):
                     self.removal_mech.removal_mechanism()
 
             # Defuzzify label scores
-            label_scores = self.consequence.defuzzify()
+            label_scores, pred_max = self.consequence.defuzzify()
 
             scores.append(label_scores)  # Extract and store scores for the positive class
-            pred.append(label_scores.argmax())  # Extract and store class predictions
+            pred.append(pred_max)  # Extract and store class predictions
             clusters.append(self.Gamma.argmax())  # Extract and store class predictions
 
         scores = torch.vstack(scores).clone().detach().requires_grad_(True)

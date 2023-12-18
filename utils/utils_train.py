@@ -20,7 +20,7 @@ def train_supervised(model, client_data):
     data, labels = data.to(model.device), labels.to(model.device)
 
     # Training loop
-    model.forward(data, labels)  # Train the model
+    model.clustering(data, labels)  # Train the model
 
 def train_models_in_threads(models, datasets, debugging = False):
     threads = []
@@ -48,7 +48,7 @@ def train_unsupervised(model, client_data):
     dummy_labels = torch.full((len(data),), 0, dtype=torch.int32)
 
     # Training loop
-    model.forward(data, dummy_labels)  # Train the model
+    model.clustering(data, dummy_labels)  # Train the model
 
 
 def test_model(model, dataset):
