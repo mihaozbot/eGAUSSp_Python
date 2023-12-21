@@ -44,23 +44,38 @@ def calculate_roc_auc(outputs, test_dataset):
     plt.show()
 
     return roc_auc
-
+    
 def calculate_metrics_statistics(metrics_list, resolution=2):
-    """Calculate the average and standard deviation of given metrics."""
-    mean_metrics = {key: np.mean([metrics[key] for metrics in metrics_list]) for key in metrics_list[0]}
-    std_metrics = {key: np.std([metrics[key] for metrics in metrics_list], ddof=1) for key in metrics_list[0]}
+    """Calculate the average and standard deviation of given metrics across repetitions."""
+    
+    # Flattening the list of lists into a single list of dictionaries
+    flat_list = [item for sublist in metrics_list for item in sublist]
+
+    # Extracting keys from the first dictionary in the flattened list
+    keys = flat_list[0].keys()
+
+    # Calculate mean and standard deviation for each metric
+    mean_metrics = {key: np.mean([metrics[key] for metrics in flat_list]) for key in keys}
+    std_metrics = {key: np.std([metrics[key] for metrics in flat_list], ddof=1) for key in keys}
+
     return format_metrics(mean_metrics, std_metrics, resolution)
 
 def format_metrics(mean_metrics, std_metrics, resolution):
     """Format the metrics as 'mean ± standard deviation'."""
-    formatted = {key: f"{mean_metrics[key]:.{resolution}f}"+ r"{±}" +f"{std_metrics[key]:.{resolution}f}" for key in mean_metrics}
+    formatted = {key: f"{mean_metrics[key]:.{resolution}f}" + r"{±}" + f"{std_metrics[key]:.{resolution}f}" for key in mean_metrics}
     return formatted
 
-def calculate_cluster_stats(cluster_counts):
-    """Calculate the average and standard deviation of cluster counts."""
-    avg_clusters = np.mean(cluster_counts)
-    std_clusters = np.std(cluster_counts, ddof=1)
+def calculate_cluster_stats(client_clusters):
+    """Calculate the average and standard deviation of cluster counts across all clients and repetitions."""
+    # Flatten the list of lists
+    all_clusters = [cluster for client in client_clusters for cluster in client]
+
+    # Calculate average and standard deviation
+    avg_clusters = np.mean(all_clusters)
+    std_clusters = np.std(all_clusters, ddof=1)
+
     return avg_clusters, std_clusters
+
 
 def plot_confusion_matrix(pred_max, test_dataset):
     """
@@ -116,6 +131,7 @@ def calculate_unsupervised_metrics(assignments, dataset):
         homogeneity = homogeneity_score(labels, assignments)
         completeness = completeness_score(labels, assignments)
         v_measure = v_measure_score(labels, assignments)
+        
     else:
         silhouette = 0
         davies_bouldin = 0
@@ -132,7 +148,7 @@ def calculate_unsupervised_metrics(assignments, dataset):
         "silhouette_score": silhouette,
         #"davies_bouldin_score": davies_bouldin,
         #"calinski_harabasz_score": calinski_harabasz,
-        #"adjusted_rand_score": adjusted_rand,
+        "adjusted_rand_score": adjusted_rand,
         "normalized_mutual_info_score": normalized_mutual_info,
         #"homogeneity_score": homogeneity,
         #"completeness_score": completeness,

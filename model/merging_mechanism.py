@@ -37,14 +37,18 @@ class MergingMechanism:
         # Calculate the new covariance matrix for the merged cluster
         S_ij = (S_i + S_j) + (self.parent.n[i_all] * self.parent.n[j_all] / n_ij * torch.outer(mu_diff, mu_diff))
 
+        score_ij = (self.parent.n[i_all] * self.parent.score[i_all]+ self.parent.n[j_all] * self.parent.score[j_all]) / n_ij
+        
         # Perform the merging operation
         self.parent.mu[i_all] = mu_ij
         self.parent.S[i_all] = S_ij
         self.parent.n[i_all] = n_ij
 
+        self.parent.score[i_all] = score_ij
+        
         # Update Gamma values 
         self.parent.Gamma[i_all] = 0 #self.parent.Gamma[i_all]
-                
+        
         # Use RemovalMechanism to remove the j-th cluster
         self.parent.removal_mech.remove_cluster(j_all)
         
@@ -213,7 +217,7 @@ class MergingMechanism:
             
         return merge_occurred  # Return True if any merge happened, otherwise False
     
-    def merging_mechanism(self, max_iterations=100):
+    def merging_mechanism(self, max_iterations=1000):
     
         iteration = 0 # Iteration counter
         
@@ -259,5 +263,5 @@ class MergingMechanism:
         V_ratio = self.V/V_S_0
         
         # Filtering kappa based on conditions
-        kappa_filter = (self.kappa == 0) + (V_ratio > np.sqrt(self.feature_dim))
+        kappa_filter = (self.kappa == 0) + (V_ratio > 2**self.feature_dim)
         self.kappa[kappa_filter] = float("inf")

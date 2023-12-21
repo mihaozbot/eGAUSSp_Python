@@ -32,7 +32,10 @@ class ClusteringOps:
             self.parent.mu.data[self.parent.c] = z
             self.parent.S.data[self.parent.c] = self.parent.S_0
             self.parent.n.data[self.parent.c] = 1.0
-
+            
+            
+        self.parent.score[self.parent.c] = 0
+            
         # Update cluster_labels
         # If cluster_labels is not a Parameter and does not require gradients, update as a regular tensor
         self.parent.cluster_labels[self.parent.c] = self.parent.one_hot_labels[label]

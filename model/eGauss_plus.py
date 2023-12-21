@@ -12,7 +12,7 @@ from model.federated_operations import FederalOps
 # Attempt to load the line_profiler extension
 
 class eGAUSSp(torch.nn.Module):
-    def __init__(self, feature_dim, num_classes, kappa_n, num_sigma, kappa_join, S_0, N_r, c_max, device, num_samples = 100):
+    def __init__(self, feature_dim, num_classes, kappa_n, num_sigma, kappa_join, S_0, N_r, c_max, device, num_samples = 1000):
         super(eGAUSSp, self).__init__()
         self.device = device
         self.feature_dim = feature_dim #Dimensionality of the features
@@ -31,9 +31,11 @@ class eGAUSSp(torch.nn.Module):
         # Dynamic properties initialized with tensors
         self.c = 0 # Number of active clusters
         self.Gamma = torch.empty(0, dtype=torch.float32, device=device,requires_grad=True)
-        self.current_capacity = 2*N_r #Initialize current capacity, which will be expanded as needed during training 
+        self.current_capacity = 2*c_max #Initialize current capacity, which will be expanded as needed during training 
         self.cluster_labels = torch.empty((self.current_capacity, num_classes), dtype=torch.int32, device=device) #Initialize cluster labels
-        self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
+        #self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
+        
+        self.score = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize cluster labels
         
         self.one_hot_labels = torch.eye(num_classes, dtype=torch.int64) #One hot labels 
         
@@ -41,7 +43,8 @@ class eGAUSSp(torch.nn.Module):
         self.n = nn.Parameter(torch.zeros((self.current_capacity), requires_grad=True, device = device)) #Initialize cluster sizes 
         self.mu = nn.Parameter(torch.zeros((self.current_capacity, feature_dim), requires_grad=True, device = device)) #Initialize cluster means
         self.S = nn.Parameter(torch.zeros((self.current_capacity, feature_dim, feature_dim), requires_grad=True, device = device)) #Initialize covariance matrices
-
+        
+        
         # Global statistics
         self.n_glo = 0  # Total number of samples processed globally
         self.mu_glo = torch.zeros((feature_dim), dtype=torch.float32, device=device)  # Global mean
@@ -90,19 +93,23 @@ class eGAUSSp(torch.nn.Module):
                 # Update global statistics
             self.clusterer.update_global_statistics(z)
             
-            # In training mode, match clusters based on the label
-            self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
+            self.matching_clusters = torch.arange(self.c, dtype=torch.int64, device=self.device)
             
             # Compute activation
             self.Gamma = self.mathematician.compute_activation(z)
 
+            # In training mode, match clusters based on the label
+            self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
+            
             # Evolving mechanisms
             if self.evolving:
                 with torch.no_grad():
-                
+                                                    
+                    self.removal_mech.update_score(label)
+                    
                     #Incremental clustering and cluster addition
                     self.clusterer.increment_or_add_cluster(z, label)
-
+            
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
                 
@@ -122,6 +129,7 @@ class eGAUSSp(torch.nn.Module):
                 
                 # In evaluation mode, match all clusters
                 self.matching_clusters = torch.arange(self.c, dtype=torch.int64, device=self.device)
+                self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
                 
             else: #In training mode
                 

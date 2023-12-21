@@ -38,7 +38,10 @@ class ModelOps:
         self.parent.S = nn.Parameter(self._resize_tensor(self.parent.S, (new_capacity, self.parent.feature_dim, self.parent.feature_dim)), requires_grad=True)
         #self.parent.S_inv = nn.Parameter(self._resize_tensor(self.parent.S_inv, (new_capacity, self.parent.feature_dim, self.parent.feature_dim)), requires_grad=True)
         self.parent.n = nn.Parameter(self._resize_tensor(self.parent.n, (new_capacity,)), requires_grad=True)
+        
         self.parent.cluster_labels = self._resize_tensor(self.parent.cluster_labels, (new_capacity,self.parent.num_classes))
+        self.parent.score = self._resize_tensor(self.parent.score, (new_capacity,))
+        
         self.parent.current_capacity = new_capacity
 
     def _resize_tensor(self, old_tensor, new_size):

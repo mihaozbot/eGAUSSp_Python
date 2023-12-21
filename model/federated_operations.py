@@ -7,7 +7,7 @@ class FederalOps:
         ''' Initialize the FederalOps with a reference to the parent class. '''
         self.parent = parent
         
-    def federated_merging(self, max_iterations = 100):
+    def federated_merging(self):
         ''' Perform federated merging of clusters based on labels within a specified number of iterations. '''
         
         # Iterate over unique labels in the cluster labels
@@ -16,9 +16,13 @@ class FederalOps:
             # Identify clusters with the current label
             # In training mode, match clusters based on the label
             self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
-            centers = self.parent.mu.detach().clone()
+            random_indices = torch.randperm(self.parent.matching_clusters.size(0))
+            centers = self.parent.mu[self.parent.matching_clusters[random_indices]].detach().clone()
+            
+            if len(centers) == 0:
+                continue
 
-            for i in self.parent.matching_clusters:
+            for i, center in enumerate(centers):
 
                 #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
                 if self.parent.matching_clusters[-1] == self.parent.c:
@@ -30,7 +34,7 @@ class FederalOps:
                     print("Critical error: Labels consistency in matching clusters in federated merging:", labels_consistency_check)
 
                 #Compute distance to the current cluster center
-                self.parent.Gamma = self.parent.mathematician.compute_activation(centers[i])  
+                self.parent.Gamma = self.parent.mathematician.compute_activation(center)  
 
                 #Use the merging mechanism 
                 self.parent.merging_mech.merging_mechanism()
@@ -112,7 +116,7 @@ class FederalOps:
         ''' Merge the parameters of another model into the current federated model. '''
 
         # Filter out clusters where model.n > 0
-        valid_clusters = model.n > c_min
+        valid_clusters = (model.n[:model.c] > c_min) #*(model.score[:model.c] > 0)
         num_valid_clusters = valid_clusters.sum()
 
         # First, merge the global statistical parameters
@@ -139,6 +143,8 @@ class FederalOps:
                     cluster_label = model.cluster_labels[i]
                     self.parent.cluster_labels[new_index] = cluster_label
 
+                    self.parent.score[new_index] = model.score[i]
+                    
                     '''
                     # Update or create the label_to_clusters entry for the new label
                     if cluster_label not in self.parent.label_to_clusters:

@@ -8,7 +8,7 @@ class ConsequenceOps():
     def defuzzify(self):
         
         #  Normalize Gamma by dividing each element by the sum of all elements)
-        normalized_gamma = self.parent.Gamma[0:self.parent.c] / (self.parent.Gamma[0:self.parent.c].sum())
+        normalized_gamma = (self.parent.Gamma[0:self.parent.c] + 1e-15)/ (self.parent.Gamma[0:self.parent.c].sum()+ 1e-15)
 
         # Filter out unlabeled cluster labels (assuming -1 indicates unlabeled)
         #labeled_indices = self.parent.cluster_labels[0:self.parent.c] != -1
@@ -21,5 +21,7 @@ class ConsequenceOps():
 
         # Retrieve the corresponding label
         max_label = torch.argmax(self.parent.cluster_labels[max_index])
-
+        
+        max_label = torch.argmax(label_scores)
+        
         return label_scores, max_label
