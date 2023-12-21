@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import math
 
 from model.clustering_operations import ClusteringOps
 from model.removal_mechanism import RemovalMechanism 
@@ -12,7 +13,7 @@ from model.federated_operations import FederalOps
 # Attempt to load the line_profiler extension
 
 class eGAUSSp(torch.nn.Module):
-    def __init__(self, feature_dim, num_classes, kappa_n, num_sigma, kappa_join, S_0, N_r, c_max, device, num_samples = 1000):
+    def __init__(self, feature_dim, num_classes, kappa_n, num_sigma, kappa_join, S_0, N_r, c_max, device, num_samples = 100000):
         super(eGAUSSp, self).__init__()
         self.device = device
         self.feature_dim = feature_dim #Dimensionality of the features
@@ -31,7 +32,7 @@ class eGAUSSp(torch.nn.Module):
         # Dynamic properties initialized with tensors
         self.c = 0 # Number of active clusters
         self.Gamma = torch.empty(0, dtype=torch.float32, device=device,requires_grad=True)
-        self.current_capacity = 2*c_max #Initialize current capacity, which will be expanded as needed during training 
+        self.current_capacity = math.ceil(c_max/2) #Initialize current capacity, which will be expanded as needed during training 
         self.cluster_labels = torch.empty((self.current_capacity, num_classes), dtype=torch.int32, device=device) #Initialize cluster labels
         #self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
         
@@ -46,7 +47,7 @@ class eGAUSSp(torch.nn.Module):
         
         
         # Global statistics
-        self.n_glo = 0  # Total number of samples processed globally
+        self.n_glo = torch.zeros((num_classes), dtype=torch.float32, device=device)  # Global number of sampels per class
         self.mu_glo = torch.zeros((feature_dim), dtype=torch.float32, device=device)  # Global mean
         self.S_glo = torch.zeros((feature_dim), dtype=torch.float32, device=device)  # Sum of squares for global variance
 
@@ -91,7 +92,7 @@ class eGAUSSp(torch.nn.Module):
             # Check if the model is in evaluation mode
             # In evaluation mode, match all clusters
                 # Update global statistics
-            self.clusterer.update_global_statistics(z)
+            self.clusterer.update_global_statistics(z, label)
             
             self.matching_clusters = torch.arange(self.c, dtype=torch.int64, device=self.device)
             
@@ -117,46 +118,54 @@ class eGAUSSp(torch.nn.Module):
                     self.removal_mech.removal_mechanism()
 
 
+    def forward(self, data):
+        
+        
+        # Assuming compute_activation can handle batch data
+        self.matching_clusters = torch.arange(self.c).repeat(data.shape[0], 1)
+        self.Gamma = self.mathematician.compute_batched_activation(data)
+        #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
+
+        # Evolving mechanisms can be handled here if they can be batch processed
+
+        # Defuzzify label scores for the entire batch
+        label_scores, preds_max = self.consequence.defuzzify_batch()  # Adapt this method for batch processing
+
+        # Assuming defuzzify returns batched scores and predictions
+        scores = label_scores.clone().detach().requires_grad_(True)
+        preds = preds_max
+        clusters = self.Gamma.argmax(dim=1)  # Get the cluster indices for the entire batch
+
+        return scores, preds, clusters
+
+    '''
     def forward(self, data, labels):
 
         scores = []  # List to store scores of the positive class
         pred = []    # List to store predicted class labels
         clusters = []    # List to store predicted class labels
-        for (z, label) in zip(data, labels):
+        for (z, _ ) in zip(data, labels):
 
             # Check if the model is in evaluation mode
-            if not self.training: #In evaluation mode
+            #if not self.training: #In evaluation mode
                 
-                # In evaluation mode, match all clusters
-                self.matching_clusters = torch.arange(self.c, dtype=torch.int64, device=self.device)
-                self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
+            # In evaluation mode, match all clusters
+            self.matching_clusters = torch.arange(self.c, dtype=torch.int64, device=self.device)
+            #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
                 
-            else: #In training mode
+            #else: #In training mode
                 
                 # Update global statistics
-                self.clusterer.update_global_statistics(z)
+                #self.clusterer.update_global_statistics(z)
                 
                 # In training mode, match clusters based on the label
-                self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
+            #    self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
 
             # Compute activation
             self.Gamma = self.mathematician.compute_activation(z)
 
-            # Evolving mechanisms
-        
-            if self.evolving:
-                with torch.no_grad():
-                
-                    #Incremental clustering and cluster addition
-                    self.clusterer.increment_or_add_cluster(z, label)
-
-                    #Cluster merging
-                    self.merging_mech.merging_mechanism()
-                
-                    #Removal mechanism
-                    self.removal_mech.removal_mechanism()
-
             # Defuzzify label scores
+            # Normalize Gamma by dividing each element by the sum of all elements)
             label_scores, pred_max = self.consequence.defuzzify()
 
             scores.append(label_scores)  # Extract and store scores for the positive class
@@ -168,3 +177,4 @@ class eGAUSSp(torch.nn.Module):
         clusters = torch.tensor(clusters)
 
         return scores, pred, clusters
+    '''

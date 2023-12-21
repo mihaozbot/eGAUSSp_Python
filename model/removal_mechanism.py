@@ -14,7 +14,7 @@ class RemovalMechanism:
             # Adjust normalized_gamma based on label correctness
             # Create a tensor that is 1 where the label is correct and -1 where it is not
             matching_clusters = self.parent.cluster_labels[:self.parent.c][:, label] == 1
-            label_adjustment = torch.where(matching_clusters,0, -1)
+            label_adjustment = torch.where(matching_clusters, 0, -1)
     
             n = self.parent.n[0:self.parent.c]
             number_of_samples = sum(n[matching_clusters])

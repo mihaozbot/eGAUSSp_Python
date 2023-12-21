@@ -130,12 +130,17 @@ class ClusteringOps:
         else:
             self._increment_cluster(z, j)
             #self._increment_clusters(z)
-            
-    def update_global_statistics(self, z):
+
+    def update_global_statistics(self, z, label):
         ''' Update the global mean, covariance, and count based on the new data point. '''
-        
+        # Increment the count for the specific class
+        self.parent.n_glo[label] += 1
+
+        # Calculate the total number of samples
+        total_samples = torch.sum(self.parent.n_glo)
+
+        # Update global statistics
         e_glo = z - self.parent.mu_glo  # Error between the sample and the global mean
-        self.parent.mu_glo += e_glo / (self.parent.n_glo + 1)  # Mean
-        self.parent.S_glo = self.parent.S_glo*self.parent.forgeting_factor + self.parent.n_glo / (self.parent.n_glo + 1) * e_glo * e_glo # Variance, (not normalized to reduce computation)
-        self.parent.n_glo = self.parent.n_glo*self.parent.forgeting_factor + 1 #Number of samples
-        self.parent.s_glo = torch.sqrt(self.parent.S_glo / self.parent.n_glo) #Standard deviation
+        self.parent.mu_glo += e_glo / total_samples  # Update mean
+        self.parent.S_glo = self.parent.S_glo + (total_samples - 1) / total_samples * e_glo * e_glo # Update variance (not normalized to reduce computation)
+        self.parent.s_glo = torch.sqrt(self.parent.S_glo / total_samples) # Update standard deviation

@@ -66,15 +66,22 @@ class FederalOps:
     def merge_model_statistics(self, model):
         ''' Merge the global statistical parameters of another model into the current federated model. '''
 
-        # Merge global parameters like covariance matrix, mean, count, and standard deviation
-        self.parent.S_glo = (self.parent.S_glo + model.S_glo) + (self.parent.n_glo * model.n_glo / (self.parent.n_glo + model.n_glo)) * (self.parent.mu_glo - model.mu_glo)
-        self.parent.mu_glo = (self.parent.n_glo * self.parent.mu_glo + model.n_glo * model.mu_glo) / (self.parent.n_glo + model.n_glo)
-        self.parent.n_glo += model.n_glo
-        self.parent.s_glo = torch.sqrt(self.parent.S_glo / self.parent.n_glo)
+        # Calculate total samples in both models
+        n_fed = torch.sum(self.parent.n_glo)
+        n_local = torch.sum(model.n_glo)
 
-        # Update the minimum cluster size
+        # Merge global parameters
+        self.parent.S_glo = (self.parent.S_glo * n_fed + model.S_glo * n_local) / (n_fed + n_local) + \
+                            (n_fed * n_local / (n_fed + n_local)) * (self.parent.mu_glo - model.mu_glo) ** 2
+        self.parent.mu_glo = (self.parent.mu_glo * n_fed + model.mu_glo * n_local) / (n_fed + n_local)
+        self.parent.s_glo = torch.sqrt(self.parent.S_glo / (n_fed + n_local))
+
+        # Merge class counts
+        self.parent.n_glo += model.n_glo
+
+        # Update minimum cluster size
         self.parent.clusterer.update_S_0()
-        
+
     def merge_model(self, model):
         ''' Merge the parameters of another model into the current federated model. '''
 
