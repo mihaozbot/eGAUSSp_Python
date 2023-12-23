@@ -106,7 +106,7 @@ class eGAUSSp(torch.nn.Module):
             if self.evolving:
                 with torch.no_grad():
                                                     
-                    self.removal_mech.update_score(label)
+
                     
                     #Incremental clustering and cluster addition
                     self.clusterer.increment_or_add_cluster(z, label)
@@ -114,8 +114,10 @@ class eGAUSSp(torch.nn.Module):
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
                 
+                    self.removal_mech.update_score(label)
+                    
                     #Removal mechanism
-                    self.removal_mech.removal_mechanism()
+                    #self.removal_mech.removal_mechanism()
 
 
     def forward(self, data):

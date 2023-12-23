@@ -1,56 +1,85 @@
 import torch
 import numpy as np
+import torch.nn.functional as F
 
 class RemovalMechanism:
     def __init__(self, parent):
         self.parent = parent
+      
+    def update_score(self, label):
         
+            #det_matrix = torch.exp(torch.linalg.slogdet(self.parent.S[0:self.parent.c])[1]) # [1] is the log determinant
+            #V = torch.sqrt(det_matrix)
+        
+            # Normalize Gamma
+            normalized_gamma = self.parent.consequence.compute_normalized_gamma() # self.parent.Gamma[:self.parent.c] #
+            
+            # Assuming target_label is defined (the label you're comparing against)
+            # Adjust normalized_gamma based on label correctness
+            # Create a tensor that is 1 where the label is correct and -1 where it is not
+            matching_clusters = self.parent.cluster_labels[:self.parent.c][:, label] == 1
+            label_adjustment = torch.where(matching_clusters, 0, -1)
+    
+            #n = self.parent.n[0:self.parent.c]
+            #number_of_samples = sum(n[matching_clusters])
+
+            number_of_samples = torch.sum(self.parent.n_glo[label])
+            
+            # Apply the label adjustment to normalized_gamma
+            self.parent.score[0:self.parent.c] = self.parent.score[0:self.parent.c] + normalized_gamma*label_adjustment/number_of_samples#
+    
+    ''' 
+    def update_score(self, label):
+
+        # Compute normalized gamma values
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
+
+        # Find the index of the cluster with the maximal gamma value
+        max_gamma_index = torch.argmax(normalized_gamma)
+
+        # Check if the label matches for the cluster with the maximal gamma
+        is_label_match = self.parent.cluster_labels[max_gamma_index, label] == 1
+
+        # Calculate the adjustment based on the label correctness
+        label_adjustment = 1 if is_label_match else -1
+
+        # Calculate the number of samples for the given label
+        number_of_samples = torch.sum(self.parent.n_glo[label])
+
+        # Update the score only for the cluster with the maximal gamma
+        self.parent.score[max_gamma_index] = self.parent.score[max_gamma_index] + label_adjustment / number_of_samples
+    ''' 
     '''
     def update_score(self, label):
-        
-            #det_matrix = torch.exp(torch.linalg.slogdet(self.parent.S[0:self.parent.c])[1]) # [1] is the log determinant
-            #V = torch.sqrt(det_matrix)
-        
-            # Normalize Gamma
-            normalized_gamma = self.parent.consequence.compute_normalized_gamma()
-            
-            # Assuming target_label is defined (the label you're comparing against)
-            # Adjust normalized_gamma based on label correctness
-            # Create a tensor that is 1 where the label is correct and -1 where it is not
-            matching_clusters = self.parent.cluster_labels[:self.parent.c][:, label] == 1
-            label_adjustment = torch.where(matching_clusters, 1, -1)
-    
-            #n = self.parent.n[0:self.parent.c]
-            #number_of_samples = sum(n[matching_clusters])
+        """
+        Update the running log loss (score) for each cluster in a vectorized manner.
 
-            number_of_samples = torch.sum(self.parent.n_glo[label])
-            
-            # Apply the label adjustment to normalized_gamma
-            self.parent.score[0:self.parent.c] = self.parent.score[0:self.parent.c] + normalized_gamma* label_adjustment/number_of_samples
-            '''
-            
-    def update_score(self, label):
-        
-            #det_matrix = torch.exp(torch.linalg.slogdet(self.parent.S[0:self.parent.c])[1]) # [1] is the log determinant
-            #V = torch.sqrt(det_matrix)
-        
-            # Normalize Gamma
-            normalized_gamma = self.parent.Gamma[:self.parent.c] #self.parent.consequence.compute_normalized_gamma() #
-            
-            # Assuming target_label is defined (the label you're comparing against)
-            # Adjust normalized_gamma based on label correctness
-            # Create a tensor that is 1 where the label is correct and -1 where it is not
-            matching_clusters = self.parent.cluster_labels[:self.parent.c][:, label] == 1
-            label_adjustment = torch.where(matching_clusters, 1, -1)
-    
-            #n = self.parent.n[0:self.parent.c]
-            #number_of_samples = sum(n[matching_clusters])
+        Args:
+        true_label (int): The true label of the sample.
+        """
+        # Compute normalized gamma values (predicted probabilities for each cluster)
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
 
-            number_of_samples = torch.sum(self.parent.n_glo[label])
-            
-            # Apply the label adjustment to normalized_gamma
-            self.parent.score[0:self.parent.c] = self.parent.score[0:self.parent.c] + normalized_gamma*label_adjustment#/number_of_samples
-            
+        # Get the one-hot encoded class labels for each cluster
+        one_hot_labels = normalized_gamma.unsqueeze(-1) *self.parent.cluster_labels[:self.parent.c]
+
+        # Compute the predicted probability for the true label
+        predicted_probabilities = one_hot_labels
+
+        # Create a tensor of the true label in float and match the shape
+        true_label_tensor = torch.zeros_like(predicted_probabilities)
+        true_label_tensor[:,label] = 1
+
+        # Compute log loss for the predicted probabilities
+        current_log_losses = F.binary_cross_entropy(predicted_probabilities, 
+                                                    true_label_tensor, 
+                                                    reduction='none')
+
+        # Normalize the log loss by the number of samples for the true label and update the score
+        self.parent.score[0:self.parent.c] += torch.sum(current_log_losses /  self.parent.n_glo[label], dim = 1)
+        '''
+    
+
     def removal_mechanism(self):
         ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
 
@@ -61,13 +90,14 @@ class RemovalMechanism:
         #V = torch.sqrt(det_matrix)
         #V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
         #V_ratio = V  / (V_S_0 + 1e-30)
-        
+
         # Continue removing the smallest clusters while the condition is not met
         while (len(self.parent.matching_clusters) > self.parent.c_max):
 
             # Here you should implement your new logic for determining which cluster to remove
             # For instance, removing based on another metric
             index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
+            #index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]*self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
             # Update V_ratio by removing the index_to_remove element
             
             #V = torch.cat((V[:index_to_remove], V[index_to_remove + 1:]))
@@ -81,7 +111,28 @@ class RemovalMechanism:
                #self.parent.n[self.parent.matching_clusters]*self.parent.score[self.parent.matching_clusters])              
                 #highest_error = torch.argmin(self.parent.score[self.parent.matching_clusters])
                 #self.remove_cluster(self.parent.matching_clusters[highest_error])
+    
+    
+    def federated_removal_mechanism(self):
+        ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
+
+        # Continue removing the smallest clusters while the condition is not met
+        while (len(self.parent.matching_clusters) > self.parent.c_max):
+
+            # Here you should implement your new logic for determining which cluster to remove
+            # For instance, removing based on another metric
+            index_to_remove = torch.argmin(self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
+            #index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]*self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
+            # Update V_ratio by removing the index_to_remove element
             
+            #V = torch.cat((V[:index_to_remove], V[index_to_remove + 1:]))
+            
+            #self.parent.matching_clusters = torch.cat((self.parent.matching_clusters[:index_to_remove], self.parent.matching_clusters[index_to_remove + 1:]))
+            
+            # Remove the cluster
+            with torch.no_grad():
+                self.remove_cluster(self.parent.matching_clusters[index_to_remove])
+
     '''      
     def removal_mechanism(self):
     #Compute the initial merging candidates

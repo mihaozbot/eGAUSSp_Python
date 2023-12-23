@@ -101,7 +101,7 @@ class MergingMechanism:
         """
         Compute the volume 'V' between pairs of clusters in the provided set of matching clusters. Merge clusters that meet the specified condition.
         """
-        
+
         # Prepare necessary tensors for valid clusters
         n = self.parent.n[self.valid_clusters]
         mu = self.parent.mu[self.valid_clusters]
@@ -124,7 +124,7 @@ class MergingMechanism:
         self.V = torch.sqrt(det_matrix)
 
         #Extract the upper triangle
-        self.V = torch.triu(self.V , diagonal=0)**(1/self.parent.feature_dim)
+        self.V = torch.triu(self.V , diagonal=0)
 
     def update_merging_condition(self, i, j):
         #i and j are local to self.valid_clusters
@@ -253,13 +253,13 @@ class MergingMechanism:
         diag_sum = self.V.diag().unsqueeze(0) + self.V.diag().unsqueeze(1)
 
         # Create the upper triangular part of kappa matrix
-        self.kappa = torch.triu(self.V / diag_sum, diagonal=1)
+        self.kappa = torch.triu(self.V / diag_sum, diagonal=1)**(1/self.parent.feature_dim)
 
         #Compute volume of default cluster covariance matrix
-        V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))**(1/self.parent.feature_dim)
+        V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
        
         #Compare cluster volume to standard volume
-        V_ratio = self.V/V_S_0
+        V_ratio = (self.V/V_S_0)**(1/self.parent.feature_dim)
         
         # Filtering kappa based on conditions
         kappa_filter = (self.kappa == 0) + (V_ratio > 3)
