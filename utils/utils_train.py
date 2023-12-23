@@ -55,11 +55,11 @@ def test_model(model, dataset):
     data, _ = dataset
     data = data.to(model.device)
     
-    #Turn off training
+    #Turn off training, although it is not needed
     model.toggle_evolving(False)
     model.eval()
 
     #dummy_labels = torch.full((len(data),), -1, dtype=torch.int32, device = model.device)
-    all_scores, pred_max, clusters = model(data)  # Forward pass
+    all_scores, pred_max, clusters = model.forward(data)  # Forward pass
 
     return all_scores, pred_max, clusters

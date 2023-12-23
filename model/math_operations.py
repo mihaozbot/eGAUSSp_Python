@@ -1,5 +1,6 @@
 from math import inf
 import torch
+import numpy as np
 
  # Attempt to load the line_profiler extension
 
@@ -52,7 +53,7 @@ class MathOps():
             print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
 
         # Compute activations for the candidate clusters
-        Gamma = torch.exp(-d2) #+ 1e-30 #*scaling_factor
+        Gamma = torch.exp(-d2/np.sqrt(self.feature_dim))#+ 1e-30 #*scaling_factor
 
         if torch.isnan(Gamma).any().item():
             print("Critical error! NaN detected in Gamma computation")
@@ -107,7 +108,7 @@ class MathOps():
             # Perform batch matrix multiplication
             # Using matmul for better broadcasting support
             d2[:, non_single_sample_mask] = torch.matmul(torch.matmul(diff, S_inv_expanded), diff.transpose(-2, -1)).squeeze(-1).squeeze(-1)
-            
+
         if (d2 < 0).any():
             d2[d2 < 0] = float('inf')
             print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
@@ -117,6 +118,6 @@ class MathOps():
 
         # Compute activations and assign them to their respective places in full_Gamma
         batch_indices = torch.arange(Z.shape[0], device=self.parent.device).unsqueeze(1)
-        full_Gamma[batch_indices, self.parent.matching_clusters] = torch.exp(-d2[batch_indices, self.parent.matching_clusters]) + 1e-30
+        full_Gamma[batch_indices, self.parent.matching_clusters] = torch.exp(-d2[batch_indices, self.parent.matching_clusters]/np.sqrt(self.feature_dim))
 
         return full_Gamma

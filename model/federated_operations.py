@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import torch.nn as nn
 
     
 class FederalOps:
@@ -12,7 +13,7 @@ class FederalOps:
         
         # Iterate over unique labels in the cluster labels
         for label in range(0, self.parent.num_classes):
-
+        
             # Identify clusters with the current label
             # In training mode, match clusters based on the label
             self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
@@ -57,12 +58,11 @@ class FederalOps:
                     merge = self.parent.merging_mech.merge_clusters()
                     iteration += 1  # Increment the iteration counter
                 '''
-                
+
             #Remove small clusters
             self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
             self.parent.removal_mech.removal_mechanism()
-   
-                
+
     def merge_model_statistics(self, model):
         ''' Merge the global statistical parameters of another model into the current federated model. '''
 
@@ -82,7 +82,7 @@ class FederalOps:
         # Update minimum cluster size
         self.parent.clusterer.update_S_0()
 
-    def merge_model(self, model):
+    def merge_model(self, model, num_clients):
         ''' Merge the parameters of another model into the current federated model. '''
 
         # First, merge the global statistical parameters
@@ -142,9 +142,8 @@ class FederalOps:
             for i in range(model.c):
                 if valid_clusters[i]:
                     self.parent.mu.data[new_index] = model.mu.data[i]
-                    self.parent.S.data[new_index] = model.S.data[i]
-                    self.parent.n.data[new_index] = model.n.data[i]
-
+                    self.parent.S.data[new_index] = model.S.data[i] #/num_clients
+                    self.parent.n.data[new_index] = model.n.data[i] #/num_clients
                         
                     # Update cluster labels and the label-to-cluster mapping
                     cluster_label = model.cluster_labels[i]
@@ -170,3 +169,5 @@ class FederalOps:
                 
         # Update the total count of clusters in the federated model
         self.parent.c = new_index  # Update to the new index, which reflects the actual number of clusters after merging
+
+    

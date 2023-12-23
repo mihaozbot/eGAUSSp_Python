@@ -16,7 +16,7 @@ class ClusteringOps:
     def __init__(self, parent):
         self.parent = parent # Reference to the parent class
         self.feature_dim = parent.feature_dim # Number of features in the dataset
-        self.Gamma_max = np.exp(-parent.num_sigma**2) # Maximum value of Gamma (used to determine if a new cluster should be added)
+        self.Gamma_max = np.exp(-(parent.num_sigma**2)*(self.feature_dim**np.sqrt(2))) # Maximum value of Gamma (used to determine if a new cluster should be added)
 
            
     def _add_new_cluster(self, z, label):
@@ -32,8 +32,7 @@ class ClusteringOps:
             self.parent.mu.data[self.parent.c] = z
             self.parent.S.data[self.parent.c] = self.parent.S_0
             self.parent.n.data[self.parent.c] = 1.0
-            
-            
+        
         self.parent.score[self.parent.c] = 0
             
         # Update cluster_labels
@@ -52,7 +51,7 @@ class ClusteringOps:
         ''' Update the smallest cluster covariance matrix based on global statistics, before adding a new cluster. '''
         
         #Compute the parameter spread from the global statistics
-        S_0 = self.parent.num_sigma*(self.parent.s_glo)**2/(self.parent.N_r)
+        S_0 = self.parent.s_glo/(self.parent.N_r)
 
         #Update smallest cluster covariance matrix
         self.parent.S_0 = torch.diag(S_0)
@@ -143,4 +142,4 @@ class ClusteringOps:
         e_glo = z - self.parent.mu_glo  # Error between the sample and the global mean
         self.parent.mu_glo += e_glo / total_samples  # Update mean
         self.parent.S_glo = self.parent.S_glo + (total_samples - 1) / total_samples * e_glo * e_glo # Update variance (not normalized to reduce computation)
-        self.parent.s_glo = torch.sqrt(self.parent.S_glo / total_samples) # Update standard deviation
+        self.parent.s_glo = self.parent.S_glo / total_samples # Update standard deviation

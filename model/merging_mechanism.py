@@ -96,7 +96,8 @@ class MergingMechanism:
         ell = Ellipse(xy=mu_2d, width=width, height=height, angle=angle, edgecolor=color, lw=2, facecolor='none', alpha=alpha)
         plt.gca().add_patch(ell)
 
-    def compute_merging_condition(self):
+    def compute_volume(self):
+        
         """
         Compute the volume 'V' between pairs of clusters in the provided set of matching clusters. Merge clusters that meet the specified condition.
         """
@@ -123,12 +124,7 @@ class MergingMechanism:
         self.V = torch.sqrt(det_matrix)
 
         #Extract the upper triangle
-        self.V = torch.triu(self.V , diagonal=0)
-
-        # Compute merging condition kappa
-        kappa = self.compute_kappa_matrix()
-    
-        return kappa
+        self.V = torch.triu(self.V , diagonal=0)**(1/self.parent.feature_dim)
 
     def update_merging_condition(self, i, j):
         #i and j are local to self.valid_clusters
@@ -242,14 +238,17 @@ class MergingMechanism:
             if not labels_consistency_check:
                 print("Critical error: Labels consistency in matching clusters in merging mechanism:", labels_consistency_check)
 
-            #Compute the initial merging candidates
-            self.compute_merging_condition()
+            #Compute the volume of the combined clusters
+            self.compute_volume()
 
+            # Compute merging condition kappa
+            self.compute_kappa()
+        
             #Check merging condition, merge rules, and return True if merge happened
             merge = self.merge_clusters()
             iteration += 1
 
-    def compute_kappa_matrix(self):
+    def compute_kappa(self):
         # Create diagonal matrix with shape (c, c) containing V[i, i] + V[j, j] for all i and j
         diag_sum = self.V.diag().unsqueeze(0) + self.V.diag().unsqueeze(1)
 
@@ -257,11 +256,11 @@ class MergingMechanism:
         self.kappa = torch.triu(self.V / diag_sum, diagonal=1)
 
         #Compute volume of default cluster covariance matrix
-        V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
+        V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))**(1/self.parent.feature_dim)
        
         #Compare cluster volume to standard volume
         V_ratio = self.V/V_S_0
         
         # Filtering kappa based on conditions
-        kappa_filter = (self.kappa == 0) + (V_ratio > 2**self.feature_dim)
+        kappa_filter = (self.kappa == 0) + (V_ratio > 3)
         self.kappa[kappa_filter] = float("inf")

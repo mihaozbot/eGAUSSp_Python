@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import math
+import numpy as np
 
 from model.clustering_operations import ClusteringOps
 from model.removal_mechanism import RemovalMechanism 
@@ -18,8 +19,8 @@ class eGAUSSp(torch.nn.Module):
         self.device = device
         self.feature_dim = feature_dim #Dimensionality of the features
         self.kappa_n = kappa_n #Minimal number of samples
-        self.num_sigma = num_sigma #Activation distancethreshold
-        self.kappa_join = kappa_join #Merging threshold
+        self.num_sigma = num_sigma/np.sqrt(self.feature_dim) #Activation distancethreshold*self.feature_dim**(1/np.sqrt(2)) 
+        self.kappa_join = kappa_join*np.sqrt(self.feature_dim) #Merging threshold
         self.S_0 = S_0 * torch.eye(self.feature_dim, device=self.device) #Initialization covariance matrix
         self.S_0_initial = self.S_0.clone() #Initial covariance matrix
         self.N_r = N_r #Quantization number
@@ -38,13 +39,12 @@ class eGAUSSp(torch.nn.Module):
         
         self.score = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize cluster labels
         
-        self.one_hot_labels = torch.eye(num_classes, dtype=torch.int64) #One hot labels 
+        self.one_hot_labels = torch.eye(num_classes, dtype=torch.int32) #One hot labels 
         
         # Trainable parameters
         self.n = nn.Parameter(torch.zeros((self.current_capacity), requires_grad=True, device = device)) #Initialize cluster sizes 
         self.mu = nn.Parameter(torch.zeros((self.current_capacity, feature_dim), requires_grad=True, device = device)) #Initialize cluster means
         self.S = nn.Parameter(torch.zeros((self.current_capacity, feature_dim, feature_dim), requires_grad=True, device = device)) #Initialize covariance matrices
-        
         
         # Global statistics
         self.n_glo = torch.zeros((num_classes), dtype=torch.float32, device=device)  # Global number of sampels per class
@@ -119,7 +119,6 @@ class eGAUSSp(torch.nn.Module):
 
 
     def forward(self, data):
-        
         
         # Assuming compute_activation can handle batch data
         self.matching_clusters = torch.arange(self.c).repeat(data.shape[0], 1)
