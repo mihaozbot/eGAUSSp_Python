@@ -13,3 +13,9 @@ Cluster Cohesion and Separation: Cohesion measures how closely related objects a
 Gini Coefficient: In the context of clustering, the Gini coefficient can be used to measure the distribution of data points among different clusters. A lower Gini coefficient suggests a more equal distribution of data points across clusters.
 
 negative memberhip pushes away clusters
+
+
+Problems:
+    - removing small clusters increases the slope of the ROC AUC
+    - removing large errors removes the 
+    - The problem is the repetition of clusters, becase they repeat

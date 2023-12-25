@@ -1,4 +1,5 @@
 from math import inf
+from re import S
 import torch
 import numpy as np
 
@@ -11,12 +12,12 @@ class MathOps():
 
     def compute_activation(self, z):
         """Compute membership of the current sample z to the exisiting rules/clusters"""
-         
+            
         if self.parent.c == 0:
             return torch.empty(0, device=self.parent.device, requires_grad=True)
 
         if len(self.parent.matching_clusters) == 0:
-            return torch.zeros(self.parent.c, device=self.parent.device,requires_grad=True)
+            return torch.zeros(self.parent.c, device=self.parent.device, requires_grad=True)
 
         # Direct tensor indexing
         mu = self.parent.mu[self.parent.matching_clusters]
@@ -27,11 +28,13 @@ class MathOps():
         z_expanded = z.unsqueeze(0).expand(mu.shape[0], -1)
 
         # Initialize distance tensor
-        d2 = torch.zeros(len(self.parent.matching_clusters), dtype=torch.float32, device=self.parent.device)
+        d2 = torch.zeros(len(self.parent.matching_clusters), dtype=torch.float64, device=self.parent.device)
 
         # Mask for clusters with a single sample
+        '''
         single_sample_mask = n == 1
-        
+
+
         # Compute distances for clusters with a single sample,
         if single_sample_mask.sum() > 0:
             diff_single_sample = z_expanded[single_sample_mask] - mu[single_sample_mask]
@@ -42,24 +45,37 @@ class MathOps():
 
         # Compute Mahalanobis distances for other clusters
         non_single_sample_mask = ~single_sample_mask
-        if non_single_sample_mask.sum() > 0: 
+        if non_single_sample_mask.sum() > 0:
             S_inv = torch.linalg.inv(Sigma[non_single_sample_mask])
             diff = (z_expanded[non_single_sample_mask] - mu[non_single_sample_mask]).unsqueeze(-1)
             d2_mahalanobis = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
             d2[non_single_sample_mask] = d2_mahalanobis
+        '''
 
+        S_inv = torch.linalg.inv(Sigma)
+        diff = (z_expanded - mu).unsqueeze(-1)
+        d2 = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
+
+    # Check for negative distances and remove corresponding clusters
         if (d2 < 0).any():
-            d2[d2<0]= inf
             print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
+            print("Negative distance detected, adjusting")
 
-        # Compute activations for the candidate clusters
-        Gamma = torch.exp(-d2/np.sqrt(self.feature_dim))#+ 1e-30 #*scaling_factor
+            #with torch.no_grad():
+            #    for index in torch.where(d2 < 0)[0]:
+             #       self.parent.removal_mech.remove_cluster(index)
+
+            # Update d2 to exclude negative distances
+            d2[d2 < 0] = float('inf')
+                    
+            # Compute activations for the candidate clusters
+        Gamma = torch.exp(-d2/self.feature_dim)#+ 1e-30 #*scaling_factor
 
         if torch.isnan(Gamma).any().item():
             print("Critical error! NaN detected in Gamma computation")
 
         # Expand activations and distances to the full set of clusters
-        full_Gamma = torch.zeros(self.parent.c, dtype=torch.float32, device=self.parent.device)
+        full_Gamma = torch.zeros(self.parent.c, dtype=torch.float64, device=self.parent.device)
         full_Gamma[self.parent.matching_clusters] = Gamma
 
         return full_Gamma
@@ -82,8 +98,9 @@ class MathOps():
         Z_expanded = Z.unsqueeze(1).expand(-1, mu.shape[0], -1)
 
         # Initialize distance tensor
-        d2 = torch.full((batch_size, self.parent.c), float('inf'), dtype=torch.float32, device=self.parent.device)
-
+        d2 = torch.full((batch_size, self.parent.c), float('inf'), dtype=torch.float64, device=self.parent.device)
+        
+        '''
         # Mask for clusters with a single sample
         single_sample_mask = n == 1
 
@@ -108,7 +125,20 @@ class MathOps():
             # Perform batch matrix multiplication
             # Using matmul for better broadcasting support
             d2[:, non_single_sample_mask] = torch.matmul(torch.matmul(diff, S_inv_expanded), diff.transpose(-2, -1)).squeeze(-1).squeeze(-1)
+        '''
 
+        S_inv = torch.linalg.inv(Sigma)
+
+        # Ensure S_inv is correctly broadcasted for bmm
+        S_inv_expanded = S_inv.unsqueeze(0).expand(batch_size, -1, -1, -1)
+
+        # Reshape diff for bmm
+        diff = (Z_expanded[:, :, :] - mu[:]).unsqueeze(-2)
+
+        # Perform batch matrix multiplication
+        # Using matmul for better broadcasting support
+        d2 = torch.matmul(torch.matmul(diff, S_inv_expanded), diff.transpose(-2, -1)).squeeze(-1).squeeze(-1)
+        
         if (d2 < 0).any():
             d2[d2 < 0] = float('inf')
             print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
@@ -118,6 +148,6 @@ class MathOps():
 
         # Compute activations and assign them to their respective places in full_Gamma
         batch_indices = torch.arange(Z.shape[0], device=self.parent.device).unsqueeze(1)
-        full_Gamma[batch_indices, self.parent.matching_clusters] = torch.exp(-d2[batch_indices, self.parent.matching_clusters]/np.sqrt(self.feature_dim))
+        full_Gamma[batch_indices, self.parent.matching_clusters] = torch.exp(-d2[batch_indices, self.parent.matching_clusters]/self.feature_dim)
 
         return full_Gamma

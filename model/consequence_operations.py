@@ -15,15 +15,34 @@ class ConsequenceOps():
         label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * self.parent.cluster_labels[:self.parent.c], dim=0)
 
         # Find the index of the maximum value in Gamma
-        #max_index = torch.argmax(gamma)
+        max_index = torch.argmax(normalized_gamma)
 
         # Retrieve the corresponding label
-        #max_label = torch.argmax(self.parent.cluster_labels[max_index])
+        max_label = torch.argmax(self.parent.cluster_labels[max_index])
         
-        max_label = torch.argmax(label_scores)
+        #max_label = torch.argmax(label_scores)
         
         return label_scores, max_label
 
+    def defuzzify_batch(self):
+
+        # Normalize Gamma along the cluster dimension
+        normalized_gamma = self.compute_batched_normalized_gamma()
+        
+        # Compute label scores
+        expanded_cluster_labels = self.parent.cluster_labels[:self.parent.c].unsqueeze(0).expand(normalized_gamma.shape[0], -1, -1)
+        label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * expanded_cluster_labels, dim=1)
+
+        # Find the indices of the maximum values in normalized Gamma
+        cluster_indices = torch.argmax(normalized_gamma, dim=1)
+
+        # Retrieve the class index for each data point
+        max_labels = torch.argmax(self.parent.cluster_labels[cluster_indices], dim=1)
+
+        return label_scores, max_labels
+
+
+    """
     def defuzzify_batch(self):
 
         # Normalize Gamma along the cluster dimension
@@ -35,11 +54,17 @@ class ConsequenceOps():
         # Compute label scores
         label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * expanded_cluster_labels, dim=1)
 
+        # Find the index of the maximum value in Gamma
+        #max_index = torch.argmax(normalized_gamma)
+
+        # Retrieve the corresponding label
+        #max_labels = torch.argmax(self.parent.cluster_labels[max_index], dim=1)
+
         # Find the indices of the maximum values in label_scores along the label dimension
         max_labels = torch.argmax(label_scores, dim=1)
 
         return label_scores, max_labels
-    
+        """
     def compute_normalized_gamma(self):
         
         # Compute normalized gamma

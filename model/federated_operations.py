@@ -74,7 +74,7 @@ class FederalOps:
         self.parent.S_glo = (self.parent.S_glo * n_fed + model.S_glo * n_local) / (n_fed + n_local) + \
                             (n_fed * n_local / (n_fed + n_local)) * (self.parent.mu_glo - model.mu_glo) ** 2
         self.parent.mu_glo = (self.parent.mu_glo * n_fed + model.mu_glo * n_local) / (n_fed + n_local)
-        self.parent.s_glo = torch.sqrt(self.parent.S_glo / (n_fed + n_local))
+        self.parent.var_glo = self.parent.S_glo / (n_fed + n_local)
 
         # Merge class counts
         self.parent.n_glo += model.n_glo
@@ -82,48 +82,11 @@ class FederalOps:
         # Update minimum cluster size
         self.parent.clusterer.update_S_0()
 
-    def merge_model(self, model, num_clients):
-        ''' Merge the parameters of another model into the current federated model. '''
-
-        # First, merge the global statistical parameters
-        self.merge_model_statistics(model)
-        
-        # Ensure the federated model has enough capacity for the new clusters
-        before_size = self.parent.c  # Current size of the model
-        after_size = self.parent.c + model.c  # Size after merging
-        self.parent.overseer.ensure_capacity(after_size + 1)  # Ensure there's enough space
-
-        # Merge the parameters of the models
-        with torch.no_grad():  # Temporarily disable gradient tracking
-            self.parent.mu.data[before_size:after_size] = model.mu.data[:model.c]
-            self.parent.S.data[before_size:after_size] = model.S.data[:model.c]
-            self.parent.n.data[before_size:after_size] = model.n.data[:model.c]
-
-            # Update the cluster labels and the label-to-cluster mapping
-            for i in range(model.c):
-                cluster_label = model.cluster_labels[i]
-                self.parent.cluster_labels[before_size + i] = cluster_label
-
-            '''
-                # Update or create the label_to_clusters entry for the new label
-                if cluster_label not in self.parent.label_to_clusters:
-                    self.parent.label_to_clusters[cluster_label] = torch.empty(0, dtype=torch.int32, device=self.parent.device)
-
-                self.parent.label_to_clusters[cluster_label] = torch.cat(
-                    (self.parent.label_to_clusters[cluster_label], torch.tensor([before_size + i], dtype=torch.int32, device=self.parent.device))
-                )
-            '''      
-            # Reset the Gamma values for all clusters
-            self.parent.Gamma = torch.zeros(after_size, dtype=torch.float32, device=self.parent.device, requires_grad=True)
-                
-        # Update the total count of clusters in the federated model
-        self.parent.c = after_size
-
-    def merge_model_privately(self, model, c_min):
+    def merge_model_privately(self, model, n_min):
         ''' Merge the parameters of another model into the current federated model. '''
 
         # Filter out clusters where model.n > 0
-        valid_clusters = (model.n[:model.c] > c_min) #*(model.score[:model.c] > 0)
+        valid_clusters = (model.n[:model.c] > n_min) #*(model.score[:model.c] > 0)
         num_valid_clusters = valid_clusters.sum()
 
         # First, merge the global statistical parameters
@@ -131,43 +94,32 @@ class FederalOps:
         
         # Ensure the federated model has enough capacity for the new clusters
         before_size = self.parent.c  # Current size of the model
-        after_size = self.parent.c + num_valid_clusters  # Size after merging
+        after_size = self.parent.c + num_valid_clusters # Size after merging
         self.parent.overseer.ensure_capacity(after_size)  # Ensure there's enough space
-
-        # Initialize a counter for the new index in self.parent
-        new_index = before_size
 
         # Merge the parameters of the models
         with torch.no_grad():  # Temporarily disable gradient tracking
-            for i in range(model.c):
-                if valid_clusters[i]:
-                    self.parent.mu.data[new_index] = model.mu.data[i]
-                    self.parent.S.data[new_index] = model.S.data[i] #/num_clients
-                    self.parent.n.data[new_index] = model.n.data[i] #/num_clients
-                        
-                    # Update cluster labels and the label-to-cluster mapping
-                    cluster_label = model.cluster_labels[i]
-                    self.parent.cluster_labels[new_index] = cluster_label
+            # Identify the indices of valid clusters
+            valid_indices = torch.where(valid_clusters)[0]
 
-                    self.parent.score[new_index] = model.score[i]
-                    
-                    '''
-                    # Update or create the label_to_clusters entry for the new label
-                    if cluster_label not in self.parent.label_to_clusters:
-                        self.parent.label_to_clusters[cluster_label] = torch.empty(0, dtype=torch.int32, device=self.parent.device)
+            # Calculate the new indices in the parent model for these valid clusters
+            new_indices = torch.arange(before_size, before_size + len(valid_indices), device=model.mu.device)
 
-                    self.parent.label_to_clusters[cluster_label] = torch.cat(
-                        (self.parent.label_to_clusters[cluster_label], torch.tensor([new_index], dtype=torch.int32, device=self.parent.device))
-                    )
-                    '''
-                    
-                    # Increment the new index
-                    new_index += 1
+            # Perform the parameter copying using advanced indexing
+            self.parent.mu.data[new_indices] = model.mu.data[valid_indices]
+            self.parent.S.data[new_indices] = model.S.data[valid_indices]
+            self.parent.n.data[new_indices] = model.n.data[valid_indices]
+
+            # Update cluster labels
+            self.parent.cluster_labels[new_indices] = model.cluster_labels[valid_indices]
+
+            # Update scores
+            self.parent.score[new_indices] = model.score[valid_indices]
                     
         # Reset the Gamma values for all clusters
         self.parent.Gamma = torch.zeros(after_size, dtype=torch.float32, device=self.parent.device, requires_grad=True)
                 
         # Update the total count of clusters in the federated model
-        self.parent.c = new_index  # Update to the new index, which reflects the actual number of clusters after merging
+        self.parent.c = after_size  # Update to the new index, which reflects the actual number of clusters after merging
 
     

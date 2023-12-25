@@ -22,8 +22,6 @@ class ClusteringOps:
     def _add_new_cluster(self, z, label):
         ''' Add a new cluster to the model. This is called when no matching clusters are found or when the Gamma value is too low.'''
         
-        self.update_S_0() # Update S_0 based on the new sample
-        
         # Ensure the parameters have enough space
         self.parent.overseer.ensure_capacity(self.parent.c+2)
 
@@ -51,7 +49,7 @@ class ClusteringOps:
         ''' Update the smallest cluster covariance matrix based on global statistics, before adding a new cluster. '''
         
         #Compute the parameter spread from the global statistics
-        S_0 = self.parent.s_glo/(self.parent.N_r)
+        S_0 = self.parent.var_glo/(self.parent.N_r) 
 
         #Update smallest cluster covariance matrix
         self.parent.S_0 = torch.diag(S_0)
@@ -142,4 +140,7 @@ class ClusteringOps:
         e_glo = z - self.parent.mu_glo  # Error between the sample and the global mean
         self.parent.mu_glo += e_glo / total_samples  # Update mean
         self.parent.S_glo = self.parent.S_glo + (total_samples - 1) / total_samples * e_glo * e_glo # Update variance (not normalized to reduce computation)
-        self.parent.s_glo = self.parent.S_glo / total_samples # Update standard deviation
+        self.parent.var_glo = self.parent.S_glo / total_samples # Update standard deviation
+
+        
+        self.update_S_0() # Update S_0 based on the new sample

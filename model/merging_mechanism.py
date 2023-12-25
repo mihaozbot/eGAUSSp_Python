@@ -262,5 +262,5 @@ class MergingMechanism:
         V_ratio = (self.V/V_S_0)**(1/self.parent.feature_dim)
         
         # Filtering kappa based on conditions
-        kappa_filter = (self.kappa == 0) + (V_ratio > 3)
+        kappa_filter = (self.kappa == 0) + (V_ratio > self.parent.N_r)
         self.kappa[kappa_filter] = float("inf")

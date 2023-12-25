@@ -20,7 +20,7 @@ class eGAUSSp(torch.nn.Module):
         self.feature_dim = feature_dim #Dimensionality of the features
         self.kappa_n = kappa_n #Minimal number of samples
         self.num_sigma = num_sigma/np.sqrt(self.feature_dim) #Activation distancethreshold*self.feature_dim**(1/np.sqrt(2)) 
-        self.kappa_join = kappa_join*np.sqrt(self.feature_dim) #Merging threshold
+        self.kappa_join = kappa_join #Merging threshold
         self.S_0 = S_0 * torch.eye(self.feature_dim, device=self.device) #Initialization covariance matrix
         self.S_0_initial = self.S_0.clone() #Initial covariance matrix
         self.N_r = N_r #Quantization number
@@ -32,24 +32,24 @@ class eGAUSSp(torch.nn.Module):
 
         # Dynamic properties initialized with tensors
         self.c = 0 # Number of active clusters
-        self.Gamma = torch.empty(0, dtype=torch.float32, device=device,requires_grad=True)
+        self.Gamma = torch.empty(0, dtype=torch.float64, device=device,requires_grad=True)
         self.current_capacity = math.ceil(c_max/2) #Initialize current capacity, which will be expanded as needed during training 
         self.cluster_labels = torch.empty((self.current_capacity, num_classes), dtype=torch.int32, device=device) #Initialize cluster labels
         #self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
         
-        self.score = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize cluster labels
+        self.score = torch.empty((self.current_capacity,), dtype=torch.float64, device=device) #Initialize cluster labels
         
         self.one_hot_labels = torch.eye(num_classes, dtype=torch.int32) #One hot labels 
         
         # Trainable parameters
-        self.n = nn.Parameter(torch.zeros((self.current_capacity), requires_grad=True, device = device)) #Initialize cluster sizes 
-        self.mu = nn.Parameter(torch.zeros((self.current_capacity, feature_dim), requires_grad=True, device = device)) #Initialize cluster means
-        self.S = nn.Parameter(torch.zeros((self.current_capacity, feature_dim, feature_dim), requires_grad=True, device = device)) #Initialize covariance matrices
-        
+        self.n = nn.Parameter(torch.zeros(self.current_capacity, dtype=torch.float64, device=device, requires_grad=True))  # Initialize cluster sizes
+        self.mu = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, dtype=torch.float64, device=device, requires_grad=True))  # Initialize cluster means
+        self.S = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float64, device=device, requires_grad=True))  # Initialize covariance matrices
+
         # Global statistics
-        self.n_glo = torch.zeros((num_classes), dtype=torch.float32, device=device)  # Global number of sampels per class
-        self.mu_glo = torch.zeros((feature_dim), dtype=torch.float32, device=device)  # Global mean
-        self.S_glo = torch.zeros((feature_dim), dtype=torch.float32, device=device)  # Sum of squares for global variance
+        self.n_glo = torch.zeros((num_classes), dtype=torch.float64, device=device)  # Global number of sampels per class
+        self.mu_glo = torch.zeros((feature_dim), dtype=torch.float64, device=device)  # Global mean
+        self.S_glo = torch.zeros((feature_dim), dtype=torch.float64, device=device)  # Sum of squares for global variance
 
         # Initialize subclasses
         self.overseer = ModelOps(self)
@@ -76,9 +76,9 @@ class eGAUSSp(torch.nn.Module):
         ''' Function to toggle the debugging state of the model. If enable is None, the state will be toggled. Otherwise, the state will be set to the value of enable. '''
         self.overseer.toggle_debugging(enable)
 
-    def merge_model(self, client_model):  
-        ''' Merges a client model into the main model. '''
-        self.federal_agent.merge_model(client_model)
+    #def merge_model(self, client_model):  
+    #    ''' Merges a client model into the main model. '''
+    #    self.federal_agent.merge_model(client_model)
     
     def federated_mergingg(self):
         ''' Executes the merging mechanism for all rules. Conversely, the normal merging mechanism works on a subset of rules based on some conditions. '''
@@ -105,20 +105,18 @@ class eGAUSSp(torch.nn.Module):
             # Evolving mechanisms
             if self.evolving:
                 with torch.no_grad():
-                                                    
+                                  
+                    self.removal_mech.update_score(label)
 
-                    
                     #Incremental clustering and cluster addition
                     self.clusterer.increment_or_add_cluster(z, label)
             
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
-                
-                    self.removal_mech.update_score(label)
+    
                     
                     #Removal mechanism
                     #self.removal_mech.removal_mechanism()
-
 
     def forward(self, data):
         

@@ -18,7 +18,7 @@ class RemovalMechanism:
             # Adjust normalized_gamma based on label correctness
             # Create a tensor that is 1 where the label is correct and -1 where it is not
             matching_clusters = self.parent.cluster_labels[:self.parent.c][:, label] == 1
-            label_adjustment = torch.where(matching_clusters, 0, -1)
+            label_adjustment = torch.where(matching_clusters, 1, -1)
     
             #n = self.parent.n[0:self.parent.c]
             #number_of_samples = sum(n[matching_clusters])
@@ -96,7 +96,9 @@ class RemovalMechanism:
 
             # Here you should implement your new logic for determining which cluster to remove
             # For instance, removing based on another metric
-            index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
+            n = self.parent.n[self.parent.matching_clusters]
+            volume_condition = torch.linalg.det(self.parent.S[self.parent.matching_clusters]/n.view(-1, 1, 1) )/torch.linalg.det(self.parent.S_0)
+            index_to_remove = torch.argmin(self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
             #index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]*self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
             # Update V_ratio by removing the index_to_remove element
             
@@ -112,27 +114,6 @@ class RemovalMechanism:
                 #highest_error = torch.argmin(self.parent.score[self.parent.matching_clusters])
                 #self.remove_cluster(self.parent.matching_clusters[highest_error])
     
-    
-    def federated_removal_mechanism(self):
-        ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
-
-        # Continue removing the smallest clusters while the condition is not met
-        while (len(self.parent.matching_clusters) > self.parent.c_max):
-
-            # Here you should implement your new logic for determining which cluster to remove
-            # For instance, removing based on another metric
-            index_to_remove = torch.argmin(self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
-            #index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]*self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
-            # Update V_ratio by removing the index_to_remove element
-            
-            #V = torch.cat((V[:index_to_remove], V[index_to_remove + 1:]))
-            
-            #self.parent.matching_clusters = torch.cat((self.parent.matching_clusters[:index_to_remove], self.parent.matching_clusters[index_to_remove + 1:]))
-            
-            # Remove the cluster
-            with torch.no_grad():
-                self.remove_cluster(self.parent.matching_clusters[index_to_remove])
-
     '''      
     def removal_mechanism(self):
     #Compute the initial merging candidates
