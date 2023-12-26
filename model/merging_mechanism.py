@@ -124,7 +124,7 @@ class MergingMechanism:
         self.V = torch.sqrt(det_matrix)
 
         #Extract the upper triangle
-        self.V = torch.triu(self.V , diagonal=0)
+        #self.V = torch.triu(self.V , diagonal=0)
 
     def update_merging_condition(self, i, j):
         #i and j are local to self.valid_clusters
@@ -253,7 +253,8 @@ class MergingMechanism:
         diag_sum = self.V.diag().unsqueeze(0) + self.V.diag().unsqueeze(1)
 
         # Create the upper triangular part of kappa matrix
-        self.kappa = torch.triu(self.V / diag_sum, diagonal=1)**(1/self.parent.feature_dim)
+        #self.kappa = torch.triu(self.V / diag_sum, diagonal=1)**(1/self.parent.feature_dim)
+        self.kappa = (self.V / diag_sum)**(1/self.parent.feature_dim)
 
         #Compute volume of default cluster covariance matrix
         V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
@@ -264,3 +265,4 @@ class MergingMechanism:
         # Filtering kappa based on conditions
         kappa_filter = (self.kappa == 0) + (V_ratio > self.parent.N_r)
         self.kappa[kappa_filter] = float("inf")
+        self.kappa.fill_diagonal_(float("inf"))

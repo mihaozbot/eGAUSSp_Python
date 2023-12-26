@@ -14,7 +14,7 @@ class ModelOps:
         self.parent.enable_merging = True
 
         # Initialize the logging system
-        self.initialize_logging()
+        #self.initialize_logging()
     
     def ensure_capacity(self, new_c):
         """

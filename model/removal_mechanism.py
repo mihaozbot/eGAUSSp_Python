@@ -23,7 +23,7 @@ class RemovalMechanism:
             #n = self.parent.n[0:self.parent.c]
             #number_of_samples = sum(n[matching_clusters])
 
-            number_of_samples = torch.sum(self.parent.n_glo[label])
+            number_of_samples = self.parent.n_glo[label]
             
             # Apply the label adjustment to normalized_gamma
             self.parent.score[0:self.parent.c] = self.parent.score[0:self.parent.c] + normalized_gamma*label_adjustment/number_of_samples#
@@ -79,6 +79,51 @@ class RemovalMechanism:
         self.parent.score[0:self.parent.c] += torch.sum(current_log_losses /  self.parent.n_glo[label], dim = 1)
         '''
     
+    def federated_removal_mechanism(self):
+            
+                        #Compute the volume of the combined clusters
+            self.parent.merging_mech.compute_volume()
+
+            # Compute merging condition kappa
+            self.parent.merging_mech.compute_kappa()
+            if self.parent.c < 2:
+                return
+            
+            # Continue removing the smallest clusters while the condition is not met
+            while torch.any(self.parent.merging_mech.kappa < self.parent.kappa_join) or (len(self.parent.matching_clusters) > self.parent.c_max):
+                    
+                #Compute the volume of the combined clusters
+                self.parent.merging_mech.compute_volume()
+
+                # Compute merging condition kappa
+                self.parent.merging_mech.compute_kappa()
+                
+                # Getting the flat index of the minimum value
+                flat_index = torch.argmin(self.parent.merging_mech.kappa).item()  # Convert to Python int
+
+                # Convert flat index to 2D index
+                num_cols = self.parent.merging_mech.kappa.shape[1]  # Number of columns in the tensor
+                row_index = flat_index // num_cols
+                col_index = flat_index % num_cols
+                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row_index]]
+                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col_index]]
+
+                # Compare and select the index with the smallest score
+                if score_row < score_col:
+                    smallest_score_index = row_index
+                else:
+                    smallest_score_index = col_index
+
+                # Remove the cluster
+                with torch.no_grad():
+                    self.remove_cluster(self.parent.merging_mech.valid_clusters[smallest_score_index]) #Updates matching_clusters also
+
+                #Recompute condition for i and potenitionally j
+                #self.parent.merging_mech.update_merging_condition(0, smallest_score_index) #Updates valid_clusters
+                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
+                labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
+                if not labels_consistency_check:
+                    print("Critical error: Labels consistency in matching clusters after removal:", labels_consistency_check)
 
     def removal_mechanism(self):
         ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
@@ -92,14 +137,18 @@ class RemovalMechanism:
         #V_ratio = V  / (V_S_0 + 1e-30)
 
         # Continue removing the smallest clusters while the condition is not met
-        while (len(self.parent.matching_clusters) > self.parent.c_max):
-
-            # Here you should implement your new logic for determining which cluster to remove
+        #while (len(self.parent.matching_clusters) > self.parent.c_max):
+        while any(self.parent.score[self.parent.matching_clusters]<0):
+                        # Here you should implement your new logic for determining which cluster to remove
             # For instance, removing based on another metric
             n = self.parent.n[self.parent.matching_clusters]
-            volume_condition = torch.linalg.det(self.parent.S[self.parent.matching_clusters]/n.view(-1, 1, 1) )/torch.linalg.det(self.parent.S_0)
-            index_to_remove = torch.argmin(self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
-            #index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]*self.parent.n[self.parent.matching_clusters]) # This is a placeholder for your actual removal logic
+            V = torch.sqrt(torch.exp(torch.linalg.slogdet(self.parent.S[self.parent.matching_clusters]/n.view(-1, 1, 1))[1]))
+            V_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0))) # Same as torch.sqrt(torch.exp(torch.linalg.slogdet(self.parent.S_0)[1]))
+            volume_condition = (V/V_0)**(1/self.parent.feature_dim)
+
+            index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters])
+            V = torch.cat((self.parent.score[:index_to_remove],self.parent.score[index_to_remove + 1:]))
+            #index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]*self.parent.n[self.parent.matching_clusters]) 
             # Update V_ratio by removing the index_to_remove element
             
             #V = torch.cat((V[:index_to_remove], V[index_to_remove + 1:]))
@@ -109,7 +158,7 @@ class RemovalMechanism:
             # Remove the cluster
             with torch.no_grad():
                 self.remove_cluster(self.parent.matching_clusters[index_to_remove])
-            
+                
                #self.parent.n[self.parent.matching_clusters]*self.parent.score[self.parent.matching_clusters])              
                 #highest_error = torch.argmin(self.parent.score[self.parent.matching_clusters])
                 #self.remove_cluster(self.parent.matching_clusters[highest_error])
@@ -136,7 +185,6 @@ class RemovalMechanism:
                 self.remove_cluster(self.parent.matching_clusters[i_smallest_n])
     '''
     
-    
     def remove_cluster(self, cluster_index):
         '''Remove a specified cluster by replacing it with the last active cluster and updating relevant parameters. '''
         #Copy everhing from the last active cluster to the remove cluster index
@@ -147,7 +195,6 @@ class RemovalMechanism:
 
         #Instead of removing just copy last cluster in the place of the removed on
         if cluster_index != last_active_index: #The target cluster is not the last cluster
-
 
              # Update matching_clusters list
             #The last index was moved to j, 

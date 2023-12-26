@@ -114,7 +114,6 @@ class eGAUSSp(torch.nn.Module):
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
     
-                    
                     #Removal mechanism
                     #self.removal_mech.removal_mechanism()
 

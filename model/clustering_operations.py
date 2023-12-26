@@ -118,7 +118,6 @@ class ClusteringOps:
         
         #_, j_rel = torch.max(self.parent.Gamma[self.parent.matching_clusters], dim=0)
         #j_abs = self.parent.matching_clusters[j_rel].item()  # Map relative index back to full list of clusters
-        
         j = torch.argmax(self.parent.Gamma, dim=0)
 
         if self.parent.enable_adding and (self.parent.Gamma[j] <= self.Gamma_max):
@@ -142,5 +141,4 @@ class ClusteringOps:
         self.parent.S_glo = self.parent.S_glo + (total_samples - 1) / total_samples * e_glo * e_glo # Update variance (not normalized to reduce computation)
         self.parent.var_glo = self.parent.S_glo / total_samples # Update standard deviation
 
-        
         self.update_S_0() # Update S_0 based on the new sample
