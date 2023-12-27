@@ -126,64 +126,63 @@ class MergingMechanism:
         #Extract the upper triangle
         #self.V = torch.triu(self.V , diagonal=0)
 
-    def update_merging_condition(self, i, j):
-        #i and j are local to self.valid_clusters
-        #Note due to how torch.min() works we assume that i_all < j_all always holds
+    def update_volume(self, i):
+        # i is the index in self.valid_clusters for the cluster that has just merged
 
-        #If j_all happends to be the last active cluster just remove it from self.valid_clusters and self.kappa
-        #If self.parent.c-1 is not on the list, we need to remove j
-         #Note the -1 is because self.parent.c starts at 1
-        #We want to know if self.parent.c-1 is on the list...If self.valid_clusters[-1] is sorted, and it should be, the last element is the largest index.
-        if (self.valid_clusters[j] == (self.parent.c-1)) or (self.valid_clusters[-1] != (self.parent.c-1)):
+        # Extracting the i-th cluster's parameters
+        n_i = self.parent.n[self.valid_clusters[i]]
+        mu_i = self.parent.mu[self.valid_clusters[i]]
+        S_i = self.parent.S[self.valid_clusters[i]]
 
-            # Remove the j-th element from valid_clusters
-            #self.valid_clusters = torch.cat((self.valid_clusters[:j], self.valid_clusters[j + 1:]))
-            self.valid_clusters = self.valid_clusters[self.valid_clusters != self.valid_clusters[j]]
+        # Prepare necessary tensors for all other valid clusters
+        n_other = self.parent.n[self.valid_clusters]
+        mu_other = self.parent.mu[self.valid_clusters]
+        S_other = self.parent.S[self.valid_clusters]
 
-            # Remove the j-th row and column from V
-            #self.V = torch.cat((self.V[:j], self.V[j + 1:]), dim=0)  # Remove j-th row
-            #self.V = torch.cat((self.V[:, :j], self.V[:, j + 1:]), dim=1)  # Remove j-th column
-
-        else:
-            # (self.parent.c - 1) is on the list, and the last cluster was copied to the j-th place
-            # Remove the last element from valid_clusters
-            self.valid_clusters = self.valid_clusters[:-1] 
-
-            # Move the last row and column of V to the j-th position, then remove the last row and column
-            #self.V[j] = self.V[-1]  # Move last row to j-th position
-            #self.V[:, j] = self.V[:, -1]  # Move last column to j-th position
-            #self.V = self.V[:-1, :-1]  # Remove last row and column
-
-        '''
-        if len(self.valid_clusters) < 2:
-            return #Further computation does not matter in this case
-            
-        # Prepare necessary tensors for valid clusters
-        n = self.parent.n[self.valid_clusters]
-        mu = self.parent.mu[self.valid_clusters]
-        S = self.parent.S[self.valid_clusters]
-
-        # Compute Sigma_ij only for the i-th row and column
-        mu_diff = mu[i, None, :] - mu
+        # Compute Sigma_ij for the i-th cluster against all others
+        mu_diff = mu_i[None, :] - mu_other
         mu_outer_product = mu_diff[..., None] * mu_diff[:, None, :]
-        n_matrix = n[i, None] + n
-        Sigma = (S[i, None, :, :] + S) + (n[i, None, None, None] * n[:, None, None] / n_matrix[:, None, None]) * mu_outer_product
+        n_matrix = n_i + n_other
+        Sigma = (S_i[None, :, :] + S_other) + (n_i * n_other[:, None, None] / n_matrix[:, None, None]) * mu_outer_product
         Sigma = Sigma / (n_matrix[:, None, None] - 1)
 
         # Compute log-determinant for numerical stability
-        #L = torch.linalg.cholesky(Sigma)
-        #det_matrix = torch.prod(torch.diag(L))**2
-        det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1]) # [1] is the log determinant
+        det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1])  # [1] is the log determinant
 
-        # Vectorized computation of volume V for upper triangle
+        # Compute the volume V for the i-th row/column
         V_i = torch.sqrt(det_matrix)
-        self.V[i,:], self.V[:,i]  = V_i, V_i #Save the ith row and column
-        self.V = torch.triu(self.V , diagonal=0)
+
+        # Update the i-th row and column of the volume matrix
+        self.V[i, :] = V_i
+        self.V[:, i] = V_i
+
+    def update_merging_condition(self, i, j):
+        # i and j are local to self.valid_clusters
+        #i_all = self.valid_clusters[i]
+        j_all = self.valid_clusters[j]
+
+        # Update V for the i-th row and column
+        self.update_volume(i)
 
         # Update kappa for the i-th row and column
-        self.compute_kappa_matrix()
-                
-        '''
+        self.update_kappa(j)
+
+        # Test the partial updates
+        #self.test_update_volume_kappa(i)
+
+        # Handle removal of the j-th cluster
+        if j_all == (self.parent.c-1) or (self.valid_clusters[-1] != (self.parent.c-1)):
+            self.valid_clusters = self.valid_clusters[self.valid_clusters != j_all]
+            # Adjust V and kappa matrices
+            self.V = torch.cat((self.V[:j], self.V[j + 1:]), dim=0)  # Remove j-th row
+            self.V = torch.cat((self.V[:, :j], self.V[:, j + 1:]), dim=1)  # Remove j-th column
+            self.kappa = torch.cat((self.kappa[:j], self.kappa[j + 1:]), dim=0)
+            self.kappa = torch.cat((self.kappa[:, :j], self.kappa[:, j + 1:]), dim=1)
+        else:
+            self.valid_clusters = self.valid_clusters[:-1]  # Remove last element
+            # Adjust V and kappa matrices
+            self.V = self.V[:-1, :-1]  # Remove last row and column
+            self.kappa = self.kappa[:-1, :-1]
 
     def merge_clusters(self):
         
@@ -226,6 +225,12 @@ class MergingMechanism:
         self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
                                                             (self.parent.n[self.parent.matching_clusters] >= self.parent.kappa_n)] #np.sqrt(
 
+        #Compute the volume of the combined clusters
+        self.compute_volume()
+
+        # Compute merging condition kappa
+        self.compute_kappa()
+        
         #Merge until you can not merge no mo
         merge = True  # initial condition to enter the loop
         while merge and iteration < max_iterations:
@@ -238,12 +243,6 @@ class MergingMechanism:
             if not labels_consistency_check:
                 print("Critical error: Labels consistency in matching clusters in merging mechanism:", labels_consistency_check)
 
-            #Compute the volume of the combined clusters
-            self.compute_volume()
-
-            # Compute merging condition kappa
-            self.compute_kappa()
-        
             #Check merging condition, merge rules, and return True if merge happened
             merge = self.merge_clusters()
             iteration += 1
@@ -266,3 +265,55 @@ class MergingMechanism:
         kappa_filter = (self.kappa == 0) + (V_ratio > self.parent.N_r)
         self.kappa[kappa_filter] = float("inf")
         self.kappa.fill_diagonal_(float("inf"))
+
+    def update_kappa(self, i):
+        # i is the index in self.valid_clusters for the cluster that has just merged
+
+        # Compute the diagonal sum for the i-th row and column
+        diag_sum_i = self.V[i, i] + self.V.diag()
+
+        # Update kappa for the i-th row
+        self.kappa[i, :] = (self.V[i, :] / diag_sum_i)**(1/self.parent.feature_dim)
+
+        # Update kappa for the i-th column
+        # Since kappa matrix is symmetric, we can copy the i-th row to the i-th column
+        self.kappa[:, i] = self.kappa[i, :]
+
+        # Compute volume of default cluster covariance matrix
+        V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
+
+        # Compare cluster volume to standard volume for the i-th row and column
+        V_ratio_i = (self.V[i, :] / V_S_0)**(1/self.parent.feature_dim)
+        V_ratio_col = (self.V[:, i] / V_S_0)**(1/self.parent.feature_dim)
+
+        # Filtering kappa based on conditions for the i-th row and column
+        kappa_filter_row = (self.kappa[i, :] == 0) + (V_ratio_i > self.parent.N_r)
+        kappa_filter_col = (self.kappa[:, i] == 0) + (V_ratio_col > self.parent.N_r)
+        self.kappa[i, kappa_filter_row] = float("inf")
+        self.kappa[kappa_filter_col, i] = float("inf")
+
+        # Ensure the diagonal of kappa remains infinity
+        self.kappa.fill_diagonal_(float("inf"))
+
+    def test_update_volume_kappa(self, i):
+        # Perform full computations
+        self.compute_volume()
+        self.compute_kappa()
+
+        # Store the results from the full computations
+        full_V = self.V.clone()
+        full_kappa = self.kappa.clone()
+
+        # Perform partial updates
+        self.update_volume(i)
+        self.update_kappa(i)
+
+        # Compare the results
+        volume_match = torch.allclose(full_V, self.V, atol=1e-6)
+        kappa_match = torch.allclose(full_kappa, self.kappa, atol=1e-6)
+
+        # Print the result
+        if volume_match and kappa_match:
+            print("Test Passed: Partial updates to volume and kappa are correct.")
+        else:
+            print("Test Failed: Discrepancy found in partial updates to volume or kappa.")
