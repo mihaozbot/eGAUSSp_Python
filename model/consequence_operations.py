@@ -29,47 +29,22 @@ class ConsequenceOps():
         # Normalize Gamma along the cluster dimension
         normalized_gamma = self.compute_batched_normalized_gamma()
         
-        # Compute label scores
-        expanded_cluster_labels = self.parent.cluster_labels[:self.parent.c].unsqueeze(0).expand(normalized_gamma.shape[0], -1, -1)
-        label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * expanded_cluster_labels, dim=1)
-
-        # Find the indices of the maximum values in normalized Gamma
-        cluster_indices = torch.argmax(normalized_gamma, dim=1)
-
-        # Retrieve the class index for each data point
-        max_labels = torch.argmax(self.parent.cluster_labels[cluster_indices], dim=1)
-
-        return label_scores, max_labels
-
-
-    """
-    def defuzzify_batch(self):
-
-        # Normalize Gamma along the cluster dimension
-        normalized_gamma = self.compute_batched_normalized_gamma()
-        
         # Select only labeled data for Gamma and cluster labels
         expanded_cluster_labels = self.parent.cluster_labels[:self.parent.c].unsqueeze(0).expand(normalized_gamma.shape[0], -1, -1)
 
         # Compute label scores
         label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * expanded_cluster_labels, dim=1)
 
-        # Find the index of the maximum value in Gamma
-        #max_index = torch.argmax(normalized_gamma)
-
-        # Retrieve the corresponding label
-        #max_labels = torch.argmax(self.parent.cluster_labels[max_index], dim=1)
-
         # Find the indices of the maximum values in label_scores along the label dimension
         max_labels = torch.argmax(label_scores, dim=1)
 
         return label_scores, max_labels
-        """
+    
     def compute_normalized_gamma(self):
         
         # Compute normalized gamma
         gamma = self.parent.Gamma[0:self.parent.c]
-        gamma_sum = gamma.sum() #+ 1e-30
+        gamma_sum = gamma.sum()
 
         # Avoid division by zero or NaN; if gamma_sum is not valid, set normalized_gamma to zero
         if gamma_sum == 0 or torch.isnan(gamma_sum):
@@ -84,10 +59,10 @@ class ConsequenceOps():
     def compute_batched_normalized_gamma(self):
         # Compute normalized gamma
         gamma = self.parent.Gamma[:,:self.parent.c]
-        gamma_sum = gamma.sum(dim=1, keepdim=True) #+ 1e-30
+        gamma_sum = gamma.sum(dim=1, keepdim=True)
 
         # Replace NaN values in gamma_sum with zeros
-        gamma_sum = torch.nan_to_num(gamma_sum, nan=0.0)
+        gamma_sum = torch.nan_to_num(gamma_sum, nan= 0.0)
 
         # Avoid division by zero; if gamma_sum is zero, set normalized_gamma to zero
         normalized_gamma = torch.where(gamma_sum > 0, gamma / gamma_sum, torch.zeros_like(gamma))

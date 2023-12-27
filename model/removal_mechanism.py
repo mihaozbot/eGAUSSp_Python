@@ -5,29 +5,47 @@ import torch.nn.functional as F
 class RemovalMechanism:
     def __init__(self, parent):
         self.parent = parent
-      
-    def update_score(self, label):
-        
-            #det_matrix = torch.exp(torch.linalg.slogdet(self.parent.S[0:self.parent.c])[1]) # [1] is the log determinant
-            #V = torch.sqrt(det_matrix)
-        
-            # Normalize Gamma
-            normalized_gamma = self.parent.consequence.compute_normalized_gamma() # self.parent.Gamma[:self.parent.c] #
-            
-            # Assuming target_label is defined (the label you're comparing against)
-            # Adjust normalized_gamma based on label correctness
-            # Create a tensor that is 1 where the label is correct and -1 where it is not
-            matching_clusters = self.parent.cluster_labels[:self.parent.c][:, label] == 1
-            label_adjustment = torch.where(matching_clusters, 1, -1)
-    
-            #n = self.parent.n[0:self.parent.c]
-            #number_of_samples = sum(n[matching_clusters])
 
-            number_of_samples = self.parent.n_glo[label]
-            
-            # Apply the label adjustment to normalized_gamma
-            self.parent.score[0:self.parent.c] = self.parent.score[0:self.parent.c] + normalized_gamma*label_adjustment/number_of_samples#
+    '''
+    def update_score(self, label):
     
+        # Normalize Gamma
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma() # self.parent.Gamma[:self.parent.c] #
+        
+        # Assuming target_label is defined (the label you're comparing against)
+        matching_clusters = self.parent.cluster_labels[:self.parent.c][:, label] == 1
+        label_adjustment = torch.where(matching_clusters, 1, 0)
+
+        number_of_samples = self.parent.n_glo[label]
+        
+        # Apply the label adjustment to normalized_gamma
+        self.parent.score[0:self.parent.c] = (self.parent.score[0:self.parent.c] + normalized_gamma*label_adjustment/number_of_samples)/sum( self.parent.n_glo)
+    '''
+    
+    
+    def update_score(self, label):
+        # Normalize Gamma
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
+
+        # Identify the winning cluster for this sample (the one with the highest normalized_gamma)
+        j = torch.argmax(normalized_gamma)
+
+        # Check if the winning cluster's prediction matches the true class (label)
+        correct = self.parent.cluster_labels[j][label] == 1
+        
+        # Update the error rate for the winning cluster
+        #self.parent.score[j] = (self.parent.score[j]*self.parent.n[j] + classification)/(self.parent.n[j]+1)
+        P = self.parent.n[j]
+        N = torch.sum(self.parent.n_glo)
+        n = self.parent.n_glo[label]
+
+        T = (self.parent.score[j]*P*n/(N-n))/(1-self.parent.score[j] + self.parent.score[j]*n/(N-n))
+        
+        if correct:
+            self.parent.score[j] = ((T + 1)/(n+1))/((T + 1)/(n+1) + (P-T)/(N-n))
+        else:
+            self.parent.score[j] = (T/n)/(T/n + (P+1-T)/(N+1-n))
+
     ''' 
     def update_score(self, label):
 
@@ -78,91 +96,70 @@ class RemovalMechanism:
         # Normalize the log loss by the number of samples for the true label and update the score
         self.parent.score[0:self.parent.c] += torch.sum(current_log_losses /  self.parent.n_glo[label], dim = 1)
         '''
-    
-    def federated_removal_mechanism(self):
-            
-                        #Compute the volume of the combined clusters
-            self.parent.merging_mech.compute_volume()
 
-            # Compute merging condition kappa
-            self.parent.merging_mech.compute_kappa()
-            if self.parent.c < 2:
-                return
-            
-            # Continue removing the smallest clusters while the condition is not met
-            while torch.any(self.parent.merging_mech.kappa < self.parent.kappa_join) or (len(self.parent.matching_clusters) > self.parent.c_max):
-                    
-                #Compute the volume of the combined clusters
-                self.parent.merging_mech.compute_volume()
+    def remove_overlapping(self):
+        if self.parent.c < 2:
+            return
 
-                # Compute merging condition kappa
-                self.parent.merging_mech.compute_kappa()
+        # Compute the volume and kappa initially
+        self.parent.merging_mech.compute_volume()
+        self.parent.merging_mech.compute_kappa()
+
+        # Identify clusters that need to be removed based on the kappa condition
+        rows, cols = torch.where(self.parent.merging_mech.kappa < self.parent.kappa_join)
+        valid_clusters = self.parent.merging_mech.valid_clusters
+
+        # Gather scores for each cluster in the identified pairs
+        scores_row = self.parent.score[valid_clusters[rows]]
+        scores_col = self.parent.score[valid_clusters[cols]]
+
+        # Determine which index in each pair has the smaller score and select those clusters
+        smaller_score_indices = torch.where(scores_row < scores_col, rows, cols)
+        clusters_to_remove = valid_clusters[smaller_score_indices]
+
+        # Remove duplicates and sort indices in descending order
+        clusters_to_remove = torch.unique(clusters_to_remove)
+        clusters_to_remove, _ = clusters_to_remove.sort(descending=True)
+
+        # Remove the clusters
+        with torch.no_grad():
+            for cluster_id in clusters_to_remove:
+                self.remove_cluster(cluster_id)
+
+        # Labels consistency check
+        labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
+        if not labels_check:
+            print("Critical error: Labels consistency in matching clusters after removal:", labels_check)
                 
-                # Getting the flat index of the minimum value
-                flat_index = torch.argmin(self.parent.merging_mech.kappa).item()  # Convert to Python int
-
-                # Convert flat index to 2D index
-                num_cols = self.parent.merging_mech.kappa.shape[1]  # Number of columns in the tensor
-                row_index = flat_index // num_cols
-                col_index = flat_index % num_cols
-                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row_index]]
-                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col_index]]
-
-                # Compare and select the index with the smallest score
-                if score_row < score_col:
-                    smallest_score_index = row_index
-                else:
-                    smallest_score_index = col_index
-
-                # Remove the cluster
-                with torch.no_grad():
-                    self.remove_cluster(self.parent.merging_mech.valid_clusters[smallest_score_index]) #Updates matching_clusters also
-
-                #Recompute condition for i and potenitionally j
-                #self.parent.merging_mech.update_merging_condition(0, smallest_score_index) #Updates valid_clusters
-                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
-                if not labels_consistency_check:
-                    print("Critical error: Labels consistency in matching clusters after removal:", labels_consistency_check)
-
     def removal_mechanism(self):
-        ''' Remove smallest clusters until the number of clusters is less than 10 times the square root of the feature dimension. '''
+        ''' Remove clusters with negative scores and additional low scoring clusters if necessary. '''
 
-        # Compute volume self.parent.merging_mech.V
-        #det_matrix = torch.exp(torch.linalg.slogdet(self.parent.S[self.parent.matching_clusters])[1]) # [1] is the log determinant
+        '''
+        # Identify and sort indices of clusters with negative scores
+        negative_score_indices = torch.where(self.parent.score[self.parent.matching_clusters] < 0)[0]
+        negative_score_indices = negative_score_indices.sort(descending=True)[0]
 
-        # Vectorized computation of volume V for upper triangle
-        #V = torch.sqrt(det_matrix)
-        #V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
-        #V_ratio = V  / (V_S_0 + 1e-30)
+        # Remove clusters with negative scores
+        with torch.no_grad():
+            for index in negative_score_indices:
+                self.remove_cluster(self.parent.matching_clusters[index])
+        '''
+        # Determine how many clusters to remove to meet the desired count
+        num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
-        # Continue removing the smallest clusters while the condition is not met
-        #while (len(self.parent.matching_clusters) > self.parent.c_max):
-        while any(self.parent.score[self.parent.matching_clusters]<0):
-                        # Here you should implement your new logic for determining which cluster to remove
-            # For instance, removing based on another metric
-            n = self.parent.n[self.parent.matching_clusters]
-            V = torch.sqrt(torch.exp(torch.linalg.slogdet(self.parent.S[self.parent.matching_clusters]/n.view(-1, 1, 1))[1]))
-            V_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0))) # Same as torch.sqrt(torch.exp(torch.linalg.slogdet(self.parent.S_0)[1]))
-            volume_condition = (V/V_0)**(1/self.parent.feature_dim)
+        if num_clusters_to_remove > 0:
+            # Sort remaining clusters by score and identify those to remove
+            all_scores = self.parent.score[self.parent.matching_clusters]
+            _, indices_to_remove = torch.topk(all_scores, num_clusters_to_remove, largest=False)
 
-            index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters])
-            V = torch.cat((self.parent.score[:index_to_remove],self.parent.score[index_to_remove + 1:]))
-            #index_to_remove = torch.argmin(self.parent.score[self.parent.matching_clusters]*self.parent.n[self.parent.matching_clusters]) 
-            # Update V_ratio by removing the index_to_remove element
-            
-            #V = torch.cat((V[:index_to_remove], V[index_to_remove + 1:]))
-            
-            #self.parent.matching_clusters = torch.cat((self.parent.matching_clusters[:index_to_remove], self.parent.matching_clusters[index_to_remove + 1:]))
-            
-            # Remove the cluster
+            # Sort indices in descending order for safe removal
+            indices_to_remove = indices_to_remove.sort(descending=True)[0]
+        
             with torch.no_grad():
-                self.remove_cluster(self.parent.matching_clusters[index_to_remove])
-                
-               #self.parent.n[self.parent.matching_clusters]*self.parent.score[self.parent.matching_clusters])              
-                #highest_error = torch.argmin(self.parent.score[self.parent.matching_clusters])
-                #self.remove_cluster(self.parent.matching_clusters[highest_error])
-    
+                # Remove additional low scoring clusters
+                for index in indices_to_remove:
+                    self.remove_cluster(self.parent.matching_clusters[index])
+
     '''      
     def removal_mechanism(self):
     #Compute the initial merging candidates
