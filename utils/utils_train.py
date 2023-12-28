@@ -1,17 +1,10 @@
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import threading
-import numpy as np
 import torch
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_auc_score, roc_curve
-from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
-from sklearn.metrics.cluster import adjusted_rand_score, normalized_mutual_info_score
-from sklearn.metrics import homogeneity_score, completeness_score, v_measure_score
+from torch.utils.data import TensorDataset, DataLoader
+
 
 def train_supervised(model, client_data):
-        
+
     #Toggle training mode
     model.toggle_evolving(True)
     model.train()
@@ -50,7 +43,6 @@ def train_unsupervised(model, client_data):
     # Training loop
     model.clustering(data, dummy_labels)  # Train the model
 
-
 def test_model(model, dataset):
     data, _ = dataset
     data = data.to(model.device)
@@ -63,3 +55,36 @@ def test_model(model, dataset):
     all_scores, pred_max, clusters = model.forward(data)  # Forward pass
 
     return all_scores, pred_max, clusters
+
+
+def test_model_in_batches(model, dataset, batch_size=500):
+    model.eval()
+    model.toggle_evolving(False)
+
+    # Create a DataLoader
+    data, labels = dataset
+    dataset = TensorDataset(data, labels)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+
+    all_scores_list = []
+    pred_max_list = []
+    clusters_list = []
+
+    # Process the dataset in batches
+    for data, _ in data_loader:
+        data = data.to(model.device)
+
+        # Forward pass for the current batch
+        all_scores, pred_max, clusters = model.forward(data)
+
+        # Store the results
+        all_scores_list.append(all_scores.cpu())
+        pred_max_list.append(pred_max.cpu())
+        clusters_list.append(clusters.cpu())
+
+    # Concatenate all results
+    all_scores_concat = torch.cat(all_scores_list, dim=0)
+    pred_max_concat = torch.cat(pred_max_list, dim=0)
+    clusters_concat = torch.cat(clusters_list, dim=0)
+
+    return all_scores_concat, pred_max_concat, clusters_concat

@@ -96,6 +96,23 @@ class RemovalMechanism:
         # Normalize the log loss by the number of samples for the true label and update the score
         self.parent.score[0:self.parent.c] += torch.sum(current_log_losses /  self.parent.n_glo[label], dim = 1)
         '''
+    def remove_small(self):
+        if self.parent.c < 2:
+            return
+
+        V = torch.exp(torch.linalg.slogdet(self.parent.S[self.parent.matching_clusters])[1]) # [1] is the log determinant
+        V_S_0 = torch.prod(torch.diag(self.parent.S_0))
+        V_ratio = (V / V_S_0)**(1/self.parent.feature_dim)
+
+        clusters_to_remove = self.parent.matching_clusters[V_ratio < 1/(self.parent.N_r)]
+        num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
+
+        if num_clusters_to_remove > 0:
+            # Remove the clusters
+            with torch.no_grad():
+                for cluster_id in clusters_to_remove:
+                    self.remove_cluster(cluster_id)
+
 
     def remove_overlapping(self):
         if self.parent.c < 2:
@@ -126,24 +143,12 @@ class RemovalMechanism:
             for cluster_id in clusters_to_remove:
                 self.remove_cluster(cluster_id)
 
-        # Labels consistency check
-        labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
-        if not labels_check:
-            print("Critical error: Labels consistency in matching clusters after removal:", labels_check)
-                
-    def removal_mechanism(self):
-        ''' Remove clusters with negative scores and additional low scoring clusters if necessary. '''
 
-        '''
-        # Identify and sort indices of clusters with negative scores
-        negative_score_indices = torch.where(self.parent.score[self.parent.matching_clusters] < 0)[0]
-        negative_score_indices = negative_score_indices.sort(descending=True)[0]
+    def remove_score(self):
 
-        # Remove clusters with negative scores
-        with torch.no_grad():
-            for index in negative_score_indices:
-                self.remove_cluster(self.parent.matching_clusters[index])
-        '''
+        if self.parent.c < 2:
+            return
+
         # Determine how many clusters to remove to meet the desired count
         num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
@@ -159,6 +164,30 @@ class RemovalMechanism:
                 # Remove additional low scoring clusters
                 for index in indices_to_remove:
                     self.remove_cluster(self.parent.matching_clusters[index])
+
+
+    def removal_mechanism(self):
+        ''' Remove clusters with negative scores and additional low scoring clusters if necessary. '''
+
+        '''
+        # Identify and sort indices of clusters with negative scores
+        negative_score_indices = torch.where(self.parent.score[self.parent.matching_clusters] < 0)[0]
+        negative_score_indices = negative_score_indices.sort(descending=True)[0]
+
+        # Remove clusters with negative scores
+        with torch.no_grad():
+            for index in negative_score_indices:
+                self.remove_cluster(self.parent.matching_clusters[index])
+        '''
+
+        self.remove_overlapping()
+        self.remove_small()
+        self.remove_score()
+
+        # Labels consistency check
+        labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
+        if not labels_check:
+            print("Critical error: Labels consistency in matching clusters after removal:", labels_check)
 
     '''      
     def removal_mechanism(self):

@@ -115,7 +115,7 @@ class eGAUSSp(torch.nn.Module):
                     self.merging_mech.merging_mechanism()
     
                     #Removal mechanism
-                    #self.removal_mech.removal_mechanism()
+                    self.removal_mech.removal_mechanism()
 
     def forward(self, data):
         

@@ -62,9 +62,9 @@ class FederalOps:
             #Remove small clusters 
             if self.parent.c>1:
 
-                self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
-                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                self.parent.removal_mech.remove_overlapping()
+                #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
+                #self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
+                #self.parent.removal_mech.remove_overlapping()
 
                 self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
                 self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
