@@ -28,33 +28,44 @@ class MathOps():
         z_expanded = z.unsqueeze(0).expand(mu.shape[0], -1)
 
         # Initialize distance tensor
-        d2 = torch.zeros(len(self.parent.matching_clusters), dtype=torch.float64, device=self.parent.device)
+        d2 = torch.zeros(len(self.parent.matching_clusters), dtype=torch.float32, device=self.parent.device)
 
         # Mask for clusters with a single sample
-        '''
+
         single_sample_mask = n == 1
-
-
         # Compute distances for clusters with a single sample,
         if single_sample_mask.sum() > 0:
             diff_single_sample = z_expanded[single_sample_mask] - mu[single_sample_mask]
             #inv_cov_diag = torch.linalg.pinv(self.parent.S_0).repeat(single_sample_mask.sum(), 1, 1).diagonal(dim1=-2, dim2=-1)
-            inv_cov_diag = 1 / self.parent.S_0.diagonal()
+            inv_cov_diag = 1 / (Sigma[single_sample_mask].diagonal(dim1=-2, dim2=-1)*self.feature_dim)
             d2_single_sample = torch.sum(diff_single_sample**2 * inv_cov_diag, dim=1)
             d2[single_sample_mask] = d2_single_sample
 
         # Compute Mahalanobis distances for other clusters
         non_single_sample_mask = ~single_sample_mask
         if non_single_sample_mask.sum() > 0:
-            S_inv = torch.linalg.inv(Sigma[non_single_sample_mask])
+            # Adjusted covariance matrix
+            adjusted_Sigma = Sigma[non_single_sample_mask] / self.feature_dim
+
+            # Check if the matrix is positive definite
+            # (Cholesky decomposition requires a positive definite matrix)
+            # You might need a more robust way to check this in a real application
+            try:
+                # Cholesky decomposition
+                L = torch.linalg.cholesky(adjusted_Sigma)
+                L_inv = torch.linalg.inv(L)
+                S_inv = L_inv.transpose(-2, -1) @ L_inv
+            except:
+                # Fallback to regular inverse if not positive definite
+                S_inv = torch.linalg.inv(adjusted_Sigma)
+
             diff = (z_expanded[non_single_sample_mask] - mu[non_single_sample_mask]).unsqueeze(-1)
             d2_mahalanobis = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
             d2[non_single_sample_mask] = d2_mahalanobis
-        '''
 
-        S_inv = torch.linalg.inv(Sigma)
-        diff = (z_expanded - mu).unsqueeze(-1)
-        d2 = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
+        #S_inv = torch.linalg.inv(Sigma)
+        #diff = (z_expanded - mu).unsqueeze(-1)
+        #d2 = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
 
     # Check for negative distances and remove corresponding clusters
         if (d2 < 0).any():
@@ -69,13 +80,13 @@ class MathOps():
             d2[d2 < 0] = float('inf')
                     
             # Compute activations for the candidate clusters
-        Gamma = torch.exp(-d2/self.feature_dim)#+ 1e-30 #*scaling_factor
+        Gamma = torch.exp(-d2)#+ 1e-30 #*scaling_factor
 
         if torch.isnan(Gamma).any().item():
             print("Critical error! NaN detected in Gamma computation")
 
         # Expand activations and distances to the full set of clusters
-        full_Gamma = torch.zeros(self.parent.c, dtype=torch.float64, device=self.parent.device)
+        full_Gamma = torch.zeros(self.parent.c, dtype=torch.float32, device=self.parent.device)
         full_Gamma[self.parent.matching_clusters] = Gamma
 
         return full_Gamma
@@ -98,7 +109,7 @@ class MathOps():
         Z_expanded = Z.unsqueeze(1).expand(-1, mu.shape[0], -1)
 
         # Initialize distance tensor
-        d2 = torch.full((batch_size, self.parent.c), float('inf'), dtype=torch.float64, device=self.parent.device)
+        d2 = torch.full((batch_size, self.parent.c), float('inf'), dtype=torch.float32, device=self.parent.device)
         
         '''
         # Mask for clusters with a single sample

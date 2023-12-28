@@ -22,7 +22,6 @@ class RemovalMechanism:
         self.parent.score[0:self.parent.c] = (self.parent.score[0:self.parent.c] + normalized_gamma*label_adjustment/number_of_samples)/sum( self.parent.n_glo)
     '''
     
-    
     def update_score(self, label):
         # Normalize Gamma
         normalized_gamma = self.parent.consequence.compute_normalized_gamma()
@@ -34,17 +33,23 @@ class RemovalMechanism:
         correct = self.parent.cluster_labels[j][label] == 1
         
         # Update the error rate for the winning cluster
-        #self.parent.score[j] = (self.parent.score[j]*self.parent.n[j] + classification)/(self.parent.n[j]+1)
         P = self.parent.n[j]
         N = torch.sum(self.parent.n_glo)
         n = self.parent.n_glo[label]
-
-        T = (self.parent.score[j]*P*n/(N-n))/(1-self.parent.score[j] + self.parent.score[j]*n/(N-n))
-        
+        T = (self.parent.score[j] * P * n / (N - n)) / (1 - self.parent.score[j] + self.parent.score[j] * n / (N - n))
+            
+        # Calculate new score
         if correct:
-            self.parent.score[j] = ((T + 1)/(n+1))/((T + 1)/(n+1) + (P-T)/(N-n))
+            new_score = ((T + 1) / (n + 1)) / ((T + 1) / (n + 1) + (P - T) / (N - n))
         else:
-            self.parent.score[j] = (T/n)/(T/n + (P+1-T)/(N+1-n))
+            new_score = (T / n) / (T / n + (P + 1 - T) / (N + 1 - n))
+        
+        # Check for NaN in the new score
+        if torch.isnan(new_score):
+            print("Warning: Computed score is NaN. Setting score to 0.")
+            self.parent.score[j] = torch.tensor(0.0)
+        else:
+            self.parent.score[j] = new_score
 
     ''' 
     def update_score(self, label):
@@ -104,14 +109,14 @@ class RemovalMechanism:
         V_S_0 = torch.prod(torch.diag(self.parent.S_0))
         V_ratio = (V / V_S_0)**(1/self.parent.feature_dim)
 
-        clusters_to_remove = self.parent.matching_clusters[V_ratio < 1/(self.parent.N_r)]
+        clusters_to_remove = self.parent.matching_clusters[V_ratio < 1/(10*self.parent.N_r)]
         num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
-        if num_clusters_to_remove > 0:
+        #if num_clusters_to_remove > 0:
             # Remove the clusters
-            with torch.no_grad():
-                for cluster_id in clusters_to_remove:
-                    self.remove_cluster(cluster_id)
+        with torch.no_grad():
+            for cluster_id in clusters_to_remove:
+                self.remove_cluster(cluster_id)
 
 
     def remove_overlapping(self):
@@ -179,15 +184,40 @@ class RemovalMechanism:
             for index in negative_score_indices:
                 self.remove_cluster(self.parent.matching_clusters[index])
         '''
+        # Determine how many clusters to remove to meet the desired count
+        num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
-        self.remove_overlapping()
-        self.remove_small()
-        self.remove_score()
+        if num_clusters_to_remove > 0:
+            self.remove_small()
+            
+            # Print the number of samples after removal
+            #print("Number of samples after remove_small:", len(self.parent.matching_clusters))
+            
+            # Labels consistency check
+            #labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
+            #if not labels_check:
+            #    print("Critical error: Labels consistency in matching clusters after remove_small:", labels_check)
 
-        # Labels consistency check
-        labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
-        if not labels_check:
-            print("Critical error: Labels consistency in matching clusters after removal:", labels_check)
+            self.remove_overlapping()
+
+            # Print the number of samples after removal
+            #print("Number of samples after remove_overlapping:", len(self.parent.matching_clusters))
+            
+            # Labels consistency check
+           # labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
+            #if not labels_check:
+            #    print("Critical error: Labels consistency in matching clusters after remove_overlapping:", labels_check)
+            
+            self.remove_score()
+
+            # Print the number of samples after removal
+            #print("Number of samples after remove_score:", len(self.parent.matching_clusters))
+
+            # Labels consistency check
+            #labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
+            #if not labels_check:
+            #    print("Critical error: Labels consistency in matching clusters after remove_score:", labels_check)
+
 
     '''      
     def removal_mechanism(self):
@@ -198,7 +228,7 @@ class RemovalMechanism:
         # Continue removing the smallest clusters while the condition is not met
         while len(self.parent.matching_clusters) > self.parent.c_max:
             
-            self.parent.merging_mech.valid_candidate = torch.arange(self.parent.c, dtype=torch.int64, device=self.parent.device)
+            self.parent.merging_mech.valid_candidate = torch.arange(self.parent.c, dtype=torch.int32, device=self.parent.device)
 
             self.parent.merging_mech.compute_merging_condition()
 

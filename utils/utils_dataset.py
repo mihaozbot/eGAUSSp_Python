@@ -3,9 +3,11 @@ import torch
 import numpy as np
 import numpy as np
 import matplotlib.pyplot as plt
-import torch
-from torch.utils.data import TensorDataset
 from sklearn.utils import shuffle
+from imblearn.under_sampling import RandomUnderSampler, TomekLinks, ClusterCentroids, NearMiss, EditedNearestNeighbours
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import Pipeline
+
 #from imblearn.over_sampling import SMOTE
 
 def non_iid_data(X, y, num_clients):
@@ -38,42 +40,52 @@ def non_iid_data(X, y, num_clients):
     return X, y
 
 
-def prepare_dataset(X, y, num_clients, smote = False):
+def prepare_dataset(X, y, num_clients, balance=None):
     """
-    Prepares a dataset for federated learning under a non-IID setting. The dataset is first split 
-    into training and testing sets. The training set is then further split among the specified number 
-    of clients in a non-IID fashion, where different classes are unevenly distributed among clients.
+    Prepares a dataset for federated learning under a non-IID setting, ensuring each client has 
+    approximately the same number of samples from each class.
 
-    :param data: Panda dataframe
+    :param X: Features as a numpy array.
+    :param y: Labels as a numpy array.
     :param num_clients: The number of clients to distribute the data among.
-    :return: A tuple containing the training data for each client, the testing data, and the entire dataset.
+    :param balance: Balancing technique, if any.
+    :return: Training data for each client, the testing data, and the entire dataset.
     """
+    # Split the dataset into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Split the dataset into the Training set and Test set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    # If balancing is required, apply balance_dataset
+    if balance:
+        X_train, y_train = balance_dataset(X_train, y_train, balance)
 
-    # Split the training data among clients
-    X_train_split = np.array_split(X_train, num_clients)
-    y_train_split = np.array_split(y_train, num_clients)
-    
-    if smote: 
-        smote = SMOTE(random_state=42)
-        X_train_split, y_train_split = smote.fit_resample(X_train_split, y_train_split)
+    # Split the training data by class
+    unique_classes = np.unique(y_train)
+    class_splits = {cls: [] for cls in unique_classes}
+    for cls in unique_classes:
+        class_indices = np.where(y_train == cls)[0]
+        class_splits[cls] = np.array_split(class_indices, num_clients)
 
-    # Convert the training data to PyTorch tensors and distribute to clients
-    train_data = [(torch.tensor(X_train_split[i], dtype=torch.float32), 
-                    torch.tensor(y_train_split[i], dtype=torch.int64)) 
-                   for i in range(num_clients)]
+    # Distribute class-wise splits among clients
+    X_train_split = [[] for _ in range(num_clients)]
+    y_train_split = [[] for _ in range(num_clients)]
+    for cls in unique_classes:
+        for i in range(num_clients):
+            X_train_split[i].extend(X_train[class_splits[cls][i]])
+            y_train_split[i].extend(y_train[class_splits[cls][i]])
 
-    # Convert X_test and y_test to tensors and pack together
-    test_data = (torch.tensor(X_test, dtype=torch.float32), 
-                 torch.tensor(y_test, dtype=torch.int64))
+    # Shuffle and convert the training data to PyTorch tensors for each client
+    train_data_clients = []
+    for i in range(num_clients):
+        X_split, y_split = shuffle(np.array(X_train_split[i]), np.array(y_train_split[i]))
+        train_data_clients.append((torch.tensor(X_split, dtype=torch.float32), torch.tensor(y_split, dtype=torch.int64)))
 
-    # Convert the entire dataset to tensors and pack together
-    all_data = (torch.tensor(X, dtype=torch.float32), 
-                torch.tensor(y, dtype=torch.int64))
+    # Convert testing data to PyTorch tensors
+    test_data = (torch.tensor(X_test, dtype=torch.float32), torch.tensor(y_test, dtype=torch.int64))
 
-    return train_data, test_data, all_data
+    # Convert the entire dataset to tensors
+    all_data = (torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.int64))
+
+    return train_data_clients, test_data, all_data
 
 def prepare_non_iid_dataset(X, y, num_clients):
     
@@ -198,9 +210,7 @@ def plot_dataset_split(client_data, test_dataset):
     return fig
 
 
-import pandas as pd
-
-
+'''
 def balance_dataset(data,  proportion, class_column='Class', random_state=None):
     """
     Balances a dataset by undersampling the majority class to match the size of the minority class.
@@ -230,7 +240,52 @@ def balance_dataset(data,  proportion, class_column='Class', random_state=None):
 
     # Shuffle the dataset (optional but recommended)
     return balanced_data.sample(frac=1, random_state=random_state).reset_index(drop=True)
+'''
 
+def balance_dataset(X, y, technique='random', target_sample_count=3000):
+    """
+    Balances a dataset by undersampling or oversampling using different techniques.
+
+    :param X: Feature data as a numpy array.
+    :param y: Label data as a numpy array.
+    :param technique: Technique for balancing ('random', 'tomek', 'centroids', 'nearmiss', 'enn', 'smote', 'smote_random').
+    :param target_sample_count: Target number of samples for each class in 'smote_random' technique.
+    :return: Balanced feature and label arrays.
+    """
+    # Select the appropriate sampler based on the technique
+    if technique == 'random':
+        sampler = RandomUnderSampler(random_state=None)
+    elif technique == 'tomek':
+        sampler = TomekLinks()
+    elif technique == 'centroids':
+        sampler = ClusterCentroids(random_state=None)
+    elif technique == 'nearmiss':
+        sampler = NearMiss(version=1)
+    elif technique == 'enn':
+        sampler = EditedNearestNeighbours()
+    elif technique == 'smote':
+        sampler = SMOTE(random_state=None)
+    elif technique == 'smote_random':
+        unique_classes = np.unique(y)
+        class_sample_counts = {label: np.sum(y == label) for label in unique_classes}
+
+        # Oversample the minority classes
+        oversample_strategy = {label: target_sample_count for label, count in class_sample_counts.items() if count < target_sample_count}
+        if oversample_strategy:
+            oversampler = SMOTE(sampling_strategy= oversample_strategy, random_state=None)
+            X, y = oversampler.fit_resample(X, y)
+
+        # Undersample the majority classes
+        undersample_strategy = {label: target_sample_count for label in unique_classes}
+        sampler = RandomUnderSampler(sampling_strategy=undersample_strategy, random_state=None)
+
+    else:
+        raise ValueError("Unknown technique: choose from 'random', 'tomek', 'centroids', 'nearmiss', 'enn', 'smote', 'smote_random'")
+
+    # Apply the selected sampler to resample the dataset
+    X_resampled, y_resampled = sampler.fit_resample(X, y)
+
+    return X_resampled, y_resampled
 
 def prepare_k_fold_non_iid_dataset(X, y, train_index, test_index, num_clients):
     """

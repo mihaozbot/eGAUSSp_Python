@@ -17,6 +17,7 @@ class FederalOps:
             # Identify clusters with the current label
             # In training mode, match clusters based on the label
             self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
+            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
             random_indices = torch.randperm(self.parent.matching_clusters.size(0))
             centers = self.parent.mu[self.parent.matching_clusters[random_indices]].detach().clone()
             
@@ -40,24 +41,6 @@ class FederalOps:
                 #Use the merging mechanism 
                 self.parent.merging_mech.merging_mechanism()
 
-                '''
-                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters[(self.parent.n[self.parent.matching_clusters] >= self.parent.kappa_n)]
-
-                # Continue merging while the flag is True and iterations are below the maximum
-                merge = True  # Flag to control the merging process
-                iteration = 0 # Counter to track the number of iterations
-                while merge and iteration < max_iterations:
-                
-                    if len(self.parent.merging_mech.valid_clusters) < 2:
-                        break
-
-                    #Compute the initial merging candidates
-                    self.parent.merging_mech.compute_merging_condition()
-                
-                    #Check merging condition, merge rules, and return True if merge happened
-                    merge = self.parent.merging_mech.merge_clusters()
-                    iteration += 1  # Increment the iteration counter
-                '''
 
             #Remove small clusters 
             if self.parent.c>1:
