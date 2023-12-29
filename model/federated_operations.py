@@ -101,6 +101,8 @@ class FederalOps:
             self.parent.S.data[new_indices] = model.S.data[valid_indices]
             self.parent.n.data[new_indices] = model.n.data[valid_indices]
 
+            self.parent.S_inv.data[new_indices] = model.S_inv.data[valid_indices] 
+            
             # Update cluster labels
             self.parent.cluster_labels[new_indices] = model.cluster_labels[valid_indices]
 

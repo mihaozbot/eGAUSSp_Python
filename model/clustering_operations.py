@@ -67,11 +67,12 @@ class ClusteringOps:
             with torch.no_grad():
                 self.parent.S[j] = self.parent.S_0.clone()
 
-        self.parent.S[j] = self.parent.S[j]*self.parent.forgeting_factor + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
-
-        self.parent.n[j] = self.parent.n[j]*self.parent.forgeting_factor + 1 #
+        self.parent.S[j] = self.parent.S[j] + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
+        self.parent.n[j] = self.parent.n[j] + 1 #
     
-
+        #self.parent.S[j] = self.parent.S[j] + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
+        #self.parent.n[j] = self.parent.n[j] + 1 #
+        
     def _increment_clusters(self, z):
         ''' Decide whether to increment an existing cluster or add a new cluster based on the current state. '''
         
@@ -114,18 +115,35 @@ class ClusteringOps:
         if len(self.parent.matching_clusters) == 0:
             self._add_new_cluster(z, label)
             #logging.info(f"Info. Added new cluster for label {label} due to no matching clusters. Total clusters now: {self.parent.c}")
-            return torch.tensor([1.0], device=self.parent.device)
-        
-        #_, j_rel = torch.max(self.parent.Gamma[self.parent.matching_clusters], dim=0)
-        #j_abs = self.parent.matching_clusters[j_rel].item()  # Map relative index back to full list of clusters
-        j = torch.argmax(self.parent.Gamma, dim=0)
-
-        if self.parent.enable_adding and (self.parent.Gamma[j] <= self.Gamma_max):
-            self._add_new_cluster(z, label)
-            #logging.info(f"Info. Added new cluster for label {label} due to low Gamma value. Total clusters now: {self.parent.c}")
+            # Compute S[j]/n[j]
+            j = self.parent.c-1
         else:
-            self._increment_cluster(z, j)
-            #self._increment_clusters(z)
+        
+            j_rel = torch.argmax(self.parent.Gamma[self.parent.matching_clusters], dim=0)
+            j = self.parent.matching_clusters[j_rel].item()  # Map relative index back to full list of clusters
+
+            if self.parent.enable_adding and (self.parent.Gamma[j] <= self.Gamma_max):
+                self._add_new_cluster(z, label)
+                j = self.parent.c-1
+                #logging.info(f"Info. Added new cluster for label {label} due to low Gamma value. Total clusters now: {self.parent.c}")
+            else:
+                self._increment_cluster(z, j)
+                #self._increment_clusters(z)
+
+        # Compute S[j]/n[j]
+        self.parent.S_inv[j] = torch.linalg.inv((self.parent.S[j] / self.parent.n[j]) * self.parent.feature_dim)
+
+        # Compute eigenvalues
+        eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[j])
+
+        # Check if all eigenvalues are positive (matrix is positive definite)
+        if not torch.all(eigenvalues > 0):
+            # Handle the case where the matrix is not positive definite
+            # Depending on your requirements, you might set a default value or handle it differently
+            print("Matrix is not positive definite for index", j)
+            # Example: set S_inv[j] to a matrix of zeros or some other default value
+            # Adjust the dimensions as needed
+            self.parent.S_inv[j] = torch.zeros_like(self.parent.S[j])
 
     def update_global_statistics(self, z, label):
         ''' Update the global mean, covariance, and count based on the new data point. '''

@@ -24,6 +24,7 @@ class ConsequenceOps():
         
         return label_scores, max_label
 
+    '''
     def defuzzify_batch(self):
 
         # Normalize Gamma along the cluster dimension
@@ -39,7 +40,35 @@ class ConsequenceOps():
         max_labels = torch.argmax(label_scores, dim=1)
 
         return label_scores, max_labels
+    '''
     
+    def defuzzify_batch(self):
+        # Normalize Gamma along the cluster dimension
+        normalized_gamma = self.compute_batched_normalized_gamma()
+        
+        # Select only labeled data for Gamma and cluster labels
+        # Ensure that cluster labels are a 1D tensor of class indices
+        cluster_labels = self.parent.cluster_labels[:self.parent.c]
+
+        # Compute label scores
+        expanded_cluster_labels = self.parent.cluster_labels[:self.parent.c].unsqueeze(0).expand(normalized_gamma.shape[0], -1, -1)
+
+        # Compute label scores
+        label_scores = torch.sum(normalized_gamma.unsqueeze(-1) * expanded_cluster_labels, dim=1)
+
+
+        # Find the indices of the maximum values in normalized_gamma along the cluster dimension
+        max_indices = torch.argmax(normalized_gamma, dim=1)
+
+        # Use max_indices to select the corresponding one-hot encoded class labels
+        one_hot_max_labels = expanded_cluster_labels[torch.arange(normalized_gamma.shape[0]), max_indices]
+
+        # Convert one-hot encoding to class indices
+        max_labels = torch.argmax(one_hot_max_labels, dim=1)
+
+        return label_scores, max_labels
+
+
     def compute_normalized_gamma(self):
         
         # Compute normalized gamma

@@ -36,20 +36,21 @@ class RemovalMechanism:
         P = self.parent.n[j]
         N = torch.sum(self.parent.n_glo)
         n = self.parent.n_glo[label]
-        T = (self.parent.score[j] * P * n / (N - n)) / (1 - self.parent.score[j] + self.parent.score[j] * n / (N - n))
+        if (N != n):
+            T = (self.parent.score[j] * P * n / (N - n)) / (1 - self.parent.score[j] + self.parent.score[j] * n / (N - n))
+                
+            # Calculate new score
+            if correct:
+                new_score = ((T + 1) / (n + 1)) / ((T + 1) / (n + 1) + (P - T) / (N - n))
+            else:
+                new_score = (T / n) / (T / n + (P + 1 - T) / (N + 1 - n))
             
-        # Calculate new score
-        if correct:
-            new_score = ((T + 1) / (n + 1)) / ((T + 1) / (n + 1) + (P - T) / (N - n))
-        else:
-            new_score = (T / n) / (T / n + (P + 1 - T) / (N + 1 - n))
-        
-        # Check for NaN in the new score
-        if torch.isnan(new_score):
-            print("Warning: Computed score is NaN. Setting score to 0.")
-            self.parent.score[j] = torch.tensor(0.0)
-        else:
-            self.parent.score[j] = new_score
+            # Check for NaN in the new score
+            if torch.isnan(new_score):
+                print("Warning: Computed score is NaN. Setting score to 0.")
+                self.parent.score[j] = torch.tensor(0.0)
+            else:
+                self.parent.score[j] = new_score
 
     ''' 
     def update_score(self, label):
@@ -101,6 +102,7 @@ class RemovalMechanism:
         # Normalize the log loss by the number of samples for the true label and update the score
         self.parent.score[0:self.parent.c] += torch.sum(current_log_losses /  self.parent.n_glo[label], dim = 1)
         '''
+        
     def remove_small(self):
         if self.parent.c < 2:
             return
@@ -110,7 +112,7 @@ class RemovalMechanism:
         V_ratio = (V / V_S_0)**(1/self.parent.feature_dim)
 
         clusters_to_remove = self.parent.matching_clusters[V_ratio < 1/(10*self.parent.N_r)]
-        num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
+        #num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
         #if num_clusters_to_remove > 0:
             # Remove the clusters
@@ -262,11 +264,12 @@ class RemovalMechanism:
             elif self.parent.matching_clusters[-1] == last_active_index:
                 self.parent.matching_clusters = self.parent.matching_clusters[:-1]
 
-
             # Move the last active cluster to the position of the cluster to be removed
             self.parent.mu[cluster_index] = self.parent.mu[last_active_index]
             self.parent.S[cluster_index] = self.parent.S[last_active_index]
             self.parent.n[cluster_index] = self.parent.n[last_active_index]
+
+            self.parent.S_inv[cluster_index] = self.parent.S_inv[last_active_index]
             self.parent.score[cluster_index] = self.parent.score[last_active_index]
                     
             # Update the label of the cluster that is moved
@@ -295,6 +298,19 @@ class RemovalMechanism:
         labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) == 1
         if not labels_consistency_check:
             print("Critical error: Labels consistency in matching clusters after removal:", labels_consistency_check)
+
+        # Compute eigenvalues
+        eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[cluster_index])
+
+        # Check if all eigenvalues are positive (matrix is positive definite)
+        if not torch.all(eigenvalues > 0):
+            # Handle the case where the matrix is not positive definite
+            # Depending on your requirements, you might set a default value or handle it differently
+            print("Matrix is not positive definite for index", cluster_index)
+            # Example: set S_inv[j] to a matrix of zeros or some other default value
+            # Adjust the dimensions as needed
+            self.parent.S_inv[j] = torch.zeros_like(self.parent.S[cluster_index])
+
 
         # Debugging checks
         if self.parent.enable_debugging:

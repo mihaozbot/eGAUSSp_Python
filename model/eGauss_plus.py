@@ -45,6 +45,7 @@ class eGAUSSp(torch.nn.Module):
         self.n = nn.Parameter(torch.zeros(self.current_capacity, dtype=torch.float32, device=device, requires_grad=True))  # Initialize cluster sizes
         self.mu = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, dtype=torch.float32, device=device, requires_grad=True))  # Initialize cluster means
         self.S = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device, requires_grad=True))  # Initialize covariance matrices
+        self.S_inv = torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device)  # Initialize covariance matrices
 
         # Global statistics
         self.n_glo = torch.zeros((num_classes), dtype=torch.float32, device=device)  # Global number of sampels per class
@@ -111,12 +112,34 @@ class eGAUSSp(torch.nn.Module):
                     #Incremental clustering and cluster addition
                     self.clusterer.increment_or_add_cluster(z, label)
             
+                    S_inv_ = torch.linalg.inv((self.S[:self.c]/
+                                self.n[:self.c].view(-1, 1, 1))*
+                                self.feature_dim)
+                    S_inv = self.S_inv[:self.c]
+                    if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>0):
+                        print("clustering?")
+                        
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
     
+                        
+                    S_inv_ = torch.linalg.inv((self.S[:self.c]/
+                                self.n[:self.c].view(-1, 1, 1))*
+                                self.feature_dim)
+                    S_inv = self.S_inv[:self.c]
+                    if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>0):
+                        print("merging?")
+                        
                     #Removal mechanism
                     self.removal_mech.removal_mechanism()
-
+                    
+                    S_inv_ = torch.linalg.inv((self.S[:self.c]/
+                                self.n[:self.c].view(-1, 1, 1))*
+                                self.feature_dim)
+                    S_inv = self.S_inv[:self.c]
+                    if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>0):
+                        print("removal?")
+                    
     def forward(self, data):
         
         # Assuming compute_activation can handle batch data

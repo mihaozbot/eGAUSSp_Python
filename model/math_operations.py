@@ -21,17 +21,18 @@ class MathOps():
 
         # Direct tensor indexing
         mu = self.parent.mu[self.parent.matching_clusters]
-        n = self.parent.n[self.parent.matching_clusters]
-        Sigma = self.parent.S[self.parent.matching_clusters]/n.view(-1, 1, 1) 
+        #n = self.parent.n[self.parent.matching_clusters]
+        #Sigma = self.parent.S[self.parent.matching_clusters]/n.view(-1, 1, 1) 
 
         # Expanding z for vectorized operations
         z_expanded = z.unsqueeze(0).expand(mu.shape[0], -1)
 
         # Initialize distance tensor
-        d2 = torch.zeros(len(self.parent.matching_clusters), dtype=torch.float32, device=self.parent.device)
+        #d2 = torch.zeros(len(self.parent.matching_clusters), dtype=torch.float32, device=self.parent.device)
 
         # Mask for clusters with a single sample
 
+        '''
         single_sample_mask = n == 1
         # Compute distances for clusters with a single sample,
         if single_sample_mask.sum() > 0:
@@ -62,28 +63,51 @@ class MathOps():
             diff = (z_expanded[non_single_sample_mask] - mu[non_single_sample_mask]).unsqueeze(-1)
             d2_mahalanobis = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
             d2[non_single_sample_mask] = d2_mahalanobis
+        '''
 
-        #S_inv = torch.linalg.inv(Sigma)
-        #diff = (z_expanded - mu).unsqueeze(-1)
-        #d2 = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
+        S_inv_ = torch.linalg.inv((self.parent.S[self.parent.matching_clusters]/
+                                   self.parent.n[self.parent.matching_clusters].view(-1, 1, 1))*
+                                    self.parent.feature_dim)
+        S_inv = self.parent.S_inv[self.parent.matching_clusters]
+        diff = (z_expanded - mu).unsqueeze(-1)
+        d2 = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()
 
-    # Check for negative distances and remove corresponding clusters
+        # Check for negative distances and remove corresponding clusters
         if (d2 < 0).any():
             print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
-            print("Negative distance detected, adjusting")
+            # Filter out the negative distances
+            positive_distance_mask = d2 >= 0
 
-            #with torch.no_grad():
-            #    for index in torch.where(d2 < 0)[0]:
-             #       self.parent.removal_mech.remove_cluster(index)
+            # Identify the indices of negative distances
+            negative_distance_indices = torch.where(d2 < 0)[0]
+            
+            # Compute eigenvalues
+            eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[negative_distance_indices[0]])
 
-            # Update d2 to exclude negative distances
-            d2[d2 < 0] = float('inf')
+            # Check if all eigenvalues are positive (matrix is positive definite)
+            if not torch.all(eigenvalues > 0):
+                # Handle the case where the matrix is not positive definite
+                # Depending on your requirements, you might set a default value or handle it differently
+                print("Matrix is not positive definite for index", negative_distance_indices[0])
+                # Example: set S_inv[j] to a matrix of zeros or some other default value
+                # Adjust the dimensions as needed
+                self.parent.S_inv[negative_distance_indices[0]] = torch.zeros_like(self.parent.S[negative_distance_indices[0]])
+                
+                
+            # Remove corresponding clusters
+            with torch.no_grad():
+                for index in negative_distance_indices:
+                    # Adjust the index to account for matching_clusters indexing
+                    self.parent.removal_mech.remove_cluster(index)
                     
+
+            d2 = d2[positive_distance_mask]
+           
+            # Check if any index in matching_clusters is out of bounds
+            self.parent.matching_clusters = torch.arange(self.parent.c, dtype=torch.int32, device=self.parent.device) #This is not correct if 
+            
             # Compute activations for the candidate clusters
         Gamma = torch.exp(-d2)#+ 1e-30 #*scaling_factor
-
-        if torch.isnan(Gamma).any().item():
-            print("Critical error! NaN detected in Gamma computation")
 
         # Expand activations and distances to the full set of clusters
         full_Gamma = torch.zeros(self.parent.c, dtype=torch.float32, device=self.parent.device)
@@ -102,8 +126,8 @@ class MathOps():
 
         # Parameters for all clusters
         mu = self.parent.mu[0: self.parent.c]
-        n = self.parent.n[0: self.parent.c]
-        Sigma = self.parent.S[0: self.parent.c] / n[0: self.parent.c].view(-1, 1, 1)
+        #n = self.parent.n[0: self.parent.c]
+        #Sigma = self.parent.S[0: self.parent.c] / n[0: self.parent.c].view(-1, 1, 1)
 
         # Expanding Z for vectorized operations
         Z_expanded = Z.unsqueeze(1).expand(-1, mu.shape[0], -1)
@@ -138,10 +162,11 @@ class MathOps():
             d2[:, non_single_sample_mask] = torch.matmul(torch.matmul(diff, S_inv_expanded), diff.transpose(-2, -1)).squeeze(-1).squeeze(-1)
         '''
 
-        S_inv = torch.linalg.inv(Sigma)
+        #S_inv = torch.linalg.inv(Sigma)
 
+        
         # Ensure S_inv is correctly broadcasted for bmm
-        S_inv_expanded = S_inv.unsqueeze(0).expand(batch_size, -1, -1, -1)
+        S_inv_expanded = self.parent.S_inv[:self.parent.c].unsqueeze(0).expand(batch_size, -1, -1, -1)
 
         # Reshape diff for bmm
         diff = (Z_expanded[:, :, :] - mu[:]).unsqueeze(-2)
@@ -151,9 +176,9 @@ class MathOps():
         d2 = torch.matmul(torch.matmul(diff, S_inv_expanded), diff.transpose(-2, -1)).squeeze(-1).squeeze(-1)
         
         if (d2 < 0).any():
-            d2[d2 < 0] = float('inf')
             print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
-
+            d2[d2 < 0] = float('inf')
+            
         #Initialize full_Gamma tensor
         full_Gamma = torch.zeros_like(d2)
 

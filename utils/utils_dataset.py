@@ -7,6 +7,8 @@ from sklearn.utils import shuffle
 from imblearn.under_sampling import RandomUnderSampler, TomekLinks, ClusterCentroids, NearMiss, EditedNearestNeighbours
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
+import numbers
+
 
 #from imblearn.over_sampling import SMOTE
 
@@ -242,7 +244,7 @@ def balance_dataset(data,  proportion, class_column='Class', random_state=None):
     return balanced_data.sample(frac=1, random_state=random_state).reset_index(drop=True)
 '''
 
-def balance_dataset(X, y, technique='random', target_sample_count=3000):
+def balance_dataset(X, y, technique='random'):
     """
     Balances a dataset by undersampling or oversampling using different techniques.
 
@@ -265,18 +267,19 @@ def balance_dataset(X, y, technique='random', target_sample_count=3000):
         sampler = EditedNearestNeighbours()
     elif technique == 'smote':
         sampler = SMOTE(random_state=None)
-    elif technique == 'smote_random':
+    elif isinstance(technique, int) or isinstance(technique, numbers.Number):
+        
         unique_classes = np.unique(y)
         class_sample_counts = {label: np.sum(y == label) for label in unique_classes}
 
         # Oversample the minority classes
-        oversample_strategy = {label: target_sample_count for label, count in class_sample_counts.items() if count < target_sample_count}
+        oversample_strategy = {label: technique for label, count in class_sample_counts.items() if count < technique}
         if oversample_strategy:
             oversampler = SMOTE(sampling_strategy= oversample_strategy, random_state=None)
             X, y = oversampler.fit_resample(X, y)
 
         # Undersample the majority classes
-        undersample_strategy = {label: target_sample_count for label in unique_classes}
+        undersample_strategy = {label: technique for label in unique_classes}
         sampler = RandomUnderSampler(sampling_strategy=undersample_strategy, random_state=None)
 
     else:
