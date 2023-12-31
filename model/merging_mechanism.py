@@ -38,14 +38,17 @@ class MergingMechanism:
         S_ij = (S_i + S_j) + (self.parent.n[i_all] * self.parent.n[j_all] / n_ij * torch.outer(mu_diff, mu_diff))
 
         score_ij = (self.parent.n[i_all] * self.parent.score[i_all]+ self.parent.n[j_all] * self.parent.score[j_all]) / n_ij
-        
+        num_pred_ij = self.parent.num_pred[i_all] + self.parent.num_pred[j_all]
+
         # Perform the merging operation
         self.parent.mu[i_all] = mu_ij
         self.parent.S[i_all] = S_ij
         self.parent.n[i_all] = n_ij
 
+        #Merge score and number of predictions
         self.parent.score[i_all] = score_ij
-        
+        self.parent.num_pred[i_all] = num_pred_ij
+
         # Update Gamma values 
         self.parent.Gamma[i_all] = 0 #self.parent.Gamma[i_all]
         
@@ -247,7 +250,7 @@ class MergingMechanism:
         #if self.parent.c > 10*np.sqrt(self.parent.feature_dim):
         #    self.valid_clusters = self.parent.matching_clusters
         #else:
-        threshold = np.exp(-(self.parent.num_sigma) ** 2)
+        threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
         self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
                                                             (self.parent.n[self.parent.matching_clusters] >= self.parent.kappa_n)] #np.sqrt(
 
@@ -288,7 +291,7 @@ class MergingMechanism:
         V_ratio = (self.V/V_S_0)**(1/self.parent.feature_dim)
         
         # Filtering kappa based on conditions
-        kappa_filter = (self.kappa == 0) + (V_ratio > self.parent.N_r)
+        kappa_filter = (self.kappa == 0) + (V_ratio > 3)
         self.kappa[kappa_filter] = float("inf")
         self.kappa.fill_diagonal_(float("inf"))
 

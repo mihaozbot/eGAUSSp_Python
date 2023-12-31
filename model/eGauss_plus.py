@@ -38,7 +38,8 @@ class eGAUSSp(torch.nn.Module):
         #self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
         
         self.score = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize cluster labels
-        
+        self.num_pred = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize number of predictions
+
         self.one_hot_labels = torch.eye(num_classes, dtype=torch.int32) #One hot labels 
         
         # Trainable parameters
@@ -95,50 +96,53 @@ class eGAUSSp(torch.nn.Module):
                 # Update global statistics
             self.clusterer.update_global_statistics(z, label)
             
+            
+            # In training mode, match clusters based on the label
             self.matching_clusters = torch.arange(self.c, dtype=torch.int32, device=self.device)
             
             # Compute activation
             self.Gamma = self.mathematician.compute_activation(z)
 
-            # In training mode, match clusters based on the label
             self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
             
             # Evolving mechanisms
             if self.evolving:
                 with torch.no_grad():
+  
                     if self.c>0:
                         self.removal_mech.update_score(label)
 
+
                     #Incremental clustering and cluster addition
                     self.clusterer.increment_or_add_cluster(z, label)
-            
-                    S_inv_ = torch.linalg.inv((self.S[:self.c]/
-                                self.n[:self.c].view(-1, 1, 1))*
-                                self.feature_dim)
-                    S_inv = self.S_inv[:self.c]
-                    if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>0):
-                        print("clustering?")
-                        
+
+                    # S_inv_ = torch.linalg.inv((self.S[:self.c]/
+                    #             self.n[:self.c].view(-1, 1, 1))*
+                    #             self.feature_dim)
+                    # S_inv = self.S_inv[:self.c]
+                    # if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>1e-4):
+                    #     print("clustering?")
+       
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
     
-                        
-                    S_inv_ = torch.linalg.inv((self.S[:self.c]/
-                                self.n[:self.c].view(-1, 1, 1))*
-                                self.feature_dim)
-                    S_inv = self.S_inv[:self.c]
-                    if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>0):
-                        print("merging?")
-                        
-                    #Removal mechanism
+               
+                    # S_inv_ = torch.linalg.inv((self.S[:self.c]/
+                    #             self.n[:self.c].view(-1, 1, 1))*
+                    #             self.feature_dim)
+                    # S_inv = self.S_inv[:self.c]
+                    # if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>1e-4):
+                    #     print("removal?")
+                        #Removal mechanism
+                    self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1)*(self.num_pred[:self.c] > self.kappa_n))[0]
                     self.removal_mech.removal_mechanism()
                     
-                    S_inv_ = torch.linalg.inv((self.S[:self.c]/
-                                self.n[:self.c].view(-1, 1, 1))*
-                                self.feature_dim)
-                    S_inv = self.S_inv[:self.c]
-                    if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>0):
-                        print("removal?")
+                    # S_inv_ = torch.linalg.inv((self.S[:self.c]/
+                    #             self.n[:self.c].view(-1, 1, 1))*
+                    #             self.feature_dim)
+                    # S_inv = self.S_inv[:self.c]
+                    # if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>1e-4):
+                    #     print("removal?")
                     
     def forward(self, data):
         

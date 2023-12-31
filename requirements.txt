@@ -1,0 +1,10 @@
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+torch
+torchvision
+torchaudio
+imbalanced-learn
+cudatoolkit=11.8

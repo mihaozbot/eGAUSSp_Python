@@ -31,19 +31,51 @@ class RemovalMechanism:
 
         # Check if the winning cluster's prediction matches the true class (label)
         correct = self.parent.cluster_labels[j][label] == 1
+
+        # Increment the number of predictions for the winning cluster
+        self.parent.num_pred[j] += 1
+
+        # Compute the new score (accuracy) using the accumulated accuracy formula
+        if self.parent.num_pred[j] == 1:
+            # This is the first prediction, so score is 0 if incorrect, and 1 if correct
+            new_score = torch.tensor(float(correct))
+        else:
+            # Update the score based on the accumulated accuracy formula
+            N = self.parent.num_pred[j]
+            new_score = ((N - 1) * self.parent.score[j] + float(correct)) / N
+
+        # Check for NaN in the new score
+        if torch.isnan(new_score):
+            print("Warning: Computed score is NaN. Setting score to 0.")
+            self.parent.score[j] = torch.tensor(0.0)
+        else:
+            self.parent.score[j] = new_score
+
+    '''
+    def update_score(self, label):
+        # Normalize Gamma
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
+
+        # Identify the winning cluster for this sample (the one with the highest normalized_gamma)
+        j = torch.argmax(normalized_gamma)
+
+        # Check if the winning cluster's prediction matches the true class (label)
+        correct = self.parent.cluster_labels[j][label] == 1
         
         # Update the error rate for the winning cluster
-        P = self.parent.n[j]
-        N = torch.sum(self.parent.n_glo)
-        n = self.parent.n_glo[label]
+
+        N = torch.sum(self.parent.n_glo) # number of samples
+        n = self.parent.n_glo[label] # number of class samples
         if (N != n):
-            T = (self.parent.score[j] * P * n / (N - n)) / (1 - self.parent.score[j] + self.parent.score[j] * n / (N - n))
-                
+            T = (self.parent.score[j] *self.parent.num_pred[j] * n / (N - n)) / (1 - self.parent.score[j] + self.parent.score[j] * n / (N - n))
+
+            self.parent.num_pred[j] = self.parent.num_pred[j]+1# number of classifications
+
             # Calculate new score
             if correct:
-                new_score = ((T + 1) / (n + 1)) / ((T + 1) / (n + 1) + (P - T) / (N - n))
+                new_score = ((T + 1) / (n + 1)) / ((T + 1) / (n + 1) + (self.parent.num_pred[j] - T) / (N - n))
             else:
-                new_score = (T / n) / (T / n + (P + 1 - T) / (N + 1 - n))
+                new_score = (T / n) / (T / n + (self.parent.num_pred[j] - T) / (N - n))
             
             # Check for NaN in the new score
             if torch.isnan(new_score):
@@ -51,6 +83,7 @@ class RemovalMechanism:
                 self.parent.score[j] = torch.tensor(0.0)
             else:
                 self.parent.score[j] = new_score
+    '''
 
     ''' 
     def update_score(self, label):
@@ -160,6 +193,7 @@ class RemovalMechanism:
         num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
         if num_clusters_to_remove > 0:
+            
             # Sort remaining clusters by score and identify those to remove
             all_scores = self.parent.score[self.parent.matching_clusters]
             _, indices_to_remove = torch.topk(all_scores, num_clusters_to_remove, largest=False)
@@ -190,7 +224,7 @@ class RemovalMechanism:
         num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
         if num_clusters_to_remove > 0:
-            self.remove_small()
+            #self.remove_small()
             
             # Print the number of samples after removal
             #print("Number of samples after remove_small:", len(self.parent.matching_clusters))
@@ -211,6 +245,7 @@ class RemovalMechanism:
             #    print("Critical error: Labels consistency in matching clusters after remove_overlapping:", labels_check)
             
             self.remove_score()
+
 
             # Print the number of samples after removal
             #print("Number of samples after remove_score:", len(self.parent.matching_clusters))
@@ -299,17 +334,17 @@ class RemovalMechanism:
         if not labels_consistency_check:
             print("Critical error: Labels consistency in matching clusters after removal:", labels_consistency_check)
 
-        # Compute eigenvalues
-        eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[cluster_index])
+        # # Compute eigenvalues
+        # eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[cluster_index])
 
-        # Check if all eigenvalues are positive (matrix is positive definite)
-        if not torch.all(eigenvalues > 0):
-            # Handle the case where the matrix is not positive definite
-            # Depending on your requirements, you might set a default value or handle it differently
-            print("Matrix is not positive definite for index", cluster_index)
-            # Example: set S_inv[j] to a matrix of zeros or some other default value
-            # Adjust the dimensions as needed
-            self.parent.S_inv[j] = torch.zeros_like(self.parent.S[cluster_index])
+        # # Check if all eigenvalues are positive (matrix is positive definite)
+        # if not torch.all(eigenvalues > 0):
+        #     # Handle the case where the matrix is not positive definite
+        #     # Depending on your requirements, you might set a default value or handle it differently
+        #     print("Matrix is not positive definite for index", cluster_index)
+        #     # Example: set S_inv[j] to a matrix of zeros or some other default value
+        #     # Adjust the dimensions as needed
+        #     self.parent.S_inv[j] = torch.zeros_like(self.parent.S[cluster_index])
 
 
         # Debugging checks

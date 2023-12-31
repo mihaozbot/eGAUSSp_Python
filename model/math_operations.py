@@ -82,16 +82,16 @@ class MathOps():
             negative_distance_indices = torch.where(d2 < 0)[0]
             
             # Compute eigenvalues
-            eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[negative_distance_indices[0]])
+            # eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[negative_distance_indices[0]])
 
-            # Check if all eigenvalues are positive (matrix is positive definite)
-            if not torch.all(eigenvalues > 0):
-                # Handle the case where the matrix is not positive definite
-                # Depending on your requirements, you might set a default value or handle it differently
-                print("Matrix is not positive definite for index", negative_distance_indices[0])
-                # Example: set S_inv[j] to a matrix of zeros or some other default value
-                # Adjust the dimensions as needed
-                self.parent.S_inv[negative_distance_indices[0]] = torch.zeros_like(self.parent.S[negative_distance_indices[0]])
+            # # Check if all eigenvalues are positive (matrix is positive definite)
+            # if not torch.all(eigenvalues > 0):
+            #     # Handle the case where the matrix is not positive definite
+            #     # Depending on your requirements, you might set a default value or handle it differently
+            #     print("Matrix is not positive definite for index", negative_distance_indices[0])
+            #     # Example: set S_inv[j] to a matrix of zeros or some other default value
+            #     # Adjust the dimensions as needed
+            #     self.parent.S_inv[negative_distance_indices[0]] = torch.zeros_like(self.parent.S[negative_distance_indices[0]])
                 
                 
             # Remove corresponding clusters
@@ -174,11 +174,7 @@ class MathOps():
         # Perform batch matrix multiplication
         # Using matmul for better broadcasting support
         d2 = torch.matmul(torch.matmul(diff, S_inv_expanded), diff.transpose(-2, -1)).squeeze(-1).squeeze(-1)
-        
-        if (d2 < 0).any():
-            print("Critical error! Negative distance detected in Gamma computation, which should be impossible")
-            d2[d2 < 0] = float('inf')
-            
+
         #Initialize full_Gamma tensor
         full_Gamma = torch.zeros_like(d2)
 

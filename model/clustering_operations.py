@@ -32,7 +32,8 @@ class ClusteringOps:
             self.parent.n.data[self.parent.c] = 1.0
         
         self.parent.score[self.parent.c] = 0
-            
+        self.parent.num_pred[self.parent.c] = 0
+
         # Update cluster_labels
         # If cluster_labels is not a Parameter and does not require gradients, update as a regular tensor
         self.parent.cluster_labels[self.parent.c] = self.parent.one_hot_labels[label]
@@ -100,13 +101,13 @@ class ClusteringOps:
         # Update number of samples in each cluster
         self.parent.n[self.parent.matching_clusters] = self.parent.n[self.parent.matching_clusters]*self.parent.forgeting_factor + NGamma
         
-        for i in range(self.parent.c):
-            try:
-                eigenvalues = torch.linalg.eigvalsh(self.parent.S[i])
-                if not torch.all(eigenvalues >= 0):
-                    print(f"Matrix of cluster {i} is not positive semidefinite. Minimum eigenvalue: {torch.min(eigenvalues)}")
-            except RuntimeError as e:
-                print(f"Exception occurred for cluster {i}: {e}")
+        # for i in range(self.parent.c):
+        #     try:
+        #         eigenvalues = torch.linalg.eigvalsh(self.parent.S[i])
+        #         if not torch.all(eigenvalues >= 0):
+        #             print(f"Matrix of cluster {i} is not positive semidefinite. Minimum eigenvalue: {torch.min(eigenvalues)}")
+        #     except RuntimeError as e:
+           #     print(f"Exception occurred for cluster {i}: {e}")
                 
     
     def increment_or_add_cluster(self, z, label):
@@ -128,22 +129,22 @@ class ClusteringOps:
                 #logging.info(f"Info. Added new cluster for label {label} due to low Gamma value. Total clusters now: {self.parent.c}")
             else:
                 self._increment_cluster(z, j)
-                #self._increment_clusters(z)
+            #self._increment_clusters(z)
 
         # Compute S[j]/n[j]
         self.parent.S_inv[j] = torch.linalg.inv((self.parent.S[j] / self.parent.n[j]) * self.parent.feature_dim)
 
         # Compute eigenvalues
-        eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[j])
+        # eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[j])
 
-        # Check if all eigenvalues are positive (matrix is positive definite)
-        if not torch.all(eigenvalues > 0):
-            # Handle the case where the matrix is not positive definite
-            # Depending on your requirements, you might set a default value or handle it differently
-            print("Matrix is not positive definite for index", j)
-            # Example: set S_inv[j] to a matrix of zeros or some other default value
-            # Adjust the dimensions as needed
-            self.parent.S_inv[j] = torch.zeros_like(self.parent.S[j])
+        # # Check if all eigenvalues are positive (matrix is positive definite)
+        # if not torch.all(eigenvalues > 0):
+        #     # Handle the case where the matrix is not positive definite
+        #     # Depending on your requirements, you might set a default value or handle it differently
+        #     print("Matrix is not positive definite for index", j)
+        #     # Example: set S_inv[j] to a matrix of zeros or some other default value
+        #     # Adjust the dimensions as needed
+        #     self.parent.S_inv[j] = torch.zeros_like(self.parent.S[j])
 
     def update_global_statistics(self, z, label):
         ''' Update the global mean, covariance, and count based on the new data point. '''

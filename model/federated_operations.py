@@ -77,7 +77,7 @@ class FederalOps:
         ''' Merge the parameters of another model into the current federated model. '''
 
         # Filter out clusters where model.n > 0
-        valid_clusters = (model.n[:model.c] > n_min) #*(model.score[:model.c] > 0)
+        valid_clusters = (model.n[:model.c] > n_min)*(model.num_pred[:model.c] > n_min) #*(model.score[:model.c] > 0)
         num_valid_clusters = valid_clusters.sum()
 
         # First, merge the global statistical parameters
@@ -108,7 +108,8 @@ class FederalOps:
 
             # Update scores
             self.parent.score[new_indices] = model.score[valid_indices]
-                    
+            self.parent.num_pred[new_indices] = model.num_pred[valid_indices]
+
         # Reset the Gamma values for all clusters
         self.parent.Gamma = torch.zeros(after_size, dtype=torch.float32, device=self.parent.device, requires_grad=True)
                 

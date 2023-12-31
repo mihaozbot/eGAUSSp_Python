@@ -41,7 +41,8 @@ class ModelOps:
         self.parent.S_inv = self._resize_tensor(self.parent.S_inv, (new_capacity, self.parent.feature_dim, self.parent.feature_dim))
         self.parent.cluster_labels = self._resize_tensor(self.parent.cluster_labels, (new_capacity,self.parent.num_classes))
         self.parent.score = self._resize_tensor(self.parent.score, (new_capacity,))
-        
+        self.parent.num_pred = self._resize_tensor(self.parent.num_pred, (new_capacity,))
+
         self.parent.current_capacity = new_capacity
 
     def _resize_tensor(self, old_tensor, new_size):
