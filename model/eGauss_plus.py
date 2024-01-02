@@ -33,7 +33,7 @@ class eGAUSSp(torch.nn.Module):
         # Dynamic properties initialized with tensors
         self.c = 0 # Number of active clusters
         self.Gamma = torch.empty(0, dtype=torch.float32, device=device,requires_grad=True)
-        self.current_capacity = math.ceil(c_max/2) #Initialize current capacity, which will be expanded as needed during training 
+        self.current_capacity = c_max #Initialize current capacity, which will be expanded as needed during training 
         self.cluster_labels = torch.empty((self.current_capacity, num_classes), dtype=torch.int32, device=device) #Initialize cluster labels
         #self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
         
@@ -135,6 +135,7 @@ class eGAUSSp(torch.nn.Module):
                     #     print("removal?")
                         #Removal mechanism
                     self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1)*(self.num_pred[:self.c] > self.kappa_n))[0]
+                    self.merging_mech.valid_clusters = self.matching_clusters
                     self.removal_mech.removal_mechanism()
                     
                     # S_inv_ = torch.linalg.inv((self.S[:self.c]/

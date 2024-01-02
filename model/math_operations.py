@@ -65,9 +65,6 @@ class MathOps():
             d2[non_single_sample_mask] = d2_mahalanobis
         '''
 
-        S_inv_ = torch.linalg.inv((self.parent.S[self.parent.matching_clusters]/
-                                   self.parent.n[self.parent.matching_clusters].view(-1, 1, 1))*
-                                    self.parent.feature_dim)
         S_inv = self.parent.S_inv[self.parent.matching_clusters]
         diff = (z_expanded - mu).unsqueeze(-1)
         d2 = torch.bmm(torch.bmm(diff.transpose(1, 2), S_inv), diff).squeeze()

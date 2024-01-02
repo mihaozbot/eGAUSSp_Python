@@ -5,15 +5,10 @@ from matplotlib import cm
 from matplotlib.patches import Ellipse
 from IPython.display import clear_output
 import seaborn as sns
-
-import numpy as np
-import matplotlib.pyplot as plt
-import torch
-from matplotlib import cm
-from matplotlib.patches import Ellipse
-from IPython.display import clear_output
-import seaborn as sns
 from matplotlib.ticker import FormatStrFormatter
+from sklearn.preprocessing import StandardScaler
+from itertools import combinations
+
 
    
 def plot_all_features_upper_triangle(data, labels, model, N_max, num_sigma, colormap='tab10'):
@@ -149,7 +144,6 @@ def plot_first_feature(dataset, model, N_max, num_sigma, colormap='tab10'):
         # Assign a unique color to each label based on its index
         # Convert labels to numpy if it's a torch tensor
     
-
     if len(data.shape) == 1:
         data = data.unsqueeze(0)
 
@@ -224,9 +218,141 @@ def plot_first_feature(dataset, model, N_max, num_sigma, colormap='tab10'):
     plt.tight_layout()
     plt.show()
 
+
+def fisher_score(data, labels, feature_idx1, feature_idx2):
+    unique_labels = np.unique(labels)
+
+    # Ensure feature indices are within the range of data's columns
+    if feature_idx1 >= data.shape[1] or feature_idx2 >= data.shape[1]:
+        raise ValueError("Feature indices are out of bounds.")
+
+    means = []
+    label_data_list = []  # List to store label data for each label
+    for label in unique_labels:
+        label_data = data[labels == label]  # Filter rows where label matches
+        if label_data.size == 0:
+            continue  # Skip if no data for this label
+        means.append(np.mean(label_data[:, [feature_idx1, feature_idx2]], axis=0))
+        label_data_list.append(label_data)  # Append label data to the list
+
+    overall_mean = np.mean(data[:, [feature_idx1, feature_idx2]], axis=0)
+
+    # Fisher Score calculation - ensure scalar values for s_b and s_w
+    s_b = sum(len(ld) * np.sum((m - overall_mean)**2) for ld, m in zip(label_data_list, means))
+    s_w = sum(np.sum((ld[:, [feature_idx1, feature_idx2]] - m)**2) for ld, m in zip(label_data_list, means))
+    
+    return s_b / s_w if s_w > 0 else 0
+
+
+def select_unique_combinations(feature_combinations, fisher_scores, N_combinations):
+    """Select top combinations with priority to unique features."""
+    sorted_combinations = sorted(feature_combinations, key=lambda x: fisher_scores[x], reverse=True)
+    selected_combinations = []
+    used_features = set()
+
+    for comb in sorted_combinations:
+        if len(selected_combinations) >= N_combinations:
+            break
+        if comb[0] not in used_features and comb[1] not in used_features:
+            selected_combinations.append(comb)
+            used_features.update(comb)
+
+    # If we haven't selected enough combinations, fill in the remaining slots
+    for comb in sorted_combinations:
+        if len(selected_combinations) >= N_combinations:
+            break
+        if comb not in selected_combinations:
+            selected_combinations.append(comb)
+
+    return selected_combinations
+
+def plot_interesting_features(dataset, model, N_max, num_sigma, N_combinations=5, colormap='tab10'):
+    data, labels = dataset
+    data = data.cpu().detach().numpy() if isinstance(data, torch.Tensor) else data
+    labels = labels.cpu().detach().numpy() if isinstance(labels, torch.Tensor) else labels
+
+    if len(data.shape) == 1:
+        data = data.unsqueeze(0)
+
+    if len(labels.shape) == 0:
+        labels = labels.unsqueeze(0)
+    clear_output(wait=True)
+
+    n_features = data.shape[1]
+    unique_labels = model.num_classes
+
+    label_colors = cm.get_cmap(colormap)(np.linspace(0, 0.5, unique_labels))
+    label_color_dict = dict(zip(range(unique_labels), label_colors))
+    data_colors = [label_color_dict[label.item()] for label in labels]
+
+    # Standardize features for better comparison
+    scaler = StandardScaler()
+    data = scaler.fit_transform(data)
+
+    # Calculate Fisher Scores for all combinations
+    feature_combinations = list(combinations(range(n_features), 2))
+    fisher_scores = {comb: fisher_score(data, labels, *comb) for comb in feature_combinations}
+
+    # Select top N combinations with priority to unique features
+    top_combinations = select_unique_combinations(feature_combinations, fisher_scores, N_combinations)
+
+    # Plotting logic
+    rows = int(np.ceil(np.sqrt(N_combinations)))
+    cols = rows if rows * (rows - 1) < N_combinations else rows - 1
+
+    fig, axes = plt.subplots(rows, cols, figsize=(3 * cols, 3 * rows))
+
+    for idx, (feature_idx1, feature_idx2) in enumerate(top_combinations):
+        ax = axes.flatten()[idx]
+        ax.scatter(data[:, feature_idx1], data[:, feature_idx2], c=data_colors, alpha=0.5)
+
+
+        for cluster_idx in range(model.c):  # loop through all clusters
+            if model.n[cluster_idx] > N_max:
+                # Get the mean and covariance of the cluster for the current feature pair
+                mu_val = model.mu[cluster_idx].cpu().detach().numpy()
+                S = model.S[cluster_idx].cpu().detach().numpy()
+                cov_matrix = (S / model.n[cluster_idx].cpu().detach().numpy())
+                cov_submatrix = cov_matrix[[feature_idx1, feature_idx2]][:, [feature_idx1, feature_idx2]]
+                mu_subvector = mu_val[[feature_idx1, feature_idx2]]
+
+                # Eigen decomposition for the ellipse orientation
+                vals, vecs = np.linalg.eigh(cov_submatrix)
+                angle = np.degrees(np.arctan2(*vecs[:, 0][::-1]))
+
+                # Determine the width and height of the ellipse based on eigenvalues
+                factor = num_sigma  # Number of standard deviations to plot
+                width, height = factor * np.sqrt(vals)
+
+                # Determine the color for the ellipse
+                ellipse_color = label_color_dict[torch.where(model.cluster_labels[cluster_idx] == 1)[0].item()]
+                ellipse_color_rgba = plt.cm.colors.to_rgba(ellipse_color)
+                dark_factor = 0.8  # Factor to darken the color
+                darker_ellipse_color = (ellipse_color_rgba[0] * dark_factor, 
+                                        ellipse_color_rgba[1] * dark_factor, 
+                                        ellipse_color_rgba[2] * dark_factor, 1)
+
+                # Create and add the ellipse patch
+                ell = Ellipse(xy=(mu_subvector[0], mu_subvector[1]), 
+                                width=width, height=height, 
+                                angle=angle, edgecolor=darker_ellipse_color, 
+                                lw=2, facecolor='none')
+                ax.add_patch(ell)
+
+                # Mark the cluster center
+                ax.scatter(mu_subvector[0], mu_subvector[1], color='black', s=100, marker='x')
+
+
+        ax.set_title(f"Feature {feature_idx1 + 1} vs Feature {feature_idx2 + 1}")
+        ax.set_xlabel(f"Feature {feature_idx1 + 1}")
+        ax.set_ylabel(f"Feature {feature_idx2 + 1}")
+        ax.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
 def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title="", colormap='tab10', legend=False, format = '%.1f', data_name = "Class"):
     """Function to color data points based on their true labels against the first feature."""
-
 
     # Extract data and labels from the TensorDataset
     data, labels = dataset

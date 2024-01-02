@@ -7,4 +7,3 @@ torch
 torchvision
 torchaudio
 imbalanced-learn
-cudatoolkit=11.8

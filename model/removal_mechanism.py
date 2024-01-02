@@ -6,6 +6,73 @@ class RemovalMechanism:
     def __init__(self, parent):
         self.parent = parent
 
+
+    def update_score(self, label):
+        # Normalize Gamma (this is used as the weight)
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
+
+        # Identify the winning cluster for this sample (the one with the highest normalized_gamma)
+        j = torch.argmax(normalized_gamma)
+        # The weight for this prediction is the normalized gamma value of the winning cluster
+        weight = normalized_gamma[j]
+
+        # Check if the winning cluster's prediction matches the true class (label)
+        correct = self.parent.cluster_labels[j][label] == 1
+
+        # Update the sum of weights for the winning cluster
+        old_weight_sum = self.parent.num_pred[j]
+        self.parent.num_pred[j] += 1
+
+        # Compute the new score (weighted accuracy)
+        if old_weight_sum == 0:
+            # First prediction for this cluster, the score is the weight if correct, and 0 if incorrect
+            new_score = weight if correct else torch.tensor(0.0)
+        else:
+            # Update the score based on the accumulated weighted accuracy formula
+            weighted_correct = weight if correct else torch.tensor(0.0)
+            new_score = (old_weight_sum * self.parent.score[j] + weighted_correct) / self.parent.num_pred[j]
+
+        # Check for NaN in the new score
+        if torch.isnan(new_score):
+            print("Warning: Computed score is NaN. Setting score to 0.")
+            new_score = torch.tensor(0.0)
+
+        self.parent.score[j] = new_score
+
+    '''
+
+    def update_score(self, label):
+        # Normalize Gamma (used as the weights for each cluster's prediction)
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
+
+        # Check if each cluster's prediction matches the true class (label)
+        correct_predictions = self.parent.cluster_labels[:self.parent.c, label] == 1
+
+        # Convert correct_predictions to float for calculations
+        correct_predictions = correct_predictions.float()
+
+        # Update the sum of weights for each cluster
+        old_weight_sum = self.parent.num_pred[:self.parent.c].clone()
+        self.parent.num_pred[:self.parent.c] += normalized_gamma
+
+        # Compute the new scores (weighted accuracy) for all clusters
+        weighted_correct = normalized_gamma * correct_predictions
+        new_scores = torch.where(
+            old_weight_sum == 0,
+            weighted_correct,
+            (old_weight_sum * self.parent.score[:self.parent.c] + weighted_correct) / self.parent.num_pred[:self.parent.c]
+        )
+
+        # Check for NaN in the new scores and set them to 0
+        nan_mask = torch.isnan(new_scores)
+        if nan_mask.any():
+            print("Warning: Computed scores contain NaN. Setting those scores to 0.")
+            new_scores[nan_mask] = 0.0
+
+        self.parent.score[:self.parent.c] = new_scores
+    '''
+    
+    
     '''
     def update_score(self, label):
     
@@ -21,35 +88,55 @@ class RemovalMechanism:
         # Apply the label adjustment to normalized_gamma
         self.parent.score[0:self.parent.c] = (self.parent.score[0:self.parent.c] + normalized_gamma*label_adjustment/number_of_samples)/sum( self.parent.n_glo)
     '''
-    
+
+    '''
     def update_score(self, label):
         # Normalize Gamma
         normalized_gamma = self.parent.consequence.compute_normalized_gamma()
 
-        # Identify the winning cluster for this sample (the one with the highest normalized_gamma)
-        j = torch.argmax(normalized_gamma)
+        # Ensure there are at least two clusters
+        if normalized_gamma.numel() < 2:
+            return
 
-        # Check if the winning cluster's prediction matches the true class (label)
-        correct = self.parent.cluster_labels[j][label] == 1
+        top_two_indices = torch.topk(normalized_gamma, 2).indices
+        best_cluster_idx = top_two_indices[0]
+        second_best_cluster_idx = top_two_indices[1]
 
-        # Increment the number of predictions for the winning cluster
-        self.parent.num_pred[j] += 1
+        # Check if the best and second-best clusters' predictions match the true class
+        best_correct = self.parent.cluster_labels[best_cluster_idx][label] == 1
+        second_best_correct = self.parent.cluster_labels[second_best_cluster_idx][label] == 1
 
-        # Compute the new score (accuracy) using the accumulated accuracy formula
-        if self.parent.num_pred[j] == 1:
-            # This is the first prediction, so score is 0 if incorrect, and 1 if correct
+        # Set 'correct' to False if the second-best cluster is not of the opposite label
+        if best_correct == second_best_correct:
+            correct = False
+        else:
+            correct = best_correct
+
+        # Update the score for the best cluster
+        self.update_individual_score(best_cluster_idx, correct)
+
+        # Update the score for the second-best cluster
+        # Increase if they are different, decrease if they are the same
+        self.update_individual_score(second_best_cluster_idx, not correct)
+
+    def update_individual_score(self, cluster_idx, correct):
+        # Increment the number of predictions for the cluster
+        self.parent.num_pred[cluster_idx] += 1
+
+        # Compute the new score
+        if self.parent.num_pred[cluster_idx] == 1:
             new_score = torch.tensor(float(correct))
         else:
-            # Update the score based on the accumulated accuracy formula
-            N = self.parent.num_pred[j]
-            new_score = ((N - 1) * self.parent.score[j] + float(correct)) / N
+            N = self.parent.num_pred[cluster_idx]
+            new_score = ((N - 1) * self.parent.score[cluster_idx] + float(correct)) / N
 
-        # Check for NaN in the new score
+        # Check for NaN in the new score and update
         if torch.isnan(new_score):
-            print("Warning: Computed score is NaN. Setting score to 0.")
-            self.parent.score[j] = torch.tensor(0.0)
+            print(f"Warning: Computed score is NaN for cluster {cluster_idx}. Setting score to 0.")
+            self.parent.score[cluster_idx] = torch.tensor(0.0)
         else:
-            self.parent.score[j] = new_score
+            self.parent.score[cluster_idx] = new_score
+        '''
 
     '''
     def update_score(self, label):
@@ -84,7 +171,6 @@ class RemovalMechanism:
             else:
                 self.parent.score[j] = new_score
     '''
-
     ''' 
     def update_score(self, label):
 
@@ -153,7 +239,6 @@ class RemovalMechanism:
             for cluster_id in clusters_to_remove:
                 self.remove_cluster(cluster_id)
 
-
     def remove_overlapping(self):
         if self.parent.c < 2:
             return
@@ -162,27 +247,49 @@ class RemovalMechanism:
         self.parent.merging_mech.compute_volume()
         self.parent.merging_mech.compute_kappa()
 
-        # Identify clusters that need to be removed based on the kappa condition
-        rows, cols = torch.where(self.parent.merging_mech.kappa < self.parent.kappa_join)
-        valid_clusters = self.parent.merging_mech.valid_clusters
-
-        # Gather scores for each cluster in the identified pairs
-        scores_row = self.parent.score[valid_clusters[rows]]
-        scores_col = self.parent.score[valid_clusters[cols]]
-
-        # Determine which index in each pair has the smaller score and select those clusters
-        smaller_score_indices = torch.where(scores_row < scores_col, rows, cols)
-        clusters_to_remove = valid_clusters[smaller_score_indices]
-
-        # Remove duplicates and sort indices in descending order
-        clusters_to_remove = torch.unique(clusters_to_remove)
-        clusters_to_remove, _ = clusters_to_remove.sort(descending=True)
-
-        # Remove the clusters
         with torch.no_grad():
-            for cluster_id in clusters_to_remove:
-                self.remove_cluster(cluster_id)
+            while True:
+                # Identify clusters that need to be removed based on the kappa condition
+                rows, cols = torch.where(self.parent.merging_mech.kappa < 2*self.parent.kappa_join)
+                
+                # Critic's suggestion: Check if there are no clusters to remove
+                if len(rows) == 0:
+                    break  # Exit the loop if no clusters meet the condition
 
+                valid_clusters = self.parent.merging_mech.valid_clusters
+
+                # Gather scores for each cluster in the identified pairs
+                scores_row = self.parent.score[valid_clusters[rows]]
+                scores_col = self.parent.score[valid_clusters[cols]]
+
+                # Determine the index with the smaller score and select that cluster
+                smaller_score_index = torch.argmin(torch.where(scores_row < scores_col, scores_row, scores_col))
+                if scores_row[smaller_score_index] < scores_col[smaller_score_index]:
+                    cluster_to_remove_idx = rows[smaller_score_index]
+                else:
+                    cluster_to_remove_idx = cols[smaller_score_index]
+
+                # Actor's action: Adding a check before removing the cluster
+                if 0 <= cluster_to_remove_idx < len(valid_clusters):
+                    cluster_to_remove = valid_clusters[cluster_to_remove_idx]
+                    self.remove_cluster(cluster_to_remove)
+                else:
+                    # Critic's suggestion: Handle invalid index situation
+                    print(f"Invalid cluster index: {cluster_to_remove_idx}")
+                    break
+
+                # Update kappa by removing the corresponding row and column
+                self.parent.merging_mech.kappa = torch.cat([
+                    self.parent.merging_mech.kappa[:cluster_to_remove_idx],
+                    self.parent.merging_mech.kappa[cluster_to_remove_idx + 1:]
+                ], dim=0)
+                self.parent.merging_mech.kappa = torch.cat([
+                    self.parent.merging_mech.kappa[:, :cluster_to_remove_idx],
+                    self.parent.merging_mech.kappa[:, cluster_to_remove_idx + 1:]
+                ], dim=1)
+
+                # Actor's action: Updating valid_clusters after removal
+                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters # Assuming this method updates the valid_clusters list
 
     def remove_score(self):
 
@@ -221,9 +328,8 @@ class RemovalMechanism:
                 self.remove_cluster(self.parent.matching_clusters[index])
         '''
         # Determine how many clusters to remove to meet the desired count
-        num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
-        if num_clusters_to_remove > 0:
+        if len(self.parent.matching_clusters) > self.parent.c_max:
             #self.remove_small()
             
             # Print the number of samples after removal
@@ -234,7 +340,7 @@ class RemovalMechanism:
             #if not labels_check:
             #    print("Critical error: Labels consistency in matching clusters after remove_small:", labels_check)
 
-            self.remove_overlapping()
+            #self.remove_overlapping()
 
             # Print the number of samples after removal
             #print("Number of samples after remove_overlapping:", len(self.parent.matching_clusters))
@@ -357,3 +463,87 @@ class RemovalMechanism:
                 label_match_check = self.parent.cluster_labels[cluster_index] in self.parent.cluster_labels[self.parent.matching_clusters]
                 print("Label of cluster index is in labels of matching clusters:", label_match_check)
             
+
+    def select_clusters_nearmiss(self):
+        all_class_distances = self.vectorized_bhattacharyya_distance()
+
+        selected_clusters = {}
+        for class_label, distances in all_class_distances.items():
+            # Find the closest clusters for each class
+            min_distances, indices = torch.min(distances, dim=1)
+            sorted_indices = torch.argsort(min_distances)
+
+            # Select up to c_max clusters for this class
+            selected_clusters_for_class = sorted_indices[:self.parent.c_max].tolist()
+            selected_clusters[class_label] = selected_clusters_for_class
+
+        selected_clusters_tensor = torch.tensor(selected_clusters[0], dtype=torch.int32, device=self.parent.device)
+        all_clusters = torch.arange(self.parent.c, dtype=torch.int32, device=self.parent.device)
+
+        # Use the mask to filter out the elements
+        indices_to_remove = all_clusters[~torch.isin(all_clusters, selected_clusters_tensor)]
+                
+        with torch.no_grad():
+            # Remove additional low scoring clusters
+            for index in indices_to_remove:
+                self.remove_cluster(index)
+        #return selected_clusters
+
+
+    def vectorized_bhattacharyya_distance(self):
+        # Extract means (mu) and covariance matrices (sigma) for all valid clusters
+        mu = self.parent.mu[:self.parent.c]
+        sigma = (self.parent.S[:self.parent.c] / self.parent.n[:self.parent.c].unsqueeze(1).unsqueeze(2))
+
+        # Get unique class labels
+        unique_classes = torch.unique(self.parent.cluster_labels[:self.parent.c])
+
+        # Dictionary to store Bhattacharyya distances for each class against others
+        class_distances = {}
+
+        for cls in unique_classes:
+            # Indices for the current class and other classes
+            current_class_indices = torch.where(self.parent.cluster_labels[:self.parent.c] == cls)[0]
+            other_class_indices = torch.where(self.parent.cluster_labels[:self.parent.c] != cls)[0]
+
+            # Extract mu and sigma for current and other classes
+            mu_1 = mu[current_class_indices]
+            sigma_1 = sigma[current_class_indices]
+            mu_2 = mu[other_class_indices]
+            sigma_2 = sigma[other_class_indices]
+
+            # Compute the vectorized Bhattacharyya distance
+            distances = self._compute_bhattacharyya(mu_1, sigma_1, mu_2, sigma_2)
+            class_distances[cls.item()] = distances
+
+        return class_distances
+
+    def _compute_bhattacharyya(self, mu_1, sigma_1, mu_2, sigma_2):
+        n1, d = mu_1.shape[0], mu_1.shape[1]
+        n2 = mu_2.shape[0]
+
+        # Expand dimensions to enable broadcasting
+        expanded_mu_1 = mu_1.unsqueeze(1).expand(n1, n2, d)
+        expanded_sigma_1 = sigma_1.unsqueeze(1).expand(n1, n2, d, d)
+        expanded_mu_2 = mu_2.unsqueeze(0).expand(n1, n2, d)
+        expanded_sigma_2 = sigma_2.unsqueeze(0).expand(n1, n2, d, d)
+
+        # Mean difference
+        mean_diff = expanded_mu_2 - expanded_mu_1
+
+        # Average covariance
+        avg_sigma = (expanded_sigma_1 + expanded_sigma_2) / 2
+
+        # Inverse of average covariance
+        inv_avg_sigma = torch.linalg.inv(avg_sigma)
+
+        # Term 1: Mahalanobis distance
+        term1 = 0.125 * torch.torch.einsum('ijk,ijkl,ijl->ij', mean_diff, inv_avg_sigma, mean_diff)
+
+        # Term 2: Log determinant term
+        det_expanded_sigma_1 = torch.linalg.det(expanded_sigma_1)**(1/self.parent.feature_dim)
+        det_expanded_sigma_2 = torch.linalg.det(expanded_sigma_2)**(1/self.parent.feature_dim)
+        det_avg_sigma = torch.linalg.det(avg_sigma)**(1/self.parent.feature_dim)
+        term2 = 0.5 * torch.log((det_avg_sigma / torch.sqrt(det_expanded_sigma_1 * det_expanded_sigma_2)))
+
+        return term1 + term2

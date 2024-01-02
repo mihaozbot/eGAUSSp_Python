@@ -281,7 +281,7 @@ def balance_dataset(X, y, technique='random'):
         # Undersample the majority classes
         undersample_strategy = {label: technique for label in unique_classes}
         sampler = RandomUnderSampler(sampling_strategy=undersample_strategy, random_state=None)
-
+        #sampler = NearMiss(version=1, sampling_strategy=undersample_strategy)
     else:
         raise ValueError("Unknown technique: choose from 'random', 'tomek', 'centroids', 'nearmiss', 'enn', 'smote', 'smote_random'")
 

@@ -250,7 +250,7 @@ class MergingMechanism:
         #if self.parent.c > 10*np.sqrt(self.parent.feature_dim):
         #    self.valid_clusters = self.parent.matching_clusters
         #else:
-        threshold = np.exp(-(2*self.parent.num_sigma) ** 2)
+        threshold = np.exp(-(self.parent.num_sigma) ** 2)
         self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
                                                             (self.parent.n[self.parent.matching_clusters] >= self.parent.kappa_n)] #np.sqrt(
 

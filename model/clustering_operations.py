@@ -16,8 +16,8 @@ class ClusteringOps:
     def __init__(self, parent):
         self.parent = parent # Reference to the parent class
         self.feature_dim = parent.feature_dim # Number of features in the dataset
-        self.Gamma_max = np.exp(-(parent.num_sigma**2)*(self.feature_dim**np.sqrt(2))) # Maximum value of Gamma (used to determine if a new cluster should be added)
-
+        self.Gamma_max = np.exp(-(parent.num_sigma**2)) # Maximum value of Gamma (used to determine if a new cluster should be added)
+        #self.Gamma_max = np.exp(-(parent.num_sigma**2)*(self.feature_dim**np.sqrt(2))) # Maximum value of Gamma (used to determine if a new cluster should be added)
            
     def _add_new_cluster(self, z, label):
         ''' Add a new cluster to the model. This is called when no matching clusters are found or when the Gamma value is too low.'''
@@ -33,6 +33,9 @@ class ClusteringOps:
         
         self.parent.score[self.parent.c] = 0
         self.parent.num_pred[self.parent.c] = 0
+        
+        # Construct a diagonal matrix from these reciprocal values
+        self.parent.S_inv[self.parent.c] = torch.diag(1.0 / self.parent.S_0.diagonal())
 
         # Update cluster_labels
         # If cluster_labels is not a Parameter and does not require gradients, update as a regular tensor
@@ -74,6 +77,11 @@ class ClusteringOps:
         #self.parent.S[j] = self.parent.S[j] + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
         #self.parent.n[j] = self.parent.n[j] + 1 #
         
+        x_minus_c = z - self.parent.mu[j]  # Difference between data point and cluster center
+        term = torch.matmul(self.parent.S_inv[j], x_minus_c.unsqueeze(1))  # Adjust dimensions for matrix multiplication
+        alpha = 1 / (self.parent.n[j] + 1)
+        self.parent.S_inv[j] -= alpha / (1 + alpha * term.T @ x_minus_c) * term @ term.T
+
     def _increment_clusters(self, z):
         ''' Decide whether to increment an existing cluster or add a new cluster based on the current state. '''
         
@@ -109,30 +117,36 @@ class ClusteringOps:
         #     except RuntimeError as e:
            #     print(f"Exception occurred for cluster {i}: {e}")
                 
-    
     def increment_or_add_cluster(self, z, label):
         ''' Increment an existing cluster if a cluster is activated enough, else add a new one'''
         
         if len(self.parent.matching_clusters) == 0:
             self._add_new_cluster(z, label)
-            #logging.info(f"Info. Added new cluster for label {label} due to no matching clusters. Total clusters now: {self.parent.c}")
-            # Compute S[j]/n[j]
-            j = self.parent.c-1
+            # logging.info(f"Info. Added new cluster for label {label} due to no matching clusters. Total clusters now: {self.parent.c}")
+            j = self.parent.c - 1
         else:
-        
-            j_rel = torch.argmax(self.parent.Gamma[self.parent.matching_clusters], dim=0)
-            j = self.parent.matching_clusters[j_rel].item()  # Map relative index back to full list of clusters
+            # Find the index of the overall max Gamma value
+            j_max = torch.argmax(self.parent.Gamma, dim=0).item()
 
-            if self.parent.enable_adding and (self.parent.Gamma[j] <= self.Gamma_max):
-                self._add_new_cluster(z, label)
-                j = self.parent.c-1
-                #logging.info(f"Info. Added new cluster for label {label} due to low Gamma value. Total clusters now: {self.parent.c}")
+            # Check if this index is in the matching_clusters
+            if j_max in self.parent.matching_clusters and self.parent.Gamma[j_max] >= self.Gamma_max:
+                # Increment the cluster with the max Gamma value
+                self._increment_cluster(z, j_max)
+                j = j_max
             else:
-                self._increment_cluster(z, j)
-            #self._increment_clusters(z)
+                # Add a new cluster since the max Gamma cluster is not a matching one or its value is below the threshold
+                self._add_new_cluster(z, label)
+                # logging.info(f"Info. Added new cluster for label {label} due to low Gamma value or non-matching max Gamma. Total clusters now: {self.parent.c}")
+                j = self.parent.c - 1
 
+        ''' 
         # Compute S[j]/n[j]
         self.parent.S_inv[j] = torch.linalg.inv((self.parent.S[j] / self.parent.n[j]) * self.parent.feature_dim)
+            # Simplified update of the inverse covariance matrix for cluster j
+
+        ''' 
+
+        
 
         # Compute eigenvalues
         # eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[j])
