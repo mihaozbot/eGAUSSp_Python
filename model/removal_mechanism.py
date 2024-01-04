@@ -7,6 +7,81 @@ class RemovalMechanism:
         self.parent = parent
 
 
+    '''     
+    def update_score(self, label):
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
+
+        # Step 1: Find the closest correct cluster
+        correct_clusters_mask = (self.parent.cluster_labels[:self.parent.c, label] == 1)
+        if not correct_clusters_mask.any():
+            # Handle the case where no correct clusters are found
+            return
+
+        correct_activations = normalized_gamma * correct_clusters_mask
+        best_correct_index = torch.argmax(correct_activations)
+
+        # Step 2: Update the score of the closest correct cluster
+        self.update_cluster_score(best_correct_index, label, correct = self.parent.cluster_labels[best_correct_index][label] == 1)
+
+        # Step 3: Identify incorrect clusters with higher activation than the best correct cluster
+        incorrect_clusters_mask = (self.parent.cluster_labels[:self.parent.c, label] == 0)
+        incorrect_clusters_higher_activation = incorrect_clusters_mask & (normalized_gamma > normalized_gamma[best_correct_index])
+        incorrect_higher_indices = torch.where(incorrect_clusters_higher_activation)[0]
+
+        # Step 4: Update the scores of identified incorrect clusters
+        for index in incorrect_higher_indices:
+            self.update_cluster_score(index, label, correct=False)
+
+        # Step 5: Identify the first incorrect cluster with lower activation than the best correct cluster
+        incorrect_clusters_lower_activation = incorrect_clusters_mask & (normalized_gamma <= normalized_gamma[best_correct_index])
+        if incorrect_clusters_lower_activation.any():
+            first_incorrect_lower_index = torch.where(incorrect_clusters_lower_activation)[0][0]  # Get the first such index
+            self.update_cluster_score(first_incorrect_lower_index, label, correct=True)
+    '''
+
+    def update_score(self, label):
+        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
+
+        # Masks for correct and incorrect clusters
+        correct_clusters_mask = (self.parent.cluster_labels[:self.parent.c, label] == 1)
+        incorrect_clusters_mask = (self.parent.cluster_labels[:self.parent.c, label] == 0)
+
+        # Sorted indices by activation
+        sorted_indices = torch.argsort(normalized_gamma, descending=True)
+
+        # Find the indices of incorrect clusters
+        incorrect_indices = torch.where(incorrect_clusters_mask[sorted_indices])[0]
+
+        if len(incorrect_indices) > 0:
+            first_incorrect_index = incorrect_indices[0]
+
+            # Update correct clusters scores
+            self.update_cluster_scores(sorted_indices[:first_incorrect_index], label, correct=True)
+
+            # Handling incorrect clusters with higher activation than the first incorrect one
+            incorrect_clusters_higher_activation = incorrect_clusters_mask & (normalized_gamma > normalized_gamma[sorted_indices[first_incorrect_index]])
+            incorrect_higher_indices = torch.where(incorrect_clusters_higher_activation)[0]
+            self.update_cluster_scores(incorrect_higher_indices, label, correct=False)
+        else:
+            # All clusters are correct, update all
+            self.update_cluster_scores(sorted_indices, label, correct=True)
+
+
+    def update_cluster_scores(self, cluster_indices, label, correct=True):
+        score_increment = 1.0 if correct else 0.0
+        score_increment_tensor = torch.tensor(score_increment, dtype=torch.float32)
+
+        # Update num_pred for all clusters
+        self.parent.num_pred[cluster_indices] += 1
+
+        # Calculate new scores
+        prev_scores = self.parent.score[cluster_indices]
+        num_preds = self.parent.num_pred[cluster_indices]
+        new_scores = ((num_preds - 1) * prev_scores + score_increment_tensor) / num_preds
+
+        self.parent.score[cluster_indices] = new_scores
+
+    '''
     def update_score(self, label):
         # Normalize Gamma (this is used as the weight)
         normalized_gamma = self.parent.consequence.compute_normalized_gamma()
@@ -20,17 +95,17 @@ class RemovalMechanism:
         correct = self.parent.cluster_labels[j][label] == 1
 
         # Update the sum of weights for the winning cluster
-        old_weight_sum = self.parent.num_pred[j]
+        #old_weight_sum = self.parent.num_pred[j]
         self.parent.num_pred[j] += 1
 
         # Compute the new score (weighted accuracy)
-        if old_weight_sum == 0:
+        if self.parent.num_pred[j] == 1:
             # First prediction for this cluster, the score is the weight if correct, and 0 if incorrect
-            new_score = weight if correct else torch.tensor(0.0)
+            new_score = torch.tensor(1) if correct else torch.tensor(0.0)
         else:
             # Update the score based on the accumulated weighted accuracy formula
-            weighted_correct = weight if correct else torch.tensor(0.0)
-            new_score = (old_weight_sum * self.parent.score[j] + weighted_correct) / self.parent.num_pred[j]
+            weighted_correct = torch.tensor(1) if correct else torch.tensor(0.0)
+            new_score = ((self.parent.num_pred[j] -1) * self.parent.score[j] + weighted_correct) / self.parent.num_pred[j]
 
         # Check for NaN in the new score
         if torch.isnan(new_score):
@@ -40,7 +115,7 @@ class RemovalMechanism:
         self.parent.score[j] = new_score
 
     '''
-
+    '''
     def update_score(self, label):
         # Normalize Gamma (used as the weights for each cluster's prediction)
         normalized_gamma = self.parent.consequence.compute_normalized_gamma()
@@ -240,8 +315,6 @@ class RemovalMechanism:
                 self.remove_cluster(cluster_id)
 
     def remove_overlapping(self):
-        if self.parent.c < 2:
-            return
 
         # Compute the volume and kappa initially
         self.parent.merging_mech.compute_volume()
@@ -249,18 +322,23 @@ class RemovalMechanism:
 
         with torch.no_grad():
             while True:
-                # Identify clusters that need to be removed based on the kappa condition
-                rows, cols = torch.where(self.parent.merging_mech.kappa < 2*self.parent.kappa_join)
-                
+
                 # Critic's suggestion: Check if there are no clusters to remove
-                if len(rows) == 0:
+                if len(self.parent.merging_mech.valid_clusters) < 2:
                     break  # Exit the loop if no clusters meet the condition
 
+                # Identify clusters that need to be removed based on the kappa condition
+                rows, cols = torch.where(self.parent.merging_mech.kappa < self.parent.kappa_join) #self.parent.kappa_join
+
+                # If no overlapping clusters are found, break the loop
+                if rows.nelement() == 0 or cols.nelement() == 0:
+                    break
+                
                 valid_clusters = self.parent.merging_mech.valid_clusters
 
                 # Gather scores for each cluster in the identified pairs
-                scores_row = self.parent.score[valid_clusters[rows]]
-                scores_col = self.parent.score[valid_clusters[cols]]
+                scores_row = self.parent.score[valid_clusters[rows]] #*self.parent.num_pred[valid_clusters[rows]]
+                scores_col = self.parent.score[valid_clusters[cols]] #*self.parent.num_pred[valid_clusters[cols]]
 
                 # Determine the index with the smaller score and select that cluster
                 smaller_score_index = torch.argmin(torch.where(scores_row < scores_col, scores_row, scores_col))
@@ -268,15 +346,6 @@ class RemovalMechanism:
                     cluster_to_remove_idx = rows[smaller_score_index]
                 else:
                     cluster_to_remove_idx = cols[smaller_score_index]
-
-                # Actor's action: Adding a check before removing the cluster
-                if 0 <= cluster_to_remove_idx < len(valid_clusters):
-                    cluster_to_remove = valid_clusters[cluster_to_remove_idx]
-                    self.remove_cluster(cluster_to_remove)
-                else:
-                    # Critic's suggestion: Handle invalid index situation
-                    print(f"Invalid cluster index: {cluster_to_remove_idx}")
-                    break
 
                 # Update kappa by removing the corresponding row and column
                 self.parent.merging_mech.kappa = torch.cat([
@@ -302,7 +371,7 @@ class RemovalMechanism:
         if num_clusters_to_remove > 0:
             
             # Sort remaining clusters by score and identify those to remove
-            all_scores = self.parent.score[self.parent.matching_clusters]
+            all_scores = self.parent.score[self.parent.matching_clusters] #*self.parent.num_pred[self.parent.matching_clusters]
             _, indices_to_remove = torch.topk(all_scores, num_clusters_to_remove, largest=False)
 
             # Sort indices in descending order for safe removal
@@ -312,7 +381,6 @@ class RemovalMechanism:
                 # Remove additional low scoring clusters
                 for index in indices_to_remove:
                     self.remove_cluster(self.parent.matching_clusters[index])
-
 
     def removal_mechanism(self):
         ''' Remove clusters with negative scores and additional low scoring clusters if necessary. '''
@@ -329,7 +397,7 @@ class RemovalMechanism:
         '''
         # Determine how many clusters to remove to meet the desired count
 
-        if len(self.parent.matching_clusters) > self.parent.c_max:
+        #if len(self.parent.matching_clusters) > self.parent.c_max:
             #self.remove_small()
             
             # Print the number of samples after removal
@@ -340,7 +408,7 @@ class RemovalMechanism:
             #if not labels_check:
             #    print("Critical error: Labels consistency in matching clusters after remove_small:", labels_check)
 
-            #self.remove_overlapping()
+        #self.remove_overlapping()
 
             # Print the number of samples after removal
             #print("Number of samples after remove_overlapping:", len(self.parent.matching_clusters))
@@ -350,8 +418,7 @@ class RemovalMechanism:
             #if not labels_check:
             #    print("Critical error: Labels consistency in matching clusters after remove_overlapping:", labels_check)
             
-            self.remove_score()
-
+        self.remove_score()
 
             # Print the number of samples after removal
             #print("Number of samples after remove_score:", len(self.parent.matching_clusters))
@@ -411,8 +478,10 @@ class RemovalMechanism:
             self.parent.n[cluster_index] = self.parent.n[last_active_index]
 
             self.parent.S_inv[cluster_index] = self.parent.S_inv[last_active_index]
+
             self.parent.score[cluster_index] = self.parent.score[last_active_index]
-                    
+            self.parent.num_pred[cluster_index] = self.parent.num_pred[last_active_index]
+
             # Update the label of the cluster that is moved
             self.parent.cluster_labels[cluster_index] = self.parent.cluster_labels[last_active_index]
 
@@ -436,7 +505,7 @@ class RemovalMechanism:
         self.parent.c -= 1
 
         # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
-        labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) == 1
+        labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
         if not labels_consistency_check:
             print("Critical error: Labels consistency in matching clusters after removal:", labels_consistency_check)
 
@@ -547,3 +616,4 @@ class RemovalMechanism:
         term2 = 0.5 * torch.log((det_avg_sigma / torch.sqrt(det_expanded_sigma_1 * det_expanded_sigma_2)))
 
         return term1 + term2
+    

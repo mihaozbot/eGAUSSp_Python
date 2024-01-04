@@ -18,6 +18,7 @@ class FederalOps:
             # In training mode, match clusters based on the label
             self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
             self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
+
             random_indices = torch.randperm(self.parent.matching_clusters.size(0))
             centers = self.parent.mu[self.parent.matching_clusters[random_indices]].detach().clone()
             
@@ -25,6 +26,9 @@ class FederalOps:
                 continue
 
             for i, center in enumerate(centers):
+
+                #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
+                #self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
 
                 #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
                 if self.parent.matching_clusters[-1] == self.parent.c:
@@ -41,22 +45,12 @@ class FederalOps:
                 #Use the merging mechanism 
                 self.parent.merging_mech.merging_mechanism()
 
-            self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
-            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-            
             #Remove small clusters 
             if self.parent.c>1:
-
-                #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
-                #self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                #self.parent.removal_mech.remove_overlapping()
-
-                #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
-                #self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                #self.parent.removal_mech.select_clusters_nearmiss()
+                self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
+                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
                 self.parent.removal_mech.remove_overlapping()
-                self.parent.removal_mech.removal_mechanism()
-
+                #self.parent.removal_mech.removal_mechanism()
 
     def merge_model_statistics(self, model):
         ''' Merge the global statistical parameters of another model into the current federated model. '''
@@ -98,7 +92,7 @@ class FederalOps:
             valid_indices = torch.where(valid_clusters)[0]
 
             # Calculate the new indices in the parent model for these valid clusters
-            new_indices = torch.arange(before_size, before_size + len(valid_indices), device=model.mu.device)
+            new_indices = torch.arange(before_size, before_size + len(valid_indices), device = model.mu.device)
 
             # Perform the parameter copying using advanced indexing
             self.parent.mu.data[new_indices] = model.mu.data[valid_indices]
@@ -115,7 +109,7 @@ class FederalOps:
             self.parent.num_pred[new_indices] = model.num_pred[valid_indices]
 
         # Reset the Gamma values for all clusters
-        self.parent.Gamma = torch.zeros(after_size, dtype=torch.float32, device=self.parent.device, requires_grad=True)
+        self.parent.Gamma = torch.zeros(after_size, dtype=torch.float32, device=self.parent.device, requires_grad=False)
                 
         # Update the total count of clusters in the federated model
         self.parent.c = after_size  # Update to the new index, which reflects the actual number of clusters after merging

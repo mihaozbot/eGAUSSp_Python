@@ -150,7 +150,7 @@ class MergingMechanism:
         det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1]) # [1] is the log determinant
 
         # Vectorized computation of volume V for upper triangle
-        self.V = torch.sqrt(det_matrix)
+        self.V = det_matrix**(1/self.parent.feature_dim)
 
         #Extract the upper triangle
         #self.V = torch.triu(self.V , diagonal=0)
@@ -179,7 +179,7 @@ class MergingMechanism:
         det_matrix = torch.exp(torch.linalg.slogdet(Sigma)[1])  # [1] is the log determinant
 
         # Compute the volume V for the i-th row/column
-        V_i = torch.sqrt(det_matrix)
+        V_i = det_matrix**(1/self.parent.feature_dim)
 
         # Update the i-th row and column of the volume matrix
         self.V[i, :] = V_i
@@ -253,6 +253,8 @@ class MergingMechanism:
         threshold = np.exp(-(self.parent.num_sigma) ** 2)
         self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
                                                             (self.parent.n[self.parent.matching_clusters] >= self.parent.kappa_n)] #np.sqrt(
+        if len(self.valid_clusters) < 2:
+            return
 
         #Compute the volume of the combined clusters
         self.compute_volume()
@@ -281,19 +283,23 @@ class MergingMechanism:
         diag_sum = self.V.diag().unsqueeze(0) + self.V.diag().unsqueeze(1)
 
         # Create the upper triangular part of kappa matrix
-        #self.kappa = torch.triu(self.V / diag_sum, diagonal=1)**(1/self.parent.feature_dim)
-        self.kappa = (self.V / diag_sum)**(1/self.parent.feature_dim)
+        self.kappa = (self.V / diag_sum)
 
-        #Compute volume of default cluster covariance matrix
-        V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
-       
-        #Compare cluster volume to standard volume
-        V_ratio = (self.V/V_S_0)**(1/self.parent.feature_dim)
+        # Replace NaN values in kappa with zeros
+        nan_mask = torch.isnan(self.kappa)
+        self.kappa[nan_mask] = 0
+
+        # Compute volume of default cluster covariance matrix
+        V_S_0 = torch.prod(torch.diag(self.parent.S_0)**(1/self.parent.feature_dim))
+    
+        # Compare cluster volume to standard volume
+        V_ratio = (self.V/V_S_0)
         
         # Filtering kappa based on conditions
         kappa_filter = (self.kappa == 0) + (V_ratio > 3)
         self.kappa[kappa_filter] = float("inf")
         self.kappa.fill_diagonal_(float("inf"))
+
 
     def update_kappa(self, i):
         # i is the index in self.valid_clusters for the cluster that has just merged
@@ -302,18 +308,24 @@ class MergingMechanism:
         diag_sum_i = self.V[i, i] + self.V.diag()
 
         # Update kappa for the i-th row
-        self.kappa[i, :] = (self.V[i, :] / diag_sum_i)**(1/self.parent.feature_dim)
+        self.kappa[i, :] = (self.V[i, :] / diag_sum_i)
 
         # Update kappa for the i-th column
         # Since kappa matrix is symmetric, we can copy the i-th row to the i-th column
         self.kappa[:, i] = self.kappa[i, :]
 
+        # Replace NaN values in kappa with zeros
+        nan_mask_row = torch.isnan(self.kappa[i, :])
+        nan_mask_col = torch.isnan(self.kappa[:, i])
+        self.kappa[i, nan_mask_row] = 0
+        self.kappa[nan_mask_col, i] = 0
+
         # Compute volume of default cluster covariance matrix
-        V_S_0 = torch.sqrt(torch.prod(torch.diag(self.parent.S_0)))
+        V_S_0 = torch.prod(torch.diag(self.parent.S_0)**(1/self.parent.feature_dim))
 
         # Compare cluster volume to standard volume for the i-th row and column
-        V_ratio_i = (self.V[i, :] / V_S_0)**(1/self.parent.feature_dim)
-        V_ratio_col = (self.V[:, i] / V_S_0)**(1/self.parent.feature_dim)
+        V_ratio_i = (self.V[i, :] / V_S_0)
+        V_ratio_col = (self.V[:, i] / V_S_0)
 
         # Filtering kappa based on conditions for the i-th row and column
         kappa_filter_row = (self.kappa[i, :] == 0) + (V_ratio_i > self.parent.N_r)

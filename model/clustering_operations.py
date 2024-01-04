@@ -31,11 +31,11 @@ class ClusteringOps:
             self.parent.S.data[self.parent.c] = self.parent.S_0
             self.parent.n.data[self.parent.c] = 1.0
         
-        self.parent.score[self.parent.c] = 0
-        self.parent.num_pred[self.parent.c] = 0
+        self.parent.score[self.parent.c] = 1
+        self.parent.num_pred[self.parent.c] = 1
         
         # Construct a diagonal matrix from these reciprocal values
-        self.parent.S_inv[self.parent.c] = torch.diag(1.0 / self.parent.S_0.diagonal())
+        self.parent.S_inv[self.parent.c] = torch.diag(1.0 / (self.parent.S_0.diagonal()*self.parent.feature_dim))
 
         # Update cluster_labels
         # If cluster_labels is not a Parameter and does not require gradients, update as a regular tensor
@@ -71,16 +71,16 @@ class ClusteringOps:
             with torch.no_grad():
                 self.parent.S[j] = self.parent.S_0.clone()
 
-        self.parent.S[j] = self.parent.S[j] + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
-        self.parent.n[j] = self.parent.n[j] + 1 #
+        #self.parent.S[j] += e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
+        #self.parent.n[j] +=  1 #
     
-        #self.parent.S[j] = self.parent.S[j] + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
-        #self.parent.n[j] = self.parent.n[j] + 1 #
+        self.parent.S[j] = self.parent.S[j]*self.parent.forgeting_factor + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1) + self.parent.S_0
+        self.parent.n[j] = self.parent.n[j]*self.parent.forgeting_factor + 1 #
         
-        x_minus_c = z - self.parent.mu[j]  # Difference between data point and cluster center
-        term = torch.matmul(self.parent.S_inv[j], x_minus_c.unsqueeze(1))  # Adjust dimensions for matrix multiplication
-        alpha = 1 / (self.parent.n[j] + 1)
-        self.parent.S_inv[j] -= alpha / (1 + alpha * term.T @ x_minus_c) * term @ term.T
+        #x_minus_c = z - self.parent.mu[j]  # Difference between data point and cluster center
+        #term = torch.matmul(self.parent.S_inv[j], x_minus_c.unsqueeze(1))  # Adjust dimensions for matrix multiplication
+        #alpha = 1 / (self.parent.n[j] + 1)
+        #self.parent.S_inv[j] -= alpha / (1 + alpha * term.T @ x_minus_c) * term @ term.T
 
     def _increment_clusters(self, z):
         ''' Decide whether to increment an existing cluster or add a new cluster based on the current state. '''
@@ -124,29 +124,27 @@ class ClusteringOps:
             self._add_new_cluster(z, label)
             # logging.info(f"Info. Added new cluster for label {label} due to no matching clusters. Total clusters now: {self.parent.c}")
             j = self.parent.c - 1
+
         else:
+
             # Find the index of the overall max Gamma value
-            j_max = torch.argmax(self.parent.Gamma, dim=0).item()
+            j_max = torch.argmax(self.parent.Gamma[self.parent.matching_clusters], dim=0).item()
+            j = self.parent.matching_clusters[j_max]
 
             # Check if this index is in the matching_clusters
-            if j_max in self.parent.matching_clusters and self.parent.Gamma[j_max] >= self.Gamma_max:
+            if self.parent.Gamma[j] >= self.Gamma_max:
                 # Increment the cluster with the max Gamma value
-                self._increment_cluster(z, j_max)
-                j = j_max
+                self._increment_cluster(z, j)
             else:
                 # Add a new cluster since the max Gamma cluster is not a matching one or its value is below the threshold
                 self._add_new_cluster(z, label)
                 # logging.info(f"Info. Added new cluster for label {label} due to low Gamma value or non-matching max Gamma. Total clusters now: {self.parent.c}")
                 j = self.parent.c - 1
 
-        ''' 
+        ''' ''' 
         # Compute S[j]/n[j]
         self.parent.S_inv[j] = torch.linalg.inv((self.parent.S[j] / self.parent.n[j]) * self.parent.feature_dim)
             # Simplified update of the inverse covariance matrix for cluster j
-
-        ''' 
-
-        
 
         # Compute eigenvalues
         # eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[j])

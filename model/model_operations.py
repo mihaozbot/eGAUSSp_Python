@@ -34,9 +34,9 @@ class ModelOps:
         
         new_capacity = 2 ** math.ceil(math.log2(new_c))  # Find the next power of two greater than the given number
         
-        self.parent.mu = nn.Parameter(self._resize_tensor(self.parent.mu, (new_capacity, self.parent.feature_dim)), requires_grad=True)
-        self.parent.S = nn.Parameter(self._resize_tensor(self.parent.S, (new_capacity, self.parent.feature_dim, self.parent.feature_dim)), requires_grad=True)
-        self.parent.n = nn.Parameter(self._resize_tensor(self.parent.n, (new_capacity,)), requires_grad=True)
+        self.parent.mu = nn.Parameter(self._resize_tensor(self.parent.mu, (new_capacity, self.parent.feature_dim)), requires_grad=False)
+        self.parent.S = nn.Parameter(self._resize_tensor(self.parent.S, (new_capacity, self.parent.feature_dim, self.parent.feature_dim)), requires_grad=False)
+        self.parent.n = nn.Parameter(self._resize_tensor(self.parent.n, (new_capacity,)), requires_grad=False)
         
         self.parent.S_inv = self._resize_tensor(self.parent.S_inv, (new_capacity, self.parent.feature_dim, self.parent.feature_dim))
         self.parent.cluster_labels = self._resize_tensor(self.parent.cluster_labels, (new_capacity,self.parent.num_classes))

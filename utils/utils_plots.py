@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import torch
 from matplotlib import cm
 from matplotlib.patches import Ellipse
-from IPython.display import clear_output
+#from IPython.display import clear_output
 import seaborn as sns
 from matplotlib.ticker import FormatStrFormatter
 from sklearn.preprocessing import StandardScaler
@@ -149,7 +149,7 @@ def plot_first_feature(dataset, model, N_max, num_sigma, colormap='tab10'):
 
     if len(labels.shape) == 0:
         labels = labels.unsqueeze(0)
-    clear_output(wait=True)
+    #clear_output(wait=True)
 
     n_features = data.shape[1]
 
@@ -276,7 +276,7 @@ def plot_interesting_features(dataset, model, N_max, num_sigma, N_combinations=5
 
     if len(labels.shape) == 0:
         labels = labels.unsqueeze(0)
-    clear_output(wait=True)
+    #clear_output(wait=True)
 
     n_features = data.shape[1]
     unique_labels = model.num_classes

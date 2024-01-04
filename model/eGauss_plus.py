@@ -11,6 +11,9 @@ from model.consequence_operations import ConsequenceOps
 from model.model_operations import ModelOps
 from model.federated_operations import FederalOps
 
+from utils.utils_train import test_model_in_batches
+from collections import defaultdict
+
 # Attempt to load the line_profiler extension
 
 class eGAUSSp(torch.nn.Module):
@@ -32,7 +35,7 @@ class eGAUSSp(torch.nn.Module):
 
         # Dynamic properties initialized with tensors
         self.c = 0 # Number of active clusters
-        self.Gamma = torch.empty(0, dtype=torch.float32, device=device,requires_grad=True)
+        self.Gamma = torch.empty(0, dtype=torch.float32, device=device,requires_grad=False)
         self.current_capacity = c_max #Initialize current capacity, which will be expanded as needed during training 
         self.cluster_labels = torch.empty((self.current_capacity, num_classes), dtype=torch.int32, device=device) #Initialize cluster labels
         #self.label_to_clusters = {} #Initialize dictionary to map labels to clusters
@@ -43,9 +46,9 @@ class eGAUSSp(torch.nn.Module):
         self.one_hot_labels = torch.eye(num_classes, dtype=torch.int32) #One hot labels 
         
         # Trainable parameters
-        self.n = nn.Parameter(torch.zeros(self.current_capacity, dtype=torch.float32, device=device, requires_grad=True))  # Initialize cluster sizes
-        self.mu = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, dtype=torch.float32, device=device, requires_grad=True))  # Initialize cluster means
-        self.S = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device, requires_grad=True))  # Initialize covariance matrices
+        self.n = nn.Parameter(torch.zeros(self.current_capacity, dtype=torch.float32, device=device, requires_grad=False))  # Initialize cluster sizes
+        self.mu = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, dtype=torch.float32, device=device, requires_grad=False))  # Initialize cluster means
+        self.S = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
         self.S_inv = torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device)  # Initialize covariance matrices
 
         # Global statistics
@@ -82,7 +85,7 @@ class eGAUSSp(torch.nn.Module):
     #    ''' Merges a client model into the main model. '''
     #    self.federal_agent.merge_model(client_model)
     
-    def federated_mergingg(self):
+    def federated_merging(self):
         ''' Executes the merging mechanism for all rules. Conversely, the normal merging mechanism works on a subset of rules based on some conditions. '''
         
         self.federal_agent.federated_merging()
@@ -102,6 +105,7 @@ class eGAUSSp(torch.nn.Module):
             
             # Compute activation
             self.Gamma = self.mathematician.compute_activation(z)
+            self.Gamma *= self.score[:self.c]
 
             self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
             
@@ -126,7 +130,6 @@ class eGAUSSp(torch.nn.Module):
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
     
-               
                     # S_inv_ = torch.linalg.inv((self.S[:self.c]/
                     #             self.n[:self.c].view(-1, 1, 1))*
                     #             self.feature_dim)
@@ -134,9 +137,12 @@ class eGAUSSp(torch.nn.Module):
                     # if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>1e-4):
                     #     print("removal?")
                         #Removal mechanism
-                    self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1)*(self.num_pred[:self.c] > self.kappa_n))[0]
-                    self.merging_mech.valid_clusters = self.matching_clusters
-                    self.removal_mech.removal_mechanism()
+                    
+                    if len(self.matching_clusters) > self.c_max:
+                        #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1)*(self.num_pred[:self.c] > self.kappa_n))[0] #
+                        #self.merging_mech.valid_clusters = self.matching_clusters
+                        #self.removal_mech.remove_overlapping()
+                        self.removal_mech.removal_mechanism()
                     
                     # S_inv_ = torch.linalg.inv((self.S[:self.c]/
                     #             self.n[:self.c].view(-1, 1, 1))*
@@ -144,12 +150,60 @@ class eGAUSSp(torch.nn.Module):
                     # S_inv = self.S_inv[:self.c]
                     # if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>1e-4):
                     #     print("removal?")
-                    
+        
+        scores, preds, clusters = test_model_in_batches(self, (data, labels))
+
+        # Generate a range tensor of valid cluster indices
+        valid_clusters = torch.arange(self.c, dtype=torch.int32, device=self.device)
+
+        # Check which clusters in the 'clusters' tensor are not in the 'valid_clusters' tensor
+        clusters_to_remove_mask = ~clusters.to(self.device).unsqueeze(1).eq(valid_clusters).any(dim=1)
+
+        # Get the indices of clusters to remove
+        clusters_to_remove = torch.where(clusters_to_remove_mask)[0]
+
+        with torch.no_grad():
+            # Remove clusters that don't contribute significantly
+            for cluster_index in clusters_to_remove:
+                self.removal_mech.remove_cluster(cluster_index)
+
+        '''
+        preds_list = preds.tolist()
+        true_labels_list = labels.tolist()
+        clusters_list = clusters.tolist()
+
+        # Initialize a dictionary to track correct and total predictions for each cluster
+        cluster_accuracy = defaultdict(lambda: {'correct': 0, 'total': 0})
+
+        # Iterate over each prediction, true label, and cluster
+        for pred, true_label, cluster in zip(preds_list, true_labels_list, clusters_list):
+            cluster_accuracy[cluster]['total'] += 1
+            if pred == true_label:
+                cluster_accuracy[cluster]['correct'] += 1
+
+        # Calculate accuracy for each cluster
+        for cluster in cluster_accuracy:
+            total = cluster_accuracy[cluster]['total']
+            correct = cluster_accuracy[cluster]['correct']
+            cluster_accuracy[cluster]['accuracy'] = correct / total if total > 0 else 0
+
+        # Sort clusters by accuracy
+        sorted_clusters = sorted(cluster_accuracy, key=lambda x: cluster_accuracy[x]['accuracy'], reverse=True)
+
+        # Print the sorted clusters and their accuracies
+        for cluster in sorted_clusters:
+            accuracy = cluster_accuracy[cluster]['accuracy']
+            print(f"Cluster {cluster}: Accuracy = {accuracy:.2f}")
+        '''
+
+
     def forward(self, data):
         
         # Assuming compute_activation can handle batch data
         self.matching_clusters = torch.arange(self.c).repeat(data.shape[0], 1)
         self.Gamma = self.mathematician.compute_batched_activation(data)
+    
+        self.Gamma *= self.score[:self.c].unsqueeze(0)
         #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
 
         # Evolving mechanisms can be handled here if they can be batch processed
@@ -158,7 +212,7 @@ class eGAUSSp(torch.nn.Module):
         label_scores, preds_max = self.consequence.defuzzify_batch()  # Adapt this method for batch processing
 
         # Assuming defuzzify returns batched scores and predictions
-        scores = label_scores.clone().detach().requires_grad_(True)
+        scores = label_scores.clone().detach().requires_grad_(False)
         preds = preds_max
         clusters = self.Gamma.argmax(dim=1)  # Get the cluster indices for the entire batch
 
