@@ -45,13 +45,14 @@ print(f"{torch.cuda.is_available()}")
 device = torch.device("cpu") #$torch.device("cuda" if torch.cuda.is_available() else "cpu") #torch.device("cpu") #
 
 
-# In[5]:
+# In[6]:
 
 
 import itertools
 import matplotlib.pyplot as plt
 #import plotly.graph_objs as go
 import pandas as pd
+import concurrent.futures
 
 if True:
 
@@ -84,43 +85,39 @@ if True:
     # List to store all results
     results = []
 
-    # Iterate over all combinations of parameters
-    for num_sigma, kappa_join, N_r in itertools.product(num_sigma_values, kappa_join_values, N_r_values):
-        # Update model parameters
+    # Prepare the dataset (assuming prepare_dataset function and data are defined)
+    X = data.iloc[:, :-1].values
+    y = data.iloc[:, -1].values
+    client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance="centroids")
+
+    # Function to execute model training and evaluation
+    def train_evaluate_model(params):
+        num_sigma, kappa_join, N_r = params
         local_model_params.update({"num_sigma": num_sigma, "kappa_join": kappa_join, "N_r": N_r})
 
-        # Prepare the dataset (assuming prepare_dataset function and data are defined)
-        X = data.iloc[:, :-1].values
-        y = data.iloc[:, -1].values
-        client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance=10000)
-
-        # Train the model on the first client's data and evaluate
         local_model = eGAUSSp(**local_model_params)
-        train_supervised(local_model, client_train[0])  # Train on the first client's data
+        train_supervised(local_model, client_train[0])
 
-        _, pred_max, _ = test_model_in_batches(local_model, test_data, batch_size= 10)
-        mertrics = calculate_metrics(pred_max, test_data, weight="binary")
-        f1_score = mertrics["f1_score"]
-        # Update best score and parameters if current score is better
-        if f1_score > best_score:
-            best_score = f1_score
-            best_params = {"num_sigma": num_sigma, "kappa_join": kappa_join, "N_r": N_r}
+        _, pred_max, _ = test_model_in_batches(local_model, test_data, batch_size = 1)
+        metrics = calculate_metrics(pred_max, test_data, weight="binary")
+        f1_score = metrics["f1_score"]
 
-        # Progress report
-        completed_experiments += 1
-        progress = completed_experiments / total_experiments * 100
-        print(f"Experiment {completed_experiments}/{total_experiments} ({progress:.2f}%): "
-              f"num_sigma={num_sigma}, kappa_join={kappa_join}, N_r={N_r}, F1 Score: {f1_score}")
+        print(f"num_sigma={num_sigma}, kappa_join={kappa_join}, N_r={N_r}, F1 Score: {f1_score}")
+        return {"num_sigma": num_sigma, "kappa_join": kappa_join, "N_r": N_r, "f1_score": f1_score}
 
-        # Store the results
-        results.append({
-            "num_sigma": num_sigma,
-            "kappa_join": kappa_join,
-            "N_r": N_r,
-            "f1_score": f1_score
-        })
+    # Using ThreadPoolExecutor to run in multiple threads
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Create all parameter combinations
+        param_combinations = list(itertools.product(num_sigma_values, kappa_join_values, N_r_values))
         
-    # Print the best parameters and the corresponding F1 score
+        # Execute the training and evaluation in parallel
+        results = list(executor.map(train_evaluate_model, param_combinations))
+
+    # Find best parameters and score
+    best_result = max(results, key=lambda x: x["f1_score"])
+    best_score = best_result["f1_score"]
+    best_params = {k: best_result[k] for k in ["num_sigma", "kappa_join", "N_r"]}
+
     print(f"Best F1 Score: {best_score}")
     print(f"Best Parameters: {best_params}")
 
@@ -156,7 +153,7 @@ if True:
 '''
 
 
-# In[6]:
+# In[ ]:
 
 
 # Model parameters
@@ -165,9 +162,9 @@ local_model_params = {
     "num_classes": 2,
     "kappa_n": 1,
     "num_sigma": 5,
-    "kappa_join": 1,
+    "kappa_join": 0.7,
     "S_0": 1e-10,
-    "N_r": 8,
+    "N_r": 10,
     "c_max": 100,
     "num_samples": 200,
     "device": device
@@ -178,23 +175,23 @@ federated_model_params = {
     "num_classes": 2,
     "kappa_n": 1,
     "num_sigma": 5,
-    "kappa_join": 1,
+    "kappa_join": 0.7,
     "S_0": 1e-10,
-    "N_r": 8,
+    "N_r": 10,
     "c_max": 100,
     "num_samples": 200,
     "device": device
 }
 
 
-# In[7]:
+# In[ ]:
 
 
 #display_dataset_split(client_train, test_data)
 #plot_dataset_split(client_train, test_data)
 
 
-# In[8]:
+# In[ ]:
 
 
 def compare_models(model1, model2):
@@ -235,7 +232,7 @@ def compare_models(model1, model2):
         return True, "Models are identical"
 
 
-# In[9]:
+# In[ ]:
 
 
 import torch.nn as nn
@@ -378,7 +375,7 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
     return round_metrics
 
 
-# In[10]:
+# In[ ]:
 
 
 # List of client counts and data configuration indices
@@ -387,7 +384,7 @@ data_config_indices = [1, 3, 1]  # Replace with your actual data configuration i
 
 # Assuming local_models, client_train, federated_model, and test_data are already defined
 # Number of communication rounds
-num_rounds = 100
+num_rounds = 10
 profiler = False
 experiments = []
 # Running the experiment
@@ -396,7 +393,7 @@ for num_clients in client_counts:
         if data_config_index == 1:
             X = data.iloc[:, :-1].values
             y = data.iloc[:, -1].values
-            client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance = 1000) 
+            client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance = 'centroids') 
             #'random', 'centroids', 'nearmiss', 'enn', 'smote', int num of samples
             
         if data_config_index == 3:

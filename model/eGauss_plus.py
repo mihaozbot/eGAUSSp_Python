@@ -105,7 +105,7 @@ class eGAUSSp(torch.nn.Module):
             
             # Compute activation
             self.Gamma = self.mathematician.compute_activation(z)
-            self.Gamma *= self.score[:self.c]
+            #self.Gamma *= self.score[:self.c]
 
             self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
             
