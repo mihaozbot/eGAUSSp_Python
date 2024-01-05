@@ -110,7 +110,7 @@ class eGAUSSp(torch.nn.Module):
             
             # Compute activation
             self.Gamma = self.mathematician.compute_activation(z)
-            #self.Gamma *= self.score[:self.c]
+            self.Gamma *= self.score[:self.c]
 
             self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
             
@@ -213,7 +213,7 @@ class eGAUSSp(torch.nn.Module):
         self.matching_clusters = torch.arange(self.c).repeat(data.shape[0], 1)
         self.Gamma = self.mathematician.compute_batched_activation(data)
     
-        #self.Gamma *= self.score[:self.c].unsqueeze(0)
+        self.Gamma *= self.score[:self.c].unsqueeze(0)
         #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
 
         # Evolving mechanisms can be handled here if they can be batch processed

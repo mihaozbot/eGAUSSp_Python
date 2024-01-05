@@ -108,7 +108,7 @@ def balance_dataset(X, y, technique='random'):
     samplers = {
         'random': RandomUnderSampler(random_state=None),
         'tomek': TomekLinks(),
-        'centroids': ClusterCentroids(random_state=None, voting='soft'),
+        'centroids': ClusterCentroids(random_state=None, voting='hard', sampling_strategy='all'),
         'nearmiss': NearMiss(version=2),
         'enn': AllKNN(),
         'CondensedNearestNeighbour':CondensedNearestNeighbour(n_neighbors=1),

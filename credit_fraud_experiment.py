@@ -44,7 +44,7 @@ data[cols_to_normalize] = scaler.fit_transform(data[cols_to_normalize])
 
 
 print(f"{torch.cuda.is_available()}")
-device = torch.device("cpu") #$torch.device("cuda" if torch.cuda.is_available() else "cpu") #torch.device("cpu") #
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #torch.device("cpu") #
 
 
 # In[5]:
@@ -205,7 +205,7 @@ federated_model_params = {
     "kappa_join": 0.5,
     "S_0": 1e-10,
     "N_r": 20,
-    "c_max": 300,
+    "c_max": 1000,
     "num_samples": 1000,
     "device": device
 }
@@ -271,7 +271,6 @@ def write_to_file(file_path, data, mode='a'):
 
 
 import torch.nn as nn
-from concurrent.futures import ThreadPoolExecutor
 
 def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance):
        
@@ -356,7 +355,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             aggregated_model.federal_agent.merge_model_privately(client_model, client_model.kappa_n)
             print(f"Number of agreggated clusters after transfer = {sum(aggregated_model.n[0:aggregated_model.c]> aggregated_model.kappa_n)}")
                 
-        #aggregated_model.federal_agent.federated_merging()
+        aggregated_model.federal_agent.federated_merging()
         print(f"Number of agreggated clusters after merging = {sum(aggregated_model.n[0:aggregated_model.c]> aggregated_model.kappa_n)}")
 
                 
@@ -427,8 +426,8 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
         #if  round == (num_rounds-1):
         #    pass
         plt.close('all')
-        plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
-        plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
+        #plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
+        #plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
         #test_data, clients_data[0]
         # Write round information and results to file
         write_to_file(result_file, round_info)
@@ -455,8 +454,8 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
 
 # List of client counts and data configuration indices
-client_counts = [3, 10]
-data_config_indices = [1, 3, 1]  # Replace with your actual data configuration indices
+client_counts = [ 3 ,10]
+data_config_indices = [1]  # Replace with your actual data configuration indices
 
 # Assuming local_models, client_train, federated_model, and test_data are already defined
 # Number of communication rounds
