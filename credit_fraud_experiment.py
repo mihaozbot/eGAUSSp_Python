@@ -192,7 +192,7 @@ local_model_params = {
     "kappa_join": 0.5,
     "S_0": 1e-10,
     "N_r": 20,
-    "c_max": 100,
+    "c_max": 300,
     "num_samples": 1000,
     "device": device
 }
@@ -205,7 +205,7 @@ federated_model_params = {
     "kappa_join": 0.5,
     "S_0": 1e-10,
     "N_r": 20,
-    "c_max": 100,
+    "c_max": 300,
     "num_samples": 1000,
     "device": device
 }
@@ -292,10 +292,23 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             client_X, client_y = client_data
             balanced_X, balanced_y = balance_dataset(client_X, client_y, technique=balance)
             return balanced_X, balanced_y
+        
+        def balance_thread(client_data, result, index):
+            result[index] = balance_client_data(client_data)
 
-        # Balance data for each client in this round using threads
-        with ThreadPoolExecutor(max_workers=num_clients) as executor:
-            client_train = list(executor.map(balance_client_data, client_raw_data))
+        # Assuming client_raw_data is a list of data for each client
+        client_train = [None] * len(client_raw_data)  # Placeholder for results
+        threads = []
+
+        # Create and start threads
+        for i, client_data in enumerate(client_raw_data):
+            thread = threading.Thread(target=balance_thread, args=(client_data, client_train, i))
+            threads.append(thread)
+            thread.start()
+
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
 
         display_dataset_split(client_train, test_data)
         
@@ -369,7 +382,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
         federated_model = aggregated_model #.federal_agent.merge_model_privately(aggregated_model, federated_model.kappa_n)
         print(f"Number of federated clusters after transfer = {sum(federated_model.n[0:federated_model.c]> federated_model.kappa_n)}")
 
-        local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)]  
+        #local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)]  
         
         # Perform federated merging and removal mechanism on the federated model
         if any(federated_model.n[0:federated_model.c]> federated_model.kappa_n):
@@ -397,8 +410,8 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             #local_models[client_idx] = federated_model
             
             local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n)
-            #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
-            #local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].score)
+            local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
+            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].score)
 
             #local_models[client_idx].federal_agent.federated_merging()
             
@@ -413,6 +426,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
         print(f"--- End of Round {round + 1} ---\n")
         #if  round == (num_rounds-1):
         #    pass
+        plt.close('all')
         plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
         plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
         #test_data, clients_data[0]
@@ -458,7 +472,7 @@ for num_clients in client_counts:
         balance= None
         if data_config_index == 1:
 
-            balance = 'centroids'
+            balance = 'random'
                 #'random': RandomUnderSampler(random_state=None),
                 #'tomek': TomekLinks(),
                 #'centroids': ClusterCentroids(random_state=None),
