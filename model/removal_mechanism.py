@@ -343,7 +343,6 @@ class RemovalMechanism:
 
                 # Check if the minimum kappa value is infinite
                 if torch.isinf(min_kappa_value):
-                    print("Minimum kappa value is infinite. Exiting removal process.")
                     break
                 
                 # Convert the flat index back to a 2D index
@@ -385,15 +384,15 @@ class RemovalMechanism:
         num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
         if num_clusters_to_remove > 0:
-            # Create a composite score for each cluster
-            # Lower score is better, and in case of a tie, lower num_pred is better
-            composite_scores = [(self.parent.score[i], self.parent.num_pred[i]) for i in self.parent.matching_clusters]
+            # Create a composite score for each cluster, lower score is better
+            # In case of a tie in score, lower num_pred is better
+            composite_scores = [(self.parent.score[i], -self.parent.num_pred[i]) for i in self.parent.matching_clusters]
 
             # Sort the clusters by composite score
-            sorted_indices = sorted(range(len(composite_scores)), key=lambda i: composite_scores[i])
+            sorted_indices = sorted(range(len(composite_scores)), key=lambda i: composite_scores[i], reverse=True)
 
-            # Get the indices of clusters to remove
-            indices_to_remove = sorted_indices[:num_clusters_to_remove]
+            # Get the indices of clusters to remove in descending order
+            indices_to_remove = sorted(sorted_indices[:num_clusters_to_remove], reverse=True)
 
             with torch.no_grad():
                 # Remove the selected clusters

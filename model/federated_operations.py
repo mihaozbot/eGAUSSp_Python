@@ -50,7 +50,10 @@ class FederalOps:
                 self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
                 self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
                 self.parent.removal_mech.remove_overlapping()
-                #self.parent.removal_mech.removal_mechanism()
+
+                self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
+                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
+                self.parent.removal_mech.removal_mechanism()
 
     def merge_model_statistics(self, model):
         ''' Merge the global statistical parameters of another model into the current federated model. '''
@@ -59,18 +62,21 @@ class FederalOps:
         n_fed = torch.sum(self.parent.n_glo)
         n_local = torch.sum(model.n_glo)
 
-        # Merge global parameters
-        self.parent.S_glo = (self.parent.S_glo * n_fed + model.S_glo * n_local) / (n_fed + n_local) + \
-                            (n_fed * n_local / (n_fed + n_local)) * (self.parent.mu_glo - model.mu_glo) ** 2
-        self.parent.mu_glo = (self.parent.mu_glo * n_fed + model.mu_glo * n_local) / (n_fed + n_local)
-        self.parent.var_glo = self.parent.S_glo / (n_fed + n_local)
-
         # Merge class counts
-        self.parent.n_glo += model.n_glo
+        self.parent.n_glo = (self.parent.n_glo + model.n_glo)
+
+        # Merge global parameters
+        self.parent.S_glo = (self.parent.S_glo + model.S_glo) + \
+                            ((n_fed * n_local) / (n_fed + n_local)) * (self.parent.mu_glo - model.mu_glo) ** 2
+        self.parent.mu_glo = (self.parent.mu_glo * n_fed + model.mu_glo * n_local) / (n_fed + n_local)
+        self.parent.var_glo = self.parent.S_glo/(n_fed + n_local)
 
         # Update minimum cluster size
         self.parent.clusterer.update_S_0()
 
+        # Print the updated var_glo values
+        print("Updated var_glo values:", self.parent.var_glo[0])
+        
     def merge_model_privately(self, model, n_min):
         ''' Merge the parameters of another model into the current federated model. '''
 

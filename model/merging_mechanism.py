@@ -218,6 +218,14 @@ class MergingMechanism:
         # Track if any merge has occurred
         merge_occurred = False
         
+        # Compute volume of default cluster covariance matrix
+        V_S_0 = torch.prod(torch.diag(self.parent.S_0)**(1/self.parent.feature_dim))
+
+        # Compare cluster volume to standard volume for the i-th row and column
+        V_ratio = self.V/V_S_0
+        kappa_filter = V_ratio > 3
+        self.kappa[kappa_filter] = float("inf")
+
         kappa_min = torch.min(self.kappa[self.kappa==self.kappa])
         
         if kappa_min < self.parent.kappa_join:
@@ -289,11 +297,6 @@ class MergingMechanism:
         nan_mask = torch.isnan(self.kappa)
         self.kappa[nan_mask] = 0
 
-        # Compute volume of default cluster covariance matrix
-        V_S_0 = torch.prod(torch.diag(self.parent.S_0)**(1/self.parent.feature_dim))
-    
-        # Compare cluster volume to standard volume
-        V_ratio = (self.V/V_S_0)
         
         # Filtering kappa based on conditions
         kappa_filter = (self.kappa == 0) # + (V_ratio > self.parent.feature_dim)
@@ -319,13 +322,6 @@ class MergingMechanism:
         nan_mask_col = torch.isnan(self.kappa[:, i])
         self.kappa[i, nan_mask_row] = 0
         self.kappa[nan_mask_col, i] = 0
-
-        # Compute volume of default cluster covariance matrix
-        V_S_0 = torch.prod(torch.diag(self.parent.S_0)**(1/self.parent.feature_dim))
-
-        # Compare cluster volume to standard volume for the i-th row and column
-        V_ratio_i = (self.V[i, :] / V_S_0)
-        V_ratio_col = (self.V[:, i] / V_S_0)
 
         # Filtering kappa based on conditions for the i-th row and column
         kappa_filter_row = (self.kappa[i, :] == 0) # + (V_ratio_i > self.parent.feature_dim)

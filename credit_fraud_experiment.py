@@ -178,7 +178,7 @@ if True:
 '''
 
 
-# In[ ]:
+# In[6]:
 
 
 # Model parameters
@@ -189,7 +189,7 @@ local_model_params = {
     "num_sigma": 5,
     "kappa_join": 0.5,
     "S_0": 1e-10,
-    "N_r": 30,
+    "N_r": 4,
     "c_max": 100,
     "num_samples": 100,
     "device": device
@@ -202,21 +202,21 @@ federated_model_params = {
     "num_sigma": 5,
     "kappa_join": 0.5,
     "S_0": 1e-10,
-    "N_r": 30,
+    "N_r": 4,
     "c_max": 100,
     "num_samples": 100,
     "device": device
 }
 
 
-# In[ ]:
+# In[7]:
 
 
 #display_dataset_split(client_train, test_data)
 #plot_dataset_split(client_train, test_data)
 
 
-# In[ ]:
+# In[8]:
 
 
 def compare_models(model1, model2):
@@ -257,7 +257,15 @@ def compare_models(model1, model2):
         return True, "Models are identical"
 
 
-# In[ ]:
+# In[9]:
+
+
+def write_to_file(file_path, data, mode='a'):
+    with open(file_path, mode) as file:
+        file.write(data + "\n")
+
+
+# In[10]:
 
 
 import torch.nn as nn
@@ -270,9 +278,11 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
 
     # Initialize a list to store the metrics for each round
     round_metrics = []
+    result_file = "experiment_results.txt"
 
     for round in range(num_rounds):
         print(f"--- Communication Round {round + 1} ---")
+        round_info = f"--- Communication Round {round + 1} ---\n"
 
         aggregated_model = eGAUSSp(**federated_model_params)
         federated_model = eGAUSSp(**federated_model_params)
@@ -296,17 +306,17 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
         # Update federated model with local models
         for client_idx, client_model in enumerate(local_models):
 
-            print(f"Number of local model clusters = {sum(client_model.n[0:client_model.c]> client_model.kappa_n)}")
+            print(f"Number of local model clusters = {sum(client_model.n[0:client_model.c]> 0)}")
             # Run the forward function on the training data
             
-            '''
+            
             all_scores, pred_max, _ = test_model_in_batches(client_model, clients_data[client_idx], batch_size=300)
             binary = calculate_metrics(pred_max, clients_data[client_idx], "binary")
             roc_auc = calculate_roc_auc(all_scores, clients_data[client_idx])
             print(f"Test Metrics: {binary}")
             print(f"Test ROC AUC: {roc_auc}")
-            plot_confusion_matrix(pred_max, clients_data[client_idx])
-            '''
+           # plot_confusion_matrix(pred_max, clients_data[client_idx])
+            
 
             #client_model.federal_agent.federated_merging()
             #print(f"Number of local model clusters after merging = {sum(client_model.n[0:client_model.c]> client_model.kappa_n)}")
@@ -344,7 +354,7 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
         federated_model = aggregated_model #.federal_agent.merge_model_privately(aggregated_model, federated_model.kappa_n)
         print(f"Number of federated clusters after transfer = {sum(federated_model.n[0:federated_model.c]> federated_model.kappa_n)}")
 
-        #local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)]  
+        local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)]  
         
         # Perform federated merging and removal mechanism on the federated model
         if any(federated_model.n[0:federated_model.c]> federated_model.kappa_n):
@@ -372,8 +382,8 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
             #local_models[client_idx] = federated_model
             
             local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n)
-            local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
-            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].score)
+            #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
+            #local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].score)
 
             #local_models[client_idx].federal_agent.federated_merging()
             
@@ -386,21 +396,32 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
             '''
             
         print(f"--- End of Round {round + 1} ---\n")
-        if  round == (num_rounds-1):
+        #if  round == (num_rounds-1):
         #    pass
-                plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
-    
-    # After all rounds
-    print("All Rounds Completed. Metrics Collected:")
-    for metric in round_metrics:
-        print(f"Round {metric['round']}: Metrics: {metric['binary']}, ROC AUC: {metric['roc_auc']}")
-        #print(f"                         Weighted: {metric['weighted']}")
+        plot_interesting_features(clients_data[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
+        #test_data, clients_data[0]
+        # Write round information and results to file
+        write_to_file(result_file, round_info)
+        for metric in round_metrics:
+            metric_info = f"Round {metric['round']}: Metrics: {metric['binary']}, ROC AUC: {metric['roc_auc']}\n"
+            write_to_file(result_file, metric_info)
 
+        print(f"--- End of Round {round + 1} ---\n")
+        round_info = f"--- End of Round {round + 1} ---\n"
+        write_to_file(result_file, round_info)
+
+    # After all rounds
+    final_info = "All Rounds Completed. Metrics Collected:\n"
+    write_to_file(result_file, final_info)
+    for metric in round_metrics:
+        final_metric_info = f"Round {metric['round']}: Metrics: {metric['binary']}, ROC AUC: {metric['roc_auc']}\n"
+        print(final_metric_info)
+        write_to_file(result_file, final_metric_info)
 
     return round_metrics
 
 
-# In[ ]:
+# In[11]:
 
 
 # List of client counts and data configuration indices
@@ -418,13 +439,22 @@ for num_clients in client_counts:
         if data_config_index == 1:
             X = data.iloc[:, :-1].values
             y = data.iloc[:, -1].values
-            client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance = 'centroids') 
-            #'random', 'centroids', 'nearmiss', 'enn', 'smote', int num of samples
-            
+            client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance = 'random') 
+                    #'random': RandomUnderSampler(random_state=None),
+                    #'tomek': TomekLinks(),
+                    #'centroids': ClusterCentroids(random_state=None),
+                    #'nearmiss': NearMiss(version=2),
+                    #'enn': AllKNN(sampling_strategy='all'), NO
+                    #'smote': SMOTE(random_state=None), NO
+                    #'one_sided_selection': OneSidedSelection(random_state=None), NO
+                    #'ncr': NeighbourhoodCleaningRule(), NO
+                    #'function_sampler': FunctionSampler(),  # Identity resampler NO
+                    #'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
+                        
         if data_config_index == 3:
             X = data.iloc[:, :-1].values
             y = data.iloc[:, -1].values
-            client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance = 'smote') 
+            client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance = 'function_sampler') 
 
         display_dataset_split(client_train, test_data)
         
