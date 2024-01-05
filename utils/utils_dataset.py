@@ -4,10 +4,17 @@ import numpy as np
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
-from imblearn.under_sampling import RandomUnderSampler, TomekLinks, ClusterCentroids, NearMiss, EditedNearestNeighbours
 from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
 import numbers
+from imblearn.under_sampling import (RandomUnderSampler, TomekLinks, ClusterCentroids, NearMiss, 
+                                     AllKNN, OneSidedSelection, 
+                                     NeighbourhoodCleaningRule, InstanceHardnessThreshold)
+from imblearn.combine import SMOTEENN, SMOTETomek
+from imblearn.over_sampling import SMOTE
+from imblearn.pipeline import make_pipeline
+from imblearn import FunctionSampler
+from sklearn.linear_model import LogisticRegression
 
 
 #from imblearn.over_sampling import SMOTE
@@ -250,45 +257,43 @@ def balance_dataset(X, y, technique='random'):
 
     :param X: Feature data as a numpy array.
     :param y: Label data as a numpy array.
-    :param technique: Technique for balancing ('random', 'tomek', 'centroids', 'nearmiss', 'enn', 'smote', 'smote_random').
-    :param target_sample_count: Target number of samples for each class in 'smote_random' technique.
+    :param technique: Technique for balancing.
     :return: Balanced feature and label arrays.
     """
-    # Select the appropriate sampler based on the technique
-    if technique == 'random':
-        sampler = RandomUnderSampler(random_state=None)
-    elif technique == 'tomek':
-        sampler = TomekLinks()
-    elif technique == 'centroids':
-        sampler = ClusterCentroids(random_state=None)
-    elif technique == 'nearmiss':
-        sampler = NearMiss(version=1)
-    elif technique == 'enn':
-        sampler = EditedNearestNeighbours()
-    elif technique == 'smote':
-        sampler = SMOTE(random_state=None)
-    elif isinstance(technique, int) or isinstance(technique, numbers.Number):
-        
+    samplers = {
+        'random': RandomUnderSampler(random_state=None),
+        'tomek': TomekLinks(),
+        'centroids': ClusterCentroids(random_state=None),
+        'nearmiss': NearMiss(version=2),
+        'enn': AllKNN(sampling_strategy='all'),
+        'smote': SMOTE(random_state=None),
+        'one_sided_selection': OneSidedSelection(random_state=None),
+        'ncr': NeighbourhoodCleaningRule(),
+        'function_sampler': FunctionSampler(),  # Identity resampler
+        'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
+    }
+
+    if isinstance(technique, int) or isinstance(technique, numbers.Number):
         unique_classes = np.unique(y)
         class_sample_counts = {label: np.sum(y == label) for label in unique_classes}
 
         # Oversample the minority classes
         oversample_strategy = {label: technique for label, count in class_sample_counts.items() if count < technique}
         if oversample_strategy:
-            oversampler = SMOTE(sampling_strategy= oversample_strategy, random_state=None)
+            oversampler = SMOTE(sampling_strategy=oversample_strategy, random_state=None)
             X, y = oversampler.fit_resample(X, y)
 
         # Undersample the majority classes
         undersample_strategy = {label: technique for label in unique_classes}
-        #sampler = RandomUnderSampler(sampling_strategy=undersample_strategy, random_state=None)
-        sampler = ClusterCentroids(random_state=None)
+        sampler = RandomUnderSampler(undersample_strategy=undersample_strategy, random_state=None)
+        X, y = sampler.fit_resample(X, y)
+    elif technique in samplers:
+        sampler = samplers[technique]
+        X, y = sampler.fit_resample(X, y)
     else:
-        raise ValueError("Unknown technique: choose from 'random', 'tomek', 'centroids', 'nearmiss', 'enn', 'smote', 'smote_random'")
+        raise ValueError("Unknown technique. Please choose a valid technique or provide a number.")
 
-    # Apply the selected sampler to resample the dataset
-    X_resampled, y_resampled = sampler.fit_resample(X, y)
-
-    return X_resampled, y_resampled
+    return X, y
 
 def prepare_k_fold_non_iid_dataset(X, y, train_index, test_index, num_clients):
     """

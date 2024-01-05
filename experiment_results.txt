@@ -1,0 +1,2201 @@
+Initial Setup: num_clients=1, num_sigma_values=[5], kappa_join_values=[0.3, 0.5], N_r_values=[10, 30]
+num_sigma=5, kappa_join=0.3, N_r=10, F1 Score: 0.051189400782896716
+num_sigma=5, kappa_join=0.5, N_r=30, F1 Score: 0.033320266562132494
+num_sigma=5, kappa_join=0.5, N_r=10, F1 Score: 0.032032400589101624
+num_sigma=5, kappa_join=0.3, N_r=30, F1 Score: 0.03908045977011495
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.0018433341525929568, 'precision': 0.0017206566587656923, 'recall': 1.0, 'f1_score': 0.003435402169912187}, ROC AUC: 0.6252557121610602
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.0018433341525929568, 'precision': 0.0017206566587656923, 'recall': 1.0, 'f1_score': 0.003435402169912187}, ROC AUC: 0.6252557121610602
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.0018433341525929568, 'precision': 0.0017206566587656923, 'recall': 1.0, 'f1_score': 0.003435402169912187}, ROC AUC: 0.6252557121610602
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.0018433341525929568, 'precision': 0.0017206566587656923, 'recall': 1.0, 'f1_score': 0.003435402169912187}, ROC AUC: 0.6252557121610602
+
+--- End of Round 4 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.9960499982444436, 'precision': 0.02962962962962963, 'recall': 0.04081632653061224, 'f1_score': 0.034334763948497854}, ROC AUC: 0.9400690548447854
+
+--- End of Round 1 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.994996664442962, 'precision': 0.015544041450777202, 'recall': 0.030612244897959183, 'f1_score': 0.020618556701030927}, ROC AUC: 0.9405326565066093
+
+--- End of Round 1 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.049717355429935745, 'precision': 0.0018071844803422587, 'recall': 1.0, 'f1_score': 0.0036078489121231087}, ROC AUC: 0.9588342001826053
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.049717355429935745, 'precision': 0.0018071844803422587, 'recall': 1.0, 'f1_score': 0.0036078489121231087}, ROC AUC: 0.9588342001826053
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.049717355429935745, 'precision': 0.0018071844803422587, 'recall': 1.0, 'f1_score': 0.0036078489121231087}, ROC AUC: 0.9588342001826053
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.049717355429935745, 'precision': 0.0018071844803422587, 'recall': 1.0, 'f1_score': 0.0036078489121231087}, ROC AUC: 0.9588342001826053
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.049717355429935745, 'precision': 0.0018071844803422587, 'recall': 1.0, 'f1_score': 0.0036078489121231087}, ROC AUC: 0.9588342001826053
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.049717355429935745, 'precision': 0.0018071844803422587, 'recall': 1.0, 'f1_score': 0.0036078489121231087}, ROC AUC: 0.9588342001826053
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.049717355429935745, 'precision': 0.0018071844803422587, 'recall': 1.0, 'f1_score': 0.0036078489121231087}, ROC AUC: 0.9588342001826053
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.049717355429935745, 'precision': 0.0018071844803422587, 'recall': 1.0, 'f1_score': 0.0036078489121231087}, ROC AUC: 0.9588342001826053
+
+--- End of Round 8 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.0037042238685439416, 'precision': 0.0017238649756372143, 'recall': 1.0, 'f1_score': 0.0034417967583893795}, ROC AUC: 0.9556101633112445
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.0037042238685439416, 'precision': 0.0017238649756372143, 'recall': 1.0, 'f1_score': 0.0034417967583893795}, ROC AUC: 0.9556101633112445
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.0037042238685439416, 'precision': 0.0017238649756372143, 'recall': 1.0, 'f1_score': 0.0034417967583893795}, ROC AUC: 0.9556101633112445
+
+--- End of Round 3 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.07143358730381658, 'precision': 0.001830568608579139, 'recall': 0.9897959183673469, 'f1_score': 0.0036543786614425377}, ROC AUC: 0.9232400543222354
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.07143358730381658, 'precision': 0.001830568608579139, 'recall': 0.9897959183673469, 'f1_score': 0.0036543786614425377}, ROC AUC: 0.9232400543222354
+
+--- End of Round 2 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.009708226536989571, 'precision': 0.0017342984055072823, 'recall': 1.0, 'f1_score': 0.0034625916438477166}, ROC AUC: 0.9475571144327173
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.009708226536989571, 'precision': 0.0017342984055072823, 'recall': 1.0, 'f1_score': 0.0034625916438477166}, ROC AUC: 0.9475571144327173
+
+Round 2: Metrics: {'accuracy': 0.029230012991116886, 'precision': 0.0017691127358064808, 'recall': 1.0, 'f1_score': 0.003531977006108879}, ROC AUC: 0.9537981959103281
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.009708226536989571, 'precision': 0.0017342984055072823, 'recall': 1.0, 'f1_score': 0.0034625916438477166}, ROC AUC: 0.9475571144327173
+
+Round 2: Metrics: {'accuracy': 0.029230012991116886, 'precision': 0.0017691127358064808, 'recall': 1.0, 'f1_score': 0.003531977006108879}, ROC AUC: 0.9537981959103281
+
+Round 3: Metrics: {'accuracy': 0.02715845651486956, 'precision': 0.0017653522598310306, 'recall': 1.0, 'f1_score': 0.0035244825663987337}, ROC AUC: 0.9417622282452656
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.009708226536989571, 'precision': 0.0017342984055072823, 'recall': 1.0, 'f1_score': 0.0034625916438477166}, ROC AUC: 0.9475571144327173
+
+Round 2: Metrics: {'accuracy': 0.029230012991116886, 'precision': 0.0017691127358064808, 'recall': 1.0, 'f1_score': 0.003531977006108879}, ROC AUC: 0.9537981959103281
+
+Round 3: Metrics: {'accuracy': 0.02715845651486956, 'precision': 0.0017653522598310306, 'recall': 1.0, 'f1_score': 0.0035244825663987337}, ROC AUC: 0.9417622282452656
+
+Round 4: Metrics: {'accuracy': 0.02763245672553632, 'precision': 0.001766211296543272, 'recall': 1.0, 'f1_score': 0.003526194588370754}, ROC AUC: 0.9413128029067563
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.009708226536989571, 'precision': 0.0017342984055072823, 'recall': 1.0, 'f1_score': 0.0034625916438477166}, ROC AUC: 0.9475571144327173
+
+Round 2: Metrics: {'accuracy': 0.029230012991116886, 'precision': 0.0017691127358064808, 'recall': 1.0, 'f1_score': 0.003531977006108879}, ROC AUC: 0.9537981959103281
+
+Round 3: Metrics: {'accuracy': 0.02715845651486956, 'precision': 0.0017653522598310306, 'recall': 1.0, 'f1_score': 0.0035244825663987337}, ROC AUC: 0.9417622282452656
+
+Round 4: Metrics: {'accuracy': 0.02763245672553632, 'precision': 0.001766211296543272, 'recall': 1.0, 'f1_score': 0.003526194588370754}, ROC AUC: 0.9413128029067563
+
+Round 5: Metrics: {'accuracy': 0.0291773463010428, 'precision': 0.0017690169320192064, 'recall': 1.0, 'f1_score': 0.003531786074672048}, ROC AUC: 0.9411302154514027
+
+--- End of Round 5 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.01555422913521295, 'precision': 0.0017445793427564354, 'recall': 1.0, 'f1_score': 0.0034830821723059427}, ROC AUC: 0.9027293370218094
+
+--- End of Round 1 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.012130894280397458, 'precision': 0.0017385442353066401, 'recall': 1.0, 'f1_score': 0.0034710538898825864}, ROC AUC: 0.930783921967774
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.012130894280397458, 'precision': 0.0017385442353066401, 'recall': 1.0, 'f1_score': 0.0034710538898825864}, ROC AUC: 0.930783921967774
+
+Round 2: Metrics: {'accuracy': 0.015027562234472104, 'precision': 0.0017436481389224965, 'recall': 1.0, 'f1_score': 0.0034812262441831546}, ROC AUC: 0.951306841673079
+
+--- End of Round 2 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.9944875531055791, 'precision': 0.18604651162790697, 'recall': 0.6530612244897959, 'f1_score': 0.28959276018099545}, ROC AUC: 0.9214062840949548
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.9944875531055791, 'precision': 0.18604651162790697, 'recall': 0.6530612244897959, 'f1_score': 0.28959276018099545}, ROC AUC: 0.9214062840949548
+
+Round 2: Metrics: {'accuracy': 0.2566096696042976, 'precision': 0.0021447594805439675, 'recall': 0.9285714285714286, 'f1_score': 0.0042796341147976575}, ROC AUC: 0.9459898231943313
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.9944875531055791, 'precision': 0.18604651162790697, 'recall': 0.6530612244897959, 'f1_score': 0.28959276018099545}, ROC AUC: 0.9214062840949548
+
+Round 2: Metrics: {'accuracy': 0.2566096696042976, 'precision': 0.0021447594805439675, 'recall': 0.9285714285714286, 'f1_score': 0.0042796341147976575}, ROC AUC: 0.9459898231943313
+
+Round 3: Metrics: {'accuracy': 0.20852498156665847, 'precision': 0.002036750055346469, 'recall': 0.9387755102040817, 'f1_score': 0.004064681452681807}, ROC AUC: 0.940275329321374
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.9944875531055791, 'precision': 0.18604651162790697, 'recall': 0.6530612244897959, 'f1_score': 0.28959276018099545}, ROC AUC: 0.9214062840949548
+
+Round 2: Metrics: {'accuracy': 0.2566096696042976, 'precision': 0.0021447594805439675, 'recall': 0.9285714285714286, 'f1_score': 0.0042796341147976575}, ROC AUC: 0.9459898231943313
+
+Round 3: Metrics: {'accuracy': 0.20852498156665847, 'precision': 0.002036750055346469, 'recall': 0.9387755102040817, 'f1_score': 0.004064681452681807}, ROC AUC: 0.940275329321374
+
+Round 4: Metrics: {'accuracy': 0.1798567466029985, 'precision': 0.001986967204358509, 'recall': 0.9489795918367347, 'f1_score': 0.0039656311962987445}, ROC AUC: 0.9414483752139009
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.9944875531055791, 'precision': 0.18604651162790697, 'recall': 0.6530612244897959, 'f1_score': 0.28959276018099545}, ROC AUC: 0.9214062840949548
+
+Round 2: Metrics: {'accuracy': 0.2566096696042976, 'precision': 0.0021447594805439675, 'recall': 0.9285714285714286, 'f1_score': 0.0042796341147976575}, ROC AUC: 0.9459898231943313
+
+Round 3: Metrics: {'accuracy': 0.20852498156665847, 'precision': 0.002036750055346469, 'recall': 0.9387755102040817, 'f1_score': 0.004064681452681807}, ROC AUC: 0.940275329321374
+
+Round 4: Metrics: {'accuracy': 0.1798567466029985, 'precision': 0.001986967204358509, 'recall': 0.9489795918367347, 'f1_score': 0.0039656311962987445}, ROC AUC: 0.9414483752139009
+
+Round 5: Metrics: {'accuracy': 0.1869667497629999, 'precision': 0.0020043103448275862, 'recall': 0.9489795918367347, 'f1_score': 0.00400017205041077}, ROC AUC: 0.9440786215302103
+
+--- End of Round 5 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.18563252694778976, 'precision': 0.0020224622401996645, 'recall': 0.9591836734693877, 'f1_score': 0.004036413603572656}, ROC AUC: 0.9586738641714423
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.18563252694778976, 'precision': 0.0020224622401996645, 'recall': 0.9591836734693877, 'f1_score': 0.004036413603572656}, ROC AUC: 0.9586738641714423
+
+Round 2: Metrics: {'accuracy': 0.19992275552122468, 'precision': 0.0020803223404721235, 'recall': 0.9693877551020408, 'f1_score': 0.004151734988200331}, ROC AUC: 0.9533790971368852
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.18563252694778976, 'precision': 0.0020224622401996645, 'recall': 0.9591836734693877, 'f1_score': 0.004036413603572656}, ROC AUC: 0.9586738641714423
+
+Round 2: Metrics: {'accuracy': 0.19992275552122468, 'precision': 0.0020803223404721235, 'recall': 0.9693877551020408, 'f1_score': 0.004151734988200331}, ROC AUC: 0.9533790971368852
+
+Round 3: Metrics: {'accuracy': 0.16830518591341595, 'precision': 0.002022372495734058, 'recall': 0.9795918367346939, 'f1_score': 0.004036411798095319}, ROC AUC: 0.9519458529050338
+
+--- End of Round 3 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.8040623573610477, 'precision': 0.006776638430673205, 'recall': 0.7755102040816326, 'f1_score': 0.013435870237779545}, ROC AUC: 0.8965402952120636
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.8040623573610477, 'precision': 0.006776638430673205, 'recall': 0.7755102040816326, 'f1_score': 0.013435870237779545}, ROC AUC: 0.8965402952120636
+
+Round 2: Metrics: {'accuracy': 0.06246269442786419, 'precision': 0.0018130841121495327, 'recall': 0.9897959183673469, 'f1_score': 0.003619538042464271}, ROC AUC: 0.9338341642931793
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.8040623573610477, 'precision': 0.006776638430673205, 'recall': 0.7755102040816326, 'f1_score': 0.013435870237779545}, ROC AUC: 0.8965402952120636
+
+Round 2: Metrics: {'accuracy': 0.06246269442786419, 'precision': 0.0018130841121495327, 'recall': 0.9897959183673469, 'f1_score': 0.003619538042464271}, ROC AUC: 0.9338341642931793
+
+Round 3: Metrics: {'accuracy': 0.9325690811418138, 'precision': 0.020005129520389842, 'recall': 0.7959183673469388, 'f1_score': 0.03902927195396547}, ROC AUC: 0.938802786167928
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.8040623573610477, 'precision': 0.006776638430673205, 'recall': 0.7755102040816326, 'f1_score': 0.013435870237779545}, ROC AUC: 0.8965402952120636
+
+Round 2: Metrics: {'accuracy': 0.06246269442786419, 'precision': 0.0018130841121495327, 'recall': 0.9897959183673469, 'f1_score': 0.003619538042464271}, ROC AUC: 0.9338341642931793
+
+Round 3: Metrics: {'accuracy': 0.9325690811418138, 'precision': 0.020005129520389842, 'recall': 0.7959183673469388, 'f1_score': 0.03902927195396547}, ROC AUC: 0.938802786167928
+
+Round 4: Metrics: {'accuracy': 0.8716512762894562, 'precision': 0.011115629659753287, 'recall': 0.8367346938775511, 'f1_score': 0.02193979933110368}, ROC AUC: 0.9269397158131683
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.8040623573610477, 'precision': 0.006776638430673205, 'recall': 0.7755102040816326, 'f1_score': 0.013435870237779545}, ROC AUC: 0.8965402952120636
+
+Round 2: Metrics: {'accuracy': 0.06246269442786419, 'precision': 0.0018130841121495327, 'recall': 0.9897959183673469, 'f1_score': 0.003619538042464271}, ROC AUC: 0.9338341642931793
+
+Round 3: Metrics: {'accuracy': 0.9325690811418138, 'precision': 0.020005129520389842, 'recall': 0.7959183673469388, 'f1_score': 0.03902927195396547}, ROC AUC: 0.938802786167928
+
+Round 4: Metrics: {'accuracy': 0.8716512762894562, 'precision': 0.011115629659753287, 'recall': 0.8367346938775511, 'f1_score': 0.02193979933110368}, ROC AUC: 0.9269397158131683
+
+Round 5: Metrics: {'accuracy': 0.9982093325374811, 'precision': 0.25, 'recall': 0.02040816326530612, 'f1_score': 0.037735849056603765}, ROC AUC: 0.7367159775418327
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.8040623573610477, 'precision': 0.006776638430673205, 'recall': 0.7755102040816326, 'f1_score': 0.013435870237779545}, ROC AUC: 0.8965402952120636
+
+Round 2: Metrics: {'accuracy': 0.06246269442786419, 'precision': 0.0018130841121495327, 'recall': 0.9897959183673469, 'f1_score': 0.003619538042464271}, ROC AUC: 0.9338341642931793
+
+Round 3: Metrics: {'accuracy': 0.9325690811418138, 'precision': 0.020005129520389842, 'recall': 0.7959183673469388, 'f1_score': 0.03902927195396547}, ROC AUC: 0.938802786167928
+
+Round 4: Metrics: {'accuracy': 0.8716512762894562, 'precision': 0.011115629659753287, 'recall': 0.8367346938775511, 'f1_score': 0.02193979933110368}, ROC AUC: 0.9269397158131683
+
+Round 5: Metrics: {'accuracy': 0.9982093325374811, 'precision': 0.25, 'recall': 0.02040816326530612, 'f1_score': 0.037735849056603765}, ROC AUC: 0.7367159775418327
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.8040623573610477, 'precision': 0.006776638430673205, 'recall': 0.7755102040816326, 'f1_score': 0.013435870237779545}, ROC AUC: 0.8965402952120636
+
+Round 2: Metrics: {'accuracy': 0.06246269442786419, 'precision': 0.0018130841121495327, 'recall': 0.9897959183673469, 'f1_score': 0.003619538042464271}, ROC AUC: 0.9338341642931793
+
+Round 3: Metrics: {'accuracy': 0.9325690811418138, 'precision': 0.020005129520389842, 'recall': 0.7959183673469388, 'f1_score': 0.03902927195396547}, ROC AUC: 0.938802786167928
+
+Round 4: Metrics: {'accuracy': 0.8716512762894562, 'precision': 0.011115629659753287, 'recall': 0.8367346938775511, 'f1_score': 0.02193979933110368}, ROC AUC: 0.9269397158131683
+
+Round 5: Metrics: {'accuracy': 0.9982093325374811, 'precision': 0.25, 'recall': 0.02040816326530612, 'f1_score': 0.037735849056603765}, ROC AUC: 0.7367159775418327
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.8040623573610477, 'precision': 0.006776638430673205, 'recall': 0.7755102040816326, 'f1_score': 0.013435870237779545}, ROC AUC: 0.8965402952120636
+
+Round 2: Metrics: {'accuracy': 0.06246269442786419, 'precision': 0.0018130841121495327, 'recall': 0.9897959183673469, 'f1_score': 0.003619538042464271}, ROC AUC: 0.9338341642931793
+
+Round 3: Metrics: {'accuracy': 0.9325690811418138, 'precision': 0.020005129520389842, 'recall': 0.7959183673469388, 'f1_score': 0.03902927195396547}, ROC AUC: 0.938802786167928
+
+Round 4: Metrics: {'accuracy': 0.8716512762894562, 'precision': 0.011115629659753287, 'recall': 0.8367346938775511, 'f1_score': 0.02193979933110368}, ROC AUC: 0.9269397158131683
+
+Round 5: Metrics: {'accuracy': 0.9982093325374811, 'precision': 0.25, 'recall': 0.02040816326530612, 'f1_score': 0.037735849056603765}, ROC AUC: 0.7367159775418327
+
+--- End of Round 8 ---
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+Round 4: Metrics: {'accuracy': 0.03802535023348899, 'precision': 0.0017852588625350675, 'recall': 1.0, 'f1_score': 0.0035641547861507126}, ROC AUC: 0.9052324450461107
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+Round 4: Metrics: {'accuracy': 0.03802535023348899, 'precision': 0.0017852588625350675, 'recall': 1.0, 'f1_score': 0.0035641547861507126}, ROC AUC: 0.9052324450461107
+
+Round 5: Metrics: {'accuracy': 0.0534918015519118, 'precision': 0.001795930458610283, 'recall': 0.9897959183673469, 'f1_score': 0.00358535548614833}, ROC AUC: 0.9107513415467482
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+Round 4: Metrics: {'accuracy': 0.03802535023348899, 'precision': 0.0017852588625350675, 'recall': 1.0, 'f1_score': 0.0035641547861507126}, ROC AUC: 0.9052324450461107
+
+Round 5: Metrics: {'accuracy': 0.0534918015519118, 'precision': 0.001795930458610283, 'recall': 0.9897959183673469, 'f1_score': 0.00358535548614833}, ROC AUC: 0.9107513415467482
+
+Round 6: Metrics: {'accuracy': 0.5180471191320529, 'precision': 0.0033046446599121183, 'recall': 0.9285714285714286, 'f1_score': 0.006585851275556359}, ROC AUC: 0.9067163830923477
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+Round 4: Metrics: {'accuracy': 0.03802535023348899, 'precision': 0.0017852588625350675, 'recall': 1.0, 'f1_score': 0.0035641547861507126}, ROC AUC: 0.9052324450461107
+
+Round 5: Metrics: {'accuracy': 0.0534918015519118, 'precision': 0.001795930458610283, 'recall': 0.9897959183673469, 'f1_score': 0.00358535548614833}, ROC AUC: 0.9107513415467482
+
+Round 6: Metrics: {'accuracy': 0.5180471191320529, 'precision': 0.0033046446599121183, 'recall': 0.9285714285714286, 'f1_score': 0.006585851275556359}, ROC AUC: 0.9067163830923477
+
+Round 7: Metrics: {'accuracy': 0.24470699764755452, 'precision': 0.002157222054696017, 'recall': 0.9489795918367347, 'f1_score': 0.004304658751648962}, ROC AUC: 0.9023004583797503
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+Round 4: Metrics: {'accuracy': 0.03802535023348899, 'precision': 0.0017852588625350675, 'recall': 1.0, 'f1_score': 0.0035641547861507126}, ROC AUC: 0.9052324450461107
+
+Round 5: Metrics: {'accuracy': 0.0534918015519118, 'precision': 0.001795930458610283, 'recall': 0.9897959183673469, 'f1_score': 0.00358535548614833}, ROC AUC: 0.9107513415467482
+
+Round 6: Metrics: {'accuracy': 0.5180471191320529, 'precision': 0.0033046446599121183, 'recall': 0.9285714285714286, 'f1_score': 0.006585851275556359}, ROC AUC: 0.9067163830923477
+
+Round 7: Metrics: {'accuracy': 0.24470699764755452, 'precision': 0.002157222054696017, 'recall': 0.9489795918367347, 'f1_score': 0.004304658751648962}, ROC AUC: 0.9023004583797503
+
+Round 8: Metrics: {'accuracy': 0.08862048383132615, 'precision': 0.0018841805737137584, 'recall': 1.0, 'f1_score': 0.0037612742275954713}, ROC AUC: 0.8949919356459523
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+Round 4: Metrics: {'accuracy': 0.03802535023348899, 'precision': 0.0017852588625350675, 'recall': 1.0, 'f1_score': 0.0035641547861507126}, ROC AUC: 0.9052324450461107
+
+Round 5: Metrics: {'accuracy': 0.0534918015519118, 'precision': 0.001795930458610283, 'recall': 0.9897959183673469, 'f1_score': 0.00358535548614833}, ROC AUC: 0.9107513415467482
+
+Round 6: Metrics: {'accuracy': 0.5180471191320529, 'precision': 0.0033046446599121183, 'recall': 0.9285714285714286, 'f1_score': 0.006585851275556359}, ROC AUC: 0.9067163830923477
+
+Round 7: Metrics: {'accuracy': 0.24470699764755452, 'precision': 0.002157222054696017, 'recall': 0.9489795918367347, 'f1_score': 0.004304658751648962}, ROC AUC: 0.9023004583797503
+
+Round 8: Metrics: {'accuracy': 0.08862048383132615, 'precision': 0.0018841805737137584, 'recall': 1.0, 'f1_score': 0.0037612742275954713}, ROC AUC: 0.8949919356459523
+
+Round 9: Metrics: {'accuracy': 0.06634247392998842, 'precision': 0.0018393048178525179, 'recall': 1.0, 'f1_score': 0.003671855973322843}, ROC AUC: 0.8937638892079061
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+Round 4: Metrics: {'accuracy': 0.03802535023348899, 'precision': 0.0017852588625350675, 'recall': 1.0, 'f1_score': 0.0035641547861507126}, ROC AUC: 0.9052324450461107
+
+Round 5: Metrics: {'accuracy': 0.0534918015519118, 'precision': 0.001795930458610283, 'recall': 0.9897959183673469, 'f1_score': 0.00358535548614833}, ROC AUC: 0.9107513415467482
+
+Round 6: Metrics: {'accuracy': 0.5180471191320529, 'precision': 0.0033046446599121183, 'recall': 0.9285714285714286, 'f1_score': 0.006585851275556359}, ROC AUC: 0.9067163830923477
+
+Round 7: Metrics: {'accuracy': 0.24470699764755452, 'precision': 0.002157222054696017, 'recall': 0.9489795918367347, 'f1_score': 0.004304658751648962}, ROC AUC: 0.9023004583797503
+
+Round 8: Metrics: {'accuracy': 0.08862048383132615, 'precision': 0.0018841805737137584, 'recall': 1.0, 'f1_score': 0.0037612742275954713}, ROC AUC: 0.8949919356459523
+
+Round 9: Metrics: {'accuracy': 0.06634247392998842, 'precision': 0.0018393048178525179, 'recall': 1.0, 'f1_score': 0.003671855973322843}, ROC AUC: 0.8937638892079061
+
+Round 10: Metrics: {'accuracy': 0.26946034198237423, 'precision': 0.0023017718848154984, 'recall': 0.9795918367346939, 'f1_score': 0.00459275206315034}, ROC AUC: 0.9140363007189369
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.041975351989045326, 'precision': 0.0017743794245157042, 'recall': 0.9897959183673469, 'f1_score': 0.003542408472564594}, ROC AUC: 0.9542512101914487
+
+Round 2: Metrics: {'accuracy': 0.7229205435202416, 'precision': 0.005485844000252223, 'recall': 0.8877551020408163, 'f1_score': 0.010904305320548976}, ROC AUC: 0.9519440584337281
+
+Round 3: Metrics: {'accuracy': 0.34872371054387136, 'precision': 0.002581200258120026, 'recall': 0.9795918367346939, 'f1_score': 0.005148833467417539}, ROC AUC: 0.9304953709818198
+
+Round 4: Metrics: {'accuracy': 0.03802535023348899, 'precision': 0.0017852588625350675, 'recall': 1.0, 'f1_score': 0.0035641547861507126}, ROC AUC: 0.9052324450461107
+
+Round 5: Metrics: {'accuracy': 0.0534918015519118, 'precision': 0.001795930458610283, 'recall': 0.9897959183673469, 'f1_score': 0.00358535548614833}, ROC AUC: 0.9107513415467482
+
+Round 6: Metrics: {'accuracy': 0.5180471191320529, 'precision': 0.0033046446599121183, 'recall': 0.9285714285714286, 'f1_score': 0.006585851275556359}, ROC AUC: 0.9067163830923477
+
+Round 7: Metrics: {'accuracy': 0.24470699764755452, 'precision': 0.002157222054696017, 'recall': 0.9489795918367347, 'f1_score': 0.004304658751648962}, ROC AUC: 0.9023004583797503
+
+Round 8: Metrics: {'accuracy': 0.08862048383132615, 'precision': 0.0018841805737137584, 'recall': 1.0, 'f1_score': 0.0037612742275954713}, ROC AUC: 0.8949919356459523
+
+Round 9: Metrics: {'accuracy': 0.06634247392998842, 'precision': 0.0018393048178525179, 'recall': 1.0, 'f1_score': 0.003671855973322843}, ROC AUC: 0.8937638892079061
+
+Round 10: Metrics: {'accuracy': 0.26946034198237423, 'precision': 0.0023017718848154984, 'recall': 0.9795918367346939, 'f1_score': 0.00459275206315034}, ROC AUC: 0.9140363007189369
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+Round 4: Metrics: {'accuracy': 0.003651557178469857, 'precision': 0.001723774009709421, 'recall': 1.0, 'f1_score': 0.00344161545215101}, ROC AUC: 0.8941820010221309
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+Round 4: Metrics: {'accuracy': 0.003651557178469857, 'precision': 0.001723774009709421, 'recall': 1.0, 'f1_score': 0.00344161545215101}, ROC AUC: 0.8941820010221309
+
+Round 5: Metrics: {'accuracy': 0.004898002176889856, 'precision': 0.0017259294482309224, 'recall': 1.0, 'f1_score': 0.0034459114963343238}, ROC AUC: 0.8952541079037128
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+Round 4: Metrics: {'accuracy': 0.003651557178469857, 'precision': 0.001723774009709421, 'recall': 1.0, 'f1_score': 0.00344161545215101}, ROC AUC: 0.8941820010221309
+
+Round 5: Metrics: {'accuracy': 0.004898002176889856, 'precision': 0.0017259294482309224, 'recall': 1.0, 'f1_score': 0.0034459114963343238}, ROC AUC: 0.8952541079037128
+
+Round 6: Metrics: {'accuracy': 0.005126224500544223, 'precision': 0.0017263246899661782, 'recall': 1.0, 'f1_score': 0.0034466992579045477}, ROC AUC: 0.8951974923340186
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+Round 4: Metrics: {'accuracy': 0.003651557178469857, 'precision': 0.001723774009709421, 'recall': 1.0, 'f1_score': 0.00344161545215101}, ROC AUC: 0.8941820010221309
+
+Round 5: Metrics: {'accuracy': 0.004898002176889856, 'precision': 0.0017259294482309224, 'recall': 1.0, 'f1_score': 0.0034459114963343238}, ROC AUC: 0.8952541079037128
+
+Round 6: Metrics: {'accuracy': 0.005126224500544223, 'precision': 0.0017263246899661782, 'recall': 1.0, 'f1_score': 0.0034466992579045477}, ROC AUC: 0.8951974923340186
+
+Round 7: Metrics: {'accuracy': 0.09481759769671008, 'precision': 0.0018777706796755521, 'recall': 0.9897959183673469, 'f1_score': 0.0037484301033716546}, ROC AUC: 0.8988254646962893
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+Round 4: Metrics: {'accuracy': 0.003651557178469857, 'precision': 0.001723774009709421, 'recall': 1.0, 'f1_score': 0.00344161545215101}, ROC AUC: 0.8941820010221309
+
+Round 5: Metrics: {'accuracy': 0.004898002176889856, 'precision': 0.0017259294482309224, 'recall': 1.0, 'f1_score': 0.0034459114963343238}, ROC AUC: 0.8952541079037128
+
+Round 6: Metrics: {'accuracy': 0.005126224500544223, 'precision': 0.0017263246899661782, 'recall': 1.0, 'f1_score': 0.0034466992579045477}, ROC AUC: 0.8951974923340186
+
+Round 7: Metrics: {'accuracy': 0.09481759769671008, 'precision': 0.0018777706796755521, 'recall': 0.9897959183673469, 'f1_score': 0.0037484301033716546}, ROC AUC: 0.8988254646962893
+
+Round 8: Metrics: {'accuracy': 0.37558372248165445, 'precision': 0.002608256674893426, 'recall': 0.9489795918367347, 'f1_score': 0.005202215136767914}, ROC AUC: 0.8959342125285681
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+Round 4: Metrics: {'accuracy': 0.003651557178469857, 'precision': 0.001723774009709421, 'recall': 1.0, 'f1_score': 0.00344161545215101}, ROC AUC: 0.8941820010221309
+
+Round 5: Metrics: {'accuracy': 0.004898002176889856, 'precision': 0.0017259294482309224, 'recall': 1.0, 'f1_score': 0.0034459114963343238}, ROC AUC: 0.8952541079037128
+
+Round 6: Metrics: {'accuracy': 0.005126224500544223, 'precision': 0.0017263246899661782, 'recall': 1.0, 'f1_score': 0.0034466992579045477}, ROC AUC: 0.8951974923340186
+
+Round 7: Metrics: {'accuracy': 0.09481759769671008, 'precision': 0.0018777706796755521, 'recall': 0.9897959183673469, 'f1_score': 0.0037484301033716546}, ROC AUC: 0.8988254646962893
+
+Round 8: Metrics: {'accuracy': 0.37558372248165445, 'precision': 0.002608256674893426, 'recall': 0.9489795918367347, 'f1_score': 0.005202215136767914}, ROC AUC: 0.8959342125285681
+
+Round 9: Metrics: {'accuracy': 0.3031319125030722, 'precision': 0.0023376819244400873, 'recall': 0.9489795918367347, 'f1_score': 0.004663875028208922}, ROC AUC: 0.8939514114593502
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+Round 4: Metrics: {'accuracy': 0.003651557178469857, 'precision': 0.001723774009709421, 'recall': 1.0, 'f1_score': 0.00344161545215101}, ROC AUC: 0.8941820010221309
+
+Round 5: Metrics: {'accuracy': 0.004898002176889856, 'precision': 0.0017259294482309224, 'recall': 1.0, 'f1_score': 0.0034459114963343238}, ROC AUC: 0.8952541079037128
+
+Round 6: Metrics: {'accuracy': 0.005126224500544223, 'precision': 0.0017263246899661782, 'recall': 1.0, 'f1_score': 0.0034466992579045477}, ROC AUC: 0.8951974923340186
+
+Round 7: Metrics: {'accuracy': 0.09481759769671008, 'precision': 0.0018777706796755521, 'recall': 0.9897959183673469, 'f1_score': 0.0037484301033716546}, ROC AUC: 0.8988254646962893
+
+Round 8: Metrics: {'accuracy': 0.37558372248165445, 'precision': 0.002608256674893426, 'recall': 0.9489795918367347, 'f1_score': 0.005202215136767914}, ROC AUC: 0.8959342125285681
+
+Round 9: Metrics: {'accuracy': 0.3031319125030722, 'precision': 0.0023376819244400873, 'recall': 0.9489795918367347, 'f1_score': 0.004663875028208922}, ROC AUC: 0.8939514114593502
+
+Round 10: Metrics: {'accuracy': 0.13001650222955655, 'precision': 0.0018532694089682124, 'recall': 0.9387755102040817, 'f1_score': 0.003699236027342179}, ROC AUC: 0.8928835215853365
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.8495663775850567, 'precision': 0.008813637945030732, 'recall': 0.7755102040816326, 'f1_score': 0.017429193899782137}, ROC AUC: 0.9413538065760914
+
+Round 2: Metrics: {'accuracy': 0.11124960499982445, 'precision': 0.0018927817977483783, 'recall': 0.9795918367346939, 'f1_score': 0.003778263179644607}, ROC AUC: 0.9394156878423852
+
+Round 3: Metrics: {'accuracy': 0.037533794459464205, 'precision': 0.0017843487127198571, 'recall': 1.0, 'f1_score': 0.0035623409669211193}, ROC AUC: 0.9122499942576918
+
+Round 4: Metrics: {'accuracy': 0.003651557178469857, 'precision': 0.001723774009709421, 'recall': 1.0, 'f1_score': 0.00344161545215101}, ROC AUC: 0.8941820010221309
+
+Round 5: Metrics: {'accuracy': 0.004898002176889856, 'precision': 0.0017259294482309224, 'recall': 1.0, 'f1_score': 0.0034459114963343238}, ROC AUC: 0.8952541079037128
+
+Round 6: Metrics: {'accuracy': 0.005126224500544223, 'precision': 0.0017263246899661782, 'recall': 1.0, 'f1_score': 0.0034466992579045477}, ROC AUC: 0.8951974923340186
+
+Round 7: Metrics: {'accuracy': 0.09481759769671008, 'precision': 0.0018777706796755521, 'recall': 0.9897959183673469, 'f1_score': 0.0037484301033716546}, ROC AUC: 0.8988254646962893
+
+Round 8: Metrics: {'accuracy': 0.37558372248165445, 'precision': 0.002608256674893426, 'recall': 0.9489795918367347, 'f1_score': 0.005202215136767914}, ROC AUC: 0.8959342125285681
+
+Round 9: Metrics: {'accuracy': 0.3031319125030722, 'precision': 0.0023376819244400873, 'recall': 0.9489795918367347, 'f1_score': 0.004663875028208922}, ROC AUC: 0.8939514114593502
+
+Round 10: Metrics: {'accuracy': 0.13001650222955655, 'precision': 0.0018532694089682124, 'recall': 0.9387755102040817, 'f1_score': 0.003699236027342179}, ROC AUC: 0.8928835215853365
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+Round 4: Metrics: {'accuracy': 0.9726835434149081, 'precision': 0.042085427135678394, 'recall': 0.6836734693877551, 'f1_score': 0.07928994082840236}, ROC AUC: 0.9387554121254579
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+Round 4: Metrics: {'accuracy': 0.9726835434149081, 'precision': 0.042085427135678394, 'recall': 0.6836734693877551, 'f1_score': 0.07928994082840236}, ROC AUC: 0.9387554121254579
+
+Round 5: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4090909090909091, 'recall': 0.45918367346938777, 'f1_score': 0.4326923076923077}, ROC AUC: 0.918337558715101
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+Round 4: Metrics: {'accuracy': 0.9726835434149081, 'precision': 0.042085427135678394, 'recall': 0.6836734693877551, 'f1_score': 0.07928994082840236}, ROC AUC: 0.9387554121254579
+
+Round 5: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4090909090909091, 'recall': 0.45918367346938777, 'f1_score': 0.4326923076923077}, ROC AUC: 0.918337558715101
+
+Round 6: Metrics: {'accuracy': 0.9950668866963941, 'precision': 0.12653061224489795, 'recall': 0.3163265306122449, 'f1_score': 0.1807580174927114}, ROC AUC: 0.9422706019661664
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+Round 4: Metrics: {'accuracy': 0.9726835434149081, 'precision': 0.042085427135678394, 'recall': 0.6836734693877551, 'f1_score': 0.07928994082840236}, ROC AUC: 0.9387554121254579
+
+Round 5: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4090909090909091, 'recall': 0.45918367346938777, 'f1_score': 0.4326923076923077}, ROC AUC: 0.918337558715101
+
+Round 6: Metrics: {'accuracy': 0.9950668866963941, 'precision': 0.12653061224489795, 'recall': 0.3163265306122449, 'f1_score': 0.1807580174927114}, ROC AUC: 0.9422706019661664
+
+Round 7: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9037389963019535
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+Round 4: Metrics: {'accuracy': 0.9726835434149081, 'precision': 0.042085427135678394, 'recall': 0.6836734693877551, 'f1_score': 0.07928994082840236}, ROC AUC: 0.9387554121254579
+
+Round 5: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4090909090909091, 'recall': 0.45918367346938777, 'f1_score': 0.4326923076923077}, ROC AUC: 0.918337558715101
+
+Round 6: Metrics: {'accuracy': 0.9950668866963941, 'precision': 0.12653061224489795, 'recall': 0.3163265306122449, 'f1_score': 0.1807580174927114}, ROC AUC: 0.9422706019661664
+
+Round 7: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9037389963019535
+
+Round 8: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9136473490634296
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+Round 4: Metrics: {'accuracy': 0.9726835434149081, 'precision': 0.042085427135678394, 'recall': 0.6836734693877551, 'f1_score': 0.07928994082840236}, ROC AUC: 0.9387554121254579
+
+Round 5: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4090909090909091, 'recall': 0.45918367346938777, 'f1_score': 0.4326923076923077}, ROC AUC: 0.918337558715101
+
+Round 6: Metrics: {'accuracy': 0.9950668866963941, 'precision': 0.12653061224489795, 'recall': 0.3163265306122449, 'f1_score': 0.1807580174927114}, ROC AUC: 0.9422706019661664
+
+Round 7: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9037389963019535
+
+Round 8: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9136473490634296
+
+Round 9: Metrics: {'accuracy': 0.9985955549313578, 'precision': 0.8461538461538461, 'recall': 0.22448979591836735, 'f1_score': 0.3548387096774194}, ROC AUC: 0.9119159534241383
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+Round 4: Metrics: {'accuracy': 0.9726835434149081, 'precision': 0.042085427135678394, 'recall': 0.6836734693877551, 'f1_score': 0.07928994082840236}, ROC AUC: 0.9387554121254579
+
+Round 5: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4090909090909091, 'recall': 0.45918367346938777, 'f1_score': 0.4326923076923077}, ROC AUC: 0.918337558715101
+
+Round 6: Metrics: {'accuracy': 0.9950668866963941, 'precision': 0.12653061224489795, 'recall': 0.3163265306122449, 'f1_score': 0.1807580174927114}, ROC AUC: 0.9422706019661664
+
+Round 7: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9037389963019535
+
+Round 8: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9136473490634296
+
+Round 9: Metrics: {'accuracy': 0.9985955549313578, 'precision': 0.8461538461538461, 'recall': 0.22448979591836735, 'f1_score': 0.3548387096774194}, ROC AUC: 0.9119159534241383
+
+Round 10: Metrics: {'accuracy': 0.9985955549313578, 'precision': 0.8461538461538461, 'recall': 0.22448979591836735, 'f1_score': 0.3548387096774194}, ROC AUC: 0.9059777787029273
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.9957164425406412, 'precision': 0.23550724637681159, 'recall': 0.6632653061224489, 'f1_score': 0.34759358288770054}, ROC AUC: 0.9456346973229359
+
+Round 2: Metrics: {'accuracy': 0.9895017731118991, 'precision': 0.1056782334384858, 'recall': 0.6836734693877551, 'f1_score': 0.18306010928961747}, ROC AUC: 0.922959040115765
+
+Round 3: Metrics: {'accuracy': 0.9893262174783188, 'precision': 0.102803738317757, 'recall': 0.673469387755102, 'f1_score': 0.1783783783783784}, ROC AUC: 0.9421819550836654
+
+Round 4: Metrics: {'accuracy': 0.9726835434149081, 'precision': 0.042085427135678394, 'recall': 0.6836734693877551, 'f1_score': 0.07928994082840236}, ROC AUC: 0.9387554121254579
+
+Round 5: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4090909090909091, 'recall': 0.45918367346938777, 'f1_score': 0.4326923076923077}, ROC AUC: 0.918337558715101
+
+Round 6: Metrics: {'accuracy': 0.9950668866963941, 'precision': 0.12653061224489795, 'recall': 0.3163265306122449, 'f1_score': 0.1807580174927114}, ROC AUC: 0.9422706019661664
+
+Round 7: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9037389963019535
+
+Round 8: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.8095238095238095, 'recall': 0.17346938775510204, 'f1_score': 0.2857142857142857}, ROC AUC: 0.9136473490634296
+
+Round 9: Metrics: {'accuracy': 0.9985955549313578, 'precision': 0.8461538461538461, 'recall': 0.22448979591836735, 'f1_score': 0.3548387096774194}, ROC AUC: 0.9119159534241383
+
+Round 10: Metrics: {'accuracy': 0.9985955549313578, 'precision': 0.8461538461538461, 'recall': 0.22448979591836735, 'f1_score': 0.3548387096774194}, ROC AUC: 0.9059777787029273
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+Round 4: Metrics: {'accuracy': 0.9858677714967873, 'precision': 0.07563025210084033, 'recall': 0.6428571428571429, 'f1_score': 0.13533834586466165}, ROC AUC: 0.9489946653957024
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+Round 4: Metrics: {'accuracy': 0.9858677714967873, 'precision': 0.07563025210084033, 'recall': 0.6428571428571429, 'f1_score': 0.13533834586466165}, ROC AUC: 0.9489946653957024
+
+Round 5: Metrics: {'accuracy': 0.9949615533162459, 'precision': 0.17525773195876287, 'recall': 0.5204081632653061, 'f1_score': 0.2622107969151671}, ROC AUC: 0.9344896846611463
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+Round 4: Metrics: {'accuracy': 0.9858677714967873, 'precision': 0.07563025210084033, 'recall': 0.6428571428571429, 'f1_score': 0.13533834586466165}, ROC AUC: 0.9489946653957024
+
+Round 5: Metrics: {'accuracy': 0.9949615533162459, 'precision': 0.17525773195876287, 'recall': 0.5204081632653061, 'f1_score': 0.2622107969151671}, ROC AUC: 0.9344896846611463
+
+Round 6: Metrics: {'accuracy': 0.9970155542291352, 'precision': 0.2692307692307692, 'recall': 0.42857142857142855, 'f1_score': 0.33070866141732286}, ROC AUC: 0.9573269340093944
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+Round 4: Metrics: {'accuracy': 0.9858677714967873, 'precision': 0.07563025210084033, 'recall': 0.6428571428571429, 'f1_score': 0.13533834586466165}, ROC AUC: 0.9489946653957024
+
+Round 5: Metrics: {'accuracy': 0.9949615533162459, 'precision': 0.17525773195876287, 'recall': 0.5204081632653061, 'f1_score': 0.2622107969151671}, ROC AUC: 0.9344896846611463
+
+Round 6: Metrics: {'accuracy': 0.9970155542291352, 'precision': 0.2692307692307692, 'recall': 0.42857142857142855, 'f1_score': 0.33070866141732286}, ROC AUC: 0.9573269340093944
+
+Round 7: Metrics: {'accuracy': 0.9978406657069625, 'precision': 0.3626373626373626, 'recall': 0.336734693877551, 'f1_score': 0.3492063492063492}, ROC AUC: 0.9261359721153515
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+Round 4: Metrics: {'accuracy': 0.9858677714967873, 'precision': 0.07563025210084033, 'recall': 0.6428571428571429, 'f1_score': 0.13533834586466165}, ROC AUC: 0.9489946653957024
+
+Round 5: Metrics: {'accuracy': 0.9949615533162459, 'precision': 0.17525773195876287, 'recall': 0.5204081632653061, 'f1_score': 0.2622107969151671}, ROC AUC: 0.9344896846611463
+
+Round 6: Metrics: {'accuracy': 0.9970155542291352, 'precision': 0.2692307692307692, 'recall': 0.42857142857142855, 'f1_score': 0.33070866141732286}, ROC AUC: 0.9573269340093944
+
+Round 7: Metrics: {'accuracy': 0.9978406657069625, 'precision': 0.3626373626373626, 'recall': 0.336734693877551, 'f1_score': 0.3492063492063492}, ROC AUC: 0.9261359721153515
+
+Round 8: Metrics: {'accuracy': 0.9983673326077034, 'precision': 0.543859649122807, 'recall': 0.3163265306122449, 'f1_score': 0.4}, ROC AUC: 0.9266475758846026
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+Round 4: Metrics: {'accuracy': 0.9858677714967873, 'precision': 0.07563025210084033, 'recall': 0.6428571428571429, 'f1_score': 0.13533834586466165}, ROC AUC: 0.9489946653957024
+
+Round 5: Metrics: {'accuracy': 0.9949615533162459, 'precision': 0.17525773195876287, 'recall': 0.5204081632653061, 'f1_score': 0.2622107969151671}, ROC AUC: 0.9344896846611463
+
+Round 6: Metrics: {'accuracy': 0.9970155542291352, 'precision': 0.2692307692307692, 'recall': 0.42857142857142855, 'f1_score': 0.33070866141732286}, ROC AUC: 0.9573269340093944
+
+Round 7: Metrics: {'accuracy': 0.9978406657069625, 'precision': 0.3626373626373626, 'recall': 0.336734693877551, 'f1_score': 0.3492063492063492}, ROC AUC: 0.9261359721153515
+
+Round 8: Metrics: {'accuracy': 0.9983673326077034, 'precision': 0.543859649122807, 'recall': 0.3163265306122449, 'f1_score': 0.4}, ROC AUC: 0.9266475758846026
+
+Round 9: Metrics: {'accuracy': 0.9972086654260736, 'precision': 0.2953020134228188, 'recall': 0.4489795918367347, 'f1_score': 0.3562753036437247}, ROC AUC: 0.9492516336866768
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+Round 4: Metrics: {'accuracy': 0.9858677714967873, 'precision': 0.07563025210084033, 'recall': 0.6428571428571429, 'f1_score': 0.13533834586466165}, ROC AUC: 0.9489946653957024
+
+Round 5: Metrics: {'accuracy': 0.9949615533162459, 'precision': 0.17525773195876287, 'recall': 0.5204081632653061, 'f1_score': 0.2622107969151671}, ROC AUC: 0.9344896846611463
+
+Round 6: Metrics: {'accuracy': 0.9970155542291352, 'precision': 0.2692307692307692, 'recall': 0.42857142857142855, 'f1_score': 0.33070866141732286}, ROC AUC: 0.9573269340093944
+
+Round 7: Metrics: {'accuracy': 0.9978406657069625, 'precision': 0.3626373626373626, 'recall': 0.336734693877551, 'f1_score': 0.3492063492063492}, ROC AUC: 0.9261359721153515
+
+Round 8: Metrics: {'accuracy': 0.9983673326077034, 'precision': 0.543859649122807, 'recall': 0.3163265306122449, 'f1_score': 0.4}, ROC AUC: 0.9266475758846026
+
+Round 9: Metrics: {'accuracy': 0.9972086654260736, 'precision': 0.2953020134228188, 'recall': 0.4489795918367347, 'f1_score': 0.3562753036437247}, ROC AUC: 0.9492516336866768
+
+Round 10: Metrics: {'accuracy': 0.9969979986657772, 'precision': 0.23357664233576642, 'recall': 0.32653061224489793, 'f1_score': 0.27234042553191484}, ROC AUC: 0.9365003897591676
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.9980688880306169, 'precision': 0.4482758620689655, 'recall': 0.5306122448979592, 'f1_score': 0.485981308411215}, ROC AUC: 0.9207486103614209
+
+Round 2: Metrics: {'accuracy': 0.9980162213405428, 'precision': 0.4460431654676259, 'recall': 0.6326530612244898, 'f1_score': 0.5232067510548524}, ROC AUC: 0.9304992290951272
+
+Round 3: Metrics: {'accuracy': 0.9940486640216285, 'precision': 0.16056338028169015, 'recall': 0.5816326530612245, 'f1_score': 0.25165562913907286}, ROC AUC: 0.9355849402225718
+
+Round 4: Metrics: {'accuracy': 0.9858677714967873, 'precision': 0.07563025210084033, 'recall': 0.6428571428571429, 'f1_score': 0.13533834586466165}, ROC AUC: 0.9489946653957024
+
+Round 5: Metrics: {'accuracy': 0.9949615533162459, 'precision': 0.17525773195876287, 'recall': 0.5204081632653061, 'f1_score': 0.2622107969151671}, ROC AUC: 0.9344896846611463
+
+Round 6: Metrics: {'accuracy': 0.9970155542291352, 'precision': 0.2692307692307692, 'recall': 0.42857142857142855, 'f1_score': 0.33070866141732286}, ROC AUC: 0.9573269340093944
+
+Round 7: Metrics: {'accuracy': 0.9978406657069625, 'precision': 0.3626373626373626, 'recall': 0.336734693877551, 'f1_score': 0.3492063492063492}, ROC AUC: 0.9261359721153515
+
+Round 8: Metrics: {'accuracy': 0.9983673326077034, 'precision': 0.543859649122807, 'recall': 0.3163265306122449, 'f1_score': 0.4}, ROC AUC: 0.9266475758846026
+
+Round 9: Metrics: {'accuracy': 0.9972086654260736, 'precision': 0.2953020134228188, 'recall': 0.4489795918367347, 'f1_score': 0.3562753036437247}, ROC AUC: 0.9492516336866768
+
+Round 10: Metrics: {'accuracy': 0.9969979986657772, 'precision': 0.23357664233576642, 'recall': 0.32653061224489793, 'f1_score': 0.27234042553191484}, ROC AUC: 0.9365003897591676
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+Round 4: Metrics: {'accuracy': 0.12843650152733402, 'precision': 0.0019300361881785283, 'recall': 0.9795918367346939, 'f1_score': 0.003852482041815482}, ROC AUC: 0.9202672434336706
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+Round 4: Metrics: {'accuracy': 0.12843650152733402, 'precision': 0.0019300361881785283, 'recall': 0.9795918367346939, 'f1_score': 0.003852482041815482}, ROC AUC: 0.9202672434336706
+
+Round 5: Metrics: {'accuracy': 0.27902812401249955, 'precision': 0.002235505661661078, 'recall': 0.9387755102040817, 'f1_score': 0.004460389799282459}, ROC AUC: 0.9067159344745214
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+Round 4: Metrics: {'accuracy': 0.12843650152733402, 'precision': 0.0019300361881785283, 'recall': 0.9795918367346939, 'f1_score': 0.003852482041815482}, ROC AUC: 0.9202672434336706
+
+Round 5: Metrics: {'accuracy': 0.27902812401249955, 'precision': 0.002235505661661078, 'recall': 0.9387755102040817, 'f1_score': 0.004460389799282459}, ROC AUC: 0.9067159344745214
+
+Round 6: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.921481472442663
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+Round 4: Metrics: {'accuracy': 0.12843650152733402, 'precision': 0.0019300361881785283, 'recall': 0.9795918367346939, 'f1_score': 0.003852482041815482}, ROC AUC: 0.9202672434336706
+
+Round 5: Metrics: {'accuracy': 0.27902812401249955, 'precision': 0.002235505661661078, 'recall': 0.9387755102040817, 'f1_score': 0.004460389799282459}, ROC AUC: 0.9067159344745214
+
+Round 6: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.921481472442663
+
+Round 7: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9164648484604871
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+Round 4: Metrics: {'accuracy': 0.12843650152733402, 'precision': 0.0019300361881785283, 'recall': 0.9795918367346939, 'f1_score': 0.003852482041815482}, ROC AUC: 0.9202672434336706
+
+Round 5: Metrics: {'accuracy': 0.27902812401249955, 'precision': 0.002235505661661078, 'recall': 0.9387755102040817, 'f1_score': 0.004460389799282459}, ROC AUC: 0.9067159344745214
+
+Round 6: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.921481472442663
+
+Round 7: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9164648484604871
+
+Round 8: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9191405846243956
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+Round 4: Metrics: {'accuracy': 0.12843650152733402, 'precision': 0.0019300361881785283, 'recall': 0.9795918367346939, 'f1_score': 0.003852482041815482}, ROC AUC: 0.9202672434336706
+
+Round 5: Metrics: {'accuracy': 0.27902812401249955, 'precision': 0.002235505661661078, 'recall': 0.9387755102040817, 'f1_score': 0.004460389799282459}, ROC AUC: 0.9067159344745214
+
+Round 6: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.921481472442663
+
+Round 7: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9164648484604871
+
+Round 8: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9191405846243956
+
+Round 9: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.918390226447923
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+Round 4: Metrics: {'accuracy': 0.12843650152733402, 'precision': 0.0019300361881785283, 'recall': 0.9795918367346939, 'f1_score': 0.003852482041815482}, ROC AUC: 0.9202672434336706
+
+Round 5: Metrics: {'accuracy': 0.27902812401249955, 'precision': 0.002235505661661078, 'recall': 0.9387755102040817, 'f1_score': 0.004460389799282459}, ROC AUC: 0.9067159344745214
+
+Round 6: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.921481472442663
+
+Round 7: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9164648484604871
+
+Round 8: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9191405846243956
+
+Round 9: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.918390226447923
+
+Round 10: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9162158655668233
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.001878445279309013, 'precision': 0.0017207170825066283, 'recall': 1.0, 'f1_score': 0.0034355226025836534}, ROC AUC: 0.9093075099341932
+
+Round 2: Metrics: {'accuracy': 0.0022295565464695763, 'precision': 0.0017213215534048795, 'recall': 1.0, 'f1_score': 0.0034367273938735077}, ROC AUC: 0.9130000832634686
+
+Round 3: Metrics: {'accuracy': 0.9725255433446859, 'precision': 0.04694255713403336, 'recall': 0.7755102040816326, 'f1_score': 0.0885264997087944}, ROC AUC: 0.9089340804554799
+
+Round 4: Metrics: {'accuracy': 0.12843650152733402, 'precision': 0.0019300361881785283, 'recall': 0.9795918367346939, 'f1_score': 0.003852482041815482}, ROC AUC: 0.9202672434336706
+
+Round 5: Metrics: {'accuracy': 0.27902812401249955, 'precision': 0.002235505661661078, 'recall': 0.9387755102040817, 'f1_score': 0.004460389799282459}, ROC AUC: 0.9067159344745214
+
+Round 6: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.921481472442663
+
+Round 7: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9164648484604871
+
+Round 8: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9191405846243956
+
+Round 9: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.918390226447923
+
+Round 10: Metrics: {'accuracy': 0.9979284435237527, 'precision': 0.4315068493150685, 'recall': 0.6428571428571429, 'f1_score': 0.5163934426229507}, ROC AUC: 0.9162158655668233
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+Round 4: Metrics: {'accuracy': 0.998139110284049, 'precision': 0.46875, 'recall': 0.6122448979591837, 'f1_score': 0.5309734513274337}, ROC AUC: 0.9284984833128525
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+Round 4: Metrics: {'accuracy': 0.998139110284049, 'precision': 0.46875, 'recall': 0.6122448979591837, 'f1_score': 0.5309734513274337}, ROC AUC: 0.9284984833128525
+
+Round 5: Metrics: {'accuracy': 0.9982619992275552, 'precision': 0.49572649572649574, 'recall': 0.5918367346938775, 'f1_score': 0.5395348837209303}, ROC AUC: 0.9232987335339313
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+Round 4: Metrics: {'accuracy': 0.998139110284049, 'precision': 0.46875, 'recall': 0.6122448979591837, 'f1_score': 0.5309734513274337}, ROC AUC: 0.9284984833128525
+
+Round 5: Metrics: {'accuracy': 0.9982619992275552, 'precision': 0.49572649572649574, 'recall': 0.5918367346938775, 'f1_score': 0.5395348837209303}, ROC AUC: 0.9232987335339313
+
+Round 6: Metrics: {'accuracy': 0.997489554439802, 'precision': 0.3619631901840491, 'recall': 0.6020408163265306, 'f1_score': 0.45210727969348663}, ROC AUC: 0.924154875793874
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+Round 4: Metrics: {'accuracy': 0.998139110284049, 'precision': 0.46875, 'recall': 0.6122448979591837, 'f1_score': 0.5309734513274337}, ROC AUC: 0.9284984833128525
+
+Round 5: Metrics: {'accuracy': 0.9982619992275552, 'precision': 0.49572649572649574, 'recall': 0.5918367346938775, 'f1_score': 0.5395348837209303}, ROC AUC: 0.9232987335339313
+
+Round 6: Metrics: {'accuracy': 0.997489554439802, 'precision': 0.3619631901840491, 'recall': 0.6020408163265306, 'f1_score': 0.45210727969348663}, ROC AUC: 0.924154875793874
+
+Round 7: Metrics: {'accuracy': 0.997524665566518, 'precision': 0.3696969696969697, 'recall': 0.6224489795918368, 'f1_score': 0.4638783269961977}, ROC AUC: 0.9133754866606181
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+Round 4: Metrics: {'accuracy': 0.998139110284049, 'precision': 0.46875, 'recall': 0.6122448979591837, 'f1_score': 0.5309734513274337}, ROC AUC: 0.9284984833128525
+
+Round 5: Metrics: {'accuracy': 0.9982619992275552, 'precision': 0.49572649572649574, 'recall': 0.5918367346938775, 'f1_score': 0.5395348837209303}, ROC AUC: 0.9232987335339313
+
+Round 6: Metrics: {'accuracy': 0.997489554439802, 'precision': 0.3619631901840491, 'recall': 0.6020408163265306, 'f1_score': 0.45210727969348663}, ROC AUC: 0.924154875793874
+
+Round 7: Metrics: {'accuracy': 0.997524665566518, 'precision': 0.3696969696969697, 'recall': 0.6224489795918368, 'f1_score': 0.4638783269961977}, ROC AUC: 0.9133754866606181
+
+Round 8: Metrics: {'accuracy': 0.997471998876444, 'precision': 0.36470588235294116, 'recall': 0.6326530612244898, 'f1_score': 0.4626865671641791}, ROC AUC: 0.9267412472867593
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+Round 4: Metrics: {'accuracy': 0.998139110284049, 'precision': 0.46875, 'recall': 0.6122448979591837, 'f1_score': 0.5309734513274337}, ROC AUC: 0.9284984833128525
+
+Round 5: Metrics: {'accuracy': 0.9982619992275552, 'precision': 0.49572649572649574, 'recall': 0.5918367346938775, 'f1_score': 0.5395348837209303}, ROC AUC: 0.9232987335339313
+
+Round 6: Metrics: {'accuracy': 0.997489554439802, 'precision': 0.3619631901840491, 'recall': 0.6020408163265306, 'f1_score': 0.45210727969348663}, ROC AUC: 0.924154875793874
+
+Round 7: Metrics: {'accuracy': 0.997524665566518, 'precision': 0.3696969696969697, 'recall': 0.6224489795918368, 'f1_score': 0.4638783269961977}, ROC AUC: 0.9133754866606181
+
+Round 8: Metrics: {'accuracy': 0.997471998876444, 'precision': 0.36470588235294116, 'recall': 0.6326530612244898, 'f1_score': 0.4626865671641791}, ROC AUC: 0.9267412472867593
+
+Round 9: Metrics: {'accuracy': 0.9978582212703205, 'precision': 0.4166666666666667, 'recall': 0.6122448979591837, 'f1_score': 0.4958677685950413}, ROC AUC: 0.9146181580398056
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+Round 4: Metrics: {'accuracy': 0.998139110284049, 'precision': 0.46875, 'recall': 0.6122448979591837, 'f1_score': 0.5309734513274337}, ROC AUC: 0.9284984833128525
+
+Round 5: Metrics: {'accuracy': 0.9982619992275552, 'precision': 0.49572649572649574, 'recall': 0.5918367346938775, 'f1_score': 0.5395348837209303}, ROC AUC: 0.9232987335339313
+
+Round 6: Metrics: {'accuracy': 0.997489554439802, 'precision': 0.3619631901840491, 'recall': 0.6020408163265306, 'f1_score': 0.45210727969348663}, ROC AUC: 0.924154875793874
+
+Round 7: Metrics: {'accuracy': 0.997524665566518, 'precision': 0.3696969696969697, 'recall': 0.6224489795918368, 'f1_score': 0.4638783269961977}, ROC AUC: 0.9133754866606181
+
+Round 8: Metrics: {'accuracy': 0.997471998876444, 'precision': 0.36470588235294116, 'recall': 0.6326530612244898, 'f1_score': 0.4626865671641791}, ROC AUC: 0.9267412472867593
+
+Round 9: Metrics: {'accuracy': 0.9978582212703205, 'precision': 0.4166666666666667, 'recall': 0.6122448979591837, 'f1_score': 0.4958677685950413}, ROC AUC: 0.9146181580398056
+
+Round 10: Metrics: {'accuracy': 0.9977704434535304, 'precision': 0.40397350993377484, 'recall': 0.6224489795918368, 'f1_score': 0.4899598393574298}, ROC AUC: 0.9123155821839146
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.8536568238474773, 'precision': 0.00847255369928401, 'recall': 0.7244897959183674, 'f1_score': 0.016749233309742862}, ROC AUC: 0.9580162801614737
+
+Round 2: Metrics: {'accuracy': 0.9965591095818265, 'precision': 0.2975206611570248, 'recall': 0.7346938775510204, 'f1_score': 0.4235294117647059}, ROC AUC: 0.9553159597406774
+
+Round 3: Metrics: {'accuracy': 0.9970682209192093, 'precision': 0.32663316582914576, 'recall': 0.6632653061224489, 'f1_score': 0.43771043771043777}, ROC AUC: 0.9388394831061293
+
+Round 4: Metrics: {'accuracy': 0.998139110284049, 'precision': 0.46875, 'recall': 0.6122448979591837, 'f1_score': 0.5309734513274337}, ROC AUC: 0.9284984833128525
+
+Round 5: Metrics: {'accuracy': 0.9982619992275552, 'precision': 0.49572649572649574, 'recall': 0.5918367346938775, 'f1_score': 0.5395348837209303}, ROC AUC: 0.9232987335339313
+
+Round 6: Metrics: {'accuracy': 0.997489554439802, 'precision': 0.3619631901840491, 'recall': 0.6020408163265306, 'f1_score': 0.45210727969348663}, ROC AUC: 0.924154875793874
+
+Round 7: Metrics: {'accuracy': 0.997524665566518, 'precision': 0.3696969696969697, 'recall': 0.6224489795918368, 'f1_score': 0.4638783269961977}, ROC AUC: 0.9133754866606181
+
+Round 8: Metrics: {'accuracy': 0.997471998876444, 'precision': 0.36470588235294116, 'recall': 0.6326530612244898, 'f1_score': 0.4626865671641791}, ROC AUC: 0.9267412472867593
+
+Round 9: Metrics: {'accuracy': 0.9978582212703205, 'precision': 0.4166666666666667, 'recall': 0.6122448979591837, 'f1_score': 0.4958677685950413}, ROC AUC: 0.9146181580398056
+
+Round 10: Metrics: {'accuracy': 0.9977704434535304, 'precision': 0.40397350993377484, 'recall': 0.6224489795918368, 'f1_score': 0.4899598393574298}, ROC AUC: 0.9123155821839146
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+Round 4: Metrics: {'accuracy': 0.006636002949334644, 'precision': 0.0017289439328181785, 'recall': 1.0, 'f1_score': 0.0034519196900317014}, ROC AUC: 0.9227326675605527
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+Round 4: Metrics: {'accuracy': 0.006636002949334644, 'precision': 0.0017289439328181785, 'recall': 1.0, 'f1_score': 0.0034519196900317014}, ROC AUC: 0.9227326675605527
+
+Round 5: Metrics: {'accuracy': 0.03379445946420421, 'precision': 0.0017774553369003356, 'recall': 1.0, 'f1_score': 0.0035486031901218475}, ROC AUC: 0.912572281304193
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+Round 4: Metrics: {'accuracy': 0.006636002949334644, 'precision': 0.0017289439328181785, 'recall': 1.0, 'f1_score': 0.0034519196900317014}, ROC AUC: 0.9227326675605527
+
+Round 5: Metrics: {'accuracy': 0.03379445946420421, 'precision': 0.0017774553369003356, 'recall': 1.0, 'f1_score': 0.0035486031901218475}, ROC AUC: 0.912572281304193
+
+Round 6: Metrics: {'accuracy': 0.023190899195955197, 'precision': 0.0017581944419526722, 'recall': 1.0, 'f1_score': 0.0035102172394648706}, ROC AUC: 0.9033075156765014
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+Round 4: Metrics: {'accuracy': 0.006636002949334644, 'precision': 0.0017289439328181785, 'recall': 1.0, 'f1_score': 0.0034519196900317014}, ROC AUC: 0.9227326675605527
+
+Round 5: Metrics: {'accuracy': 0.03379445946420421, 'precision': 0.0017774553369003356, 'recall': 1.0, 'f1_score': 0.0035486031901218475}, ROC AUC: 0.912572281304193
+
+Round 6: Metrics: {'accuracy': 0.023190899195955197, 'precision': 0.0017581944419526722, 'recall': 1.0, 'f1_score': 0.0035102172394648706}, ROC AUC: 0.9033075156765014
+
+Round 7: Metrics: {'accuracy': 0.019205786313682804, 'precision': 0.001751063145481185, 'recall': 1.0, 'f1_score': 0.003496004566210046}, ROC AUC: 0.908284930460648
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+Round 4: Metrics: {'accuracy': 0.006636002949334644, 'precision': 0.0017289439328181785, 'recall': 1.0, 'f1_score': 0.0034519196900317014}, ROC AUC: 0.9227326675605527
+
+Round 5: Metrics: {'accuracy': 0.03379445946420421, 'precision': 0.0017774553369003356, 'recall': 1.0, 'f1_score': 0.0035486031901218475}, ROC AUC: 0.912572281304193
+
+Round 6: Metrics: {'accuracy': 0.023190899195955197, 'precision': 0.0017581944419526722, 'recall': 1.0, 'f1_score': 0.0035102172394648706}, ROC AUC: 0.9033075156765014
+
+Round 7: Metrics: {'accuracy': 0.019205786313682804, 'precision': 0.001751063145481185, 'recall': 1.0, 'f1_score': 0.003496004566210046}, ROC AUC: 0.908284930460648
+
+Round 8: Metrics: {'accuracy': 0.017415118851163935, 'precision': 0.001747877577227652, 'recall': 1.0, 'f1_score': 0.003489655663568707}, ROC AUC: 0.9018819876712644
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+Round 4: Metrics: {'accuracy': 0.006636002949334644, 'precision': 0.0017289439328181785, 'recall': 1.0, 'f1_score': 0.0034519196900317014}, ROC AUC: 0.9227326675605527
+
+Round 5: Metrics: {'accuracy': 0.03379445946420421, 'precision': 0.0017774553369003356, 'recall': 1.0, 'f1_score': 0.0035486031901218475}, ROC AUC: 0.912572281304193
+
+Round 6: Metrics: {'accuracy': 0.023190899195955197, 'precision': 0.0017581944419526722, 'recall': 1.0, 'f1_score': 0.0035102172394648706}, ROC AUC: 0.9033075156765014
+
+Round 7: Metrics: {'accuracy': 0.019205786313682804, 'precision': 0.001751063145481185, 'recall': 1.0, 'f1_score': 0.003496004566210046}, ROC AUC: 0.908284930460648
+
+Round 8: Metrics: {'accuracy': 0.017415118851163935, 'precision': 0.001747877577227652, 'recall': 1.0, 'f1_score': 0.003489655663568707}, ROC AUC: 0.9018819876712644
+
+Round 9: Metrics: {'accuracy': 0.016449562866472384, 'precision': 0.0017461646740195643, 'recall': 1.0, 'f1_score': 0.003486241795770264}, ROC AUC: 0.9095259868156604
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+Round 4: Metrics: {'accuracy': 0.006636002949334644, 'precision': 0.0017289439328181785, 'recall': 1.0, 'f1_score': 0.0034519196900317014}, ROC AUC: 0.9227326675605527
+
+Round 5: Metrics: {'accuracy': 0.03379445946420421, 'precision': 0.0017774553369003356, 'recall': 1.0, 'f1_score': 0.0035486031901218475}, ROC AUC: 0.912572281304193
+
+Round 6: Metrics: {'accuracy': 0.023190899195955197, 'precision': 0.0017581944419526722, 'recall': 1.0, 'f1_score': 0.0035102172394648706}, ROC AUC: 0.9033075156765014
+
+Round 7: Metrics: {'accuracy': 0.019205786313682804, 'precision': 0.001751063145481185, 'recall': 1.0, 'f1_score': 0.003496004566210046}, ROC AUC: 0.908284930460648
+
+Round 8: Metrics: {'accuracy': 0.017415118851163935, 'precision': 0.001747877577227652, 'recall': 1.0, 'f1_score': 0.003489655663568707}, ROC AUC: 0.9018819876712644
+
+Round 9: Metrics: {'accuracy': 0.016449562866472384, 'precision': 0.0017461646740195643, 'recall': 1.0, 'f1_score': 0.003486241795770264}, ROC AUC: 0.9095259868156604
+
+Round 10: Metrics: {'accuracy': 0.016133562726027877, 'precision': 0.00174560481644431, 'recall': 1.0, 'f1_score': 0.0034851259801916817}, ROC AUC: 0.9042043924350832
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.09871493276219234, 'precision': 0.0018277625464232243, 'recall': 0.9591836734693877, 'f1_score': 0.00364857259300949}, ROC AUC: 0.9487466694612565
+
+Round 2: Metrics: {'accuracy': 0.024296899687510972, 'precision': 0.001724385687598793, 'recall': 0.9795918367346939, 'f1_score': 0.003442711135018827}, ROC AUC: 0.9436645472764231
+
+Round 3: Metrics: {'accuracy': 0.008549559355359714, 'precision': 0.0017322751135700775, 'recall': 1.0, 'f1_score': 0.0034585590513666604}, ROC AUC: 0.9317920559473085
+
+Round 4: Metrics: {'accuracy': 0.006636002949334644, 'precision': 0.0017289439328181785, 'recall': 1.0, 'f1_score': 0.0034519196900317014}, ROC AUC: 0.9227326675605527
+
+Round 5: Metrics: {'accuracy': 0.03379445946420421, 'precision': 0.0017774553369003356, 'recall': 1.0, 'f1_score': 0.0035486031901218475}, ROC AUC: 0.912572281304193
+
+Round 6: Metrics: {'accuracy': 0.023190899195955197, 'precision': 0.0017581944419526722, 'recall': 1.0, 'f1_score': 0.0035102172394648706}, ROC AUC: 0.9033075156765014
+
+Round 7: Metrics: {'accuracy': 0.019205786313682804, 'precision': 0.001751063145481185, 'recall': 1.0, 'f1_score': 0.003496004566210046}, ROC AUC: 0.908284930460648
+
+Round 8: Metrics: {'accuracy': 0.017415118851163935, 'precision': 0.001747877577227652, 'recall': 1.0, 'f1_score': 0.003489655663568707}, ROC AUC: 0.9018819876712644
+
+Round 9: Metrics: {'accuracy': 0.016449562866472384, 'precision': 0.0017461646740195643, 'recall': 1.0, 'f1_score': 0.003486241795770264}, ROC AUC: 0.9095259868156604
+
+Round 10: Metrics: {'accuracy': 0.016133562726027877, 'precision': 0.00174560481644431, 'recall': 1.0, 'f1_score': 0.0034851259801916817}, ROC AUC: 0.9042043924350832
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+Round 4: Metrics: {'accuracy': 0.9988237772550121, 'precision': 0.6597938144329897, 'recall': 0.6530612244897959, 'f1_score': 0.6564102564102564}, ROC AUC: 0.956538443317676
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+Round 4: Metrics: {'accuracy': 0.9988237772550121, 'precision': 0.6597938144329897, 'recall': 0.6530612244897959, 'f1_score': 0.6564102564102564}, ROC AUC: 0.956538443317676
+
+Round 5: Metrics: {'accuracy': 0.9985253326779256, 'precision': 0.5564516129032258, 'recall': 0.7040816326530612, 'f1_score': 0.6216216216216216}, ROC AUC: 0.9665691790221997
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+Round 4: Metrics: {'accuracy': 0.9988237772550121, 'precision': 0.6597938144329897, 'recall': 0.6530612244897959, 'f1_score': 0.6564102564102564}, ROC AUC: 0.956538443317676
+
+Round 5: Metrics: {'accuracy': 0.9985253326779256, 'precision': 0.5564516129032258, 'recall': 0.7040816326530612, 'f1_score': 0.6216216216216216}, ROC AUC: 0.9665691790221997
+
+Round 6: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6037735849056604, 'recall': 0.6530612244897959, 'f1_score': 0.6274509803921567}, ROC AUC: 0.9673054505989227
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+Round 4: Metrics: {'accuracy': 0.9988237772550121, 'precision': 0.6597938144329897, 'recall': 0.6530612244897959, 'f1_score': 0.6564102564102564}, ROC AUC: 0.956538443317676
+
+Round 5: Metrics: {'accuracy': 0.9985253326779256, 'precision': 0.5564516129032258, 'recall': 0.7040816326530612, 'f1_score': 0.6216216216216216}, ROC AUC: 0.9665691790221997
+
+Round 6: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6037735849056604, 'recall': 0.6530612244897959, 'f1_score': 0.6274509803921567}, ROC AUC: 0.9673054505989227
+
+Round 7: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9696877009807863
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+Round 4: Metrics: {'accuracy': 0.9988237772550121, 'precision': 0.6597938144329897, 'recall': 0.6530612244897959, 'f1_score': 0.6564102564102564}, ROC AUC: 0.956538443317676
+
+Round 5: Metrics: {'accuracy': 0.9985253326779256, 'precision': 0.5564516129032258, 'recall': 0.7040816326530612, 'f1_score': 0.6216216216216216}, ROC AUC: 0.9665691790221997
+
+Round 6: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6037735849056604, 'recall': 0.6530612244897959, 'f1_score': 0.6274509803921567}, ROC AUC: 0.9673054505989227
+
+Round 7: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9696877009807863
+
+Round 8: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9685339456547954
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+Round 4: Metrics: {'accuracy': 0.9988237772550121, 'precision': 0.6597938144329897, 'recall': 0.6530612244897959, 'f1_score': 0.6564102564102564}, ROC AUC: 0.956538443317676
+
+Round 5: Metrics: {'accuracy': 0.9985253326779256, 'precision': 0.5564516129032258, 'recall': 0.7040816326530612, 'f1_score': 0.6216216216216216}, ROC AUC: 0.9665691790221997
+
+Round 6: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6037735849056604, 'recall': 0.6530612244897959, 'f1_score': 0.6274509803921567}, ROC AUC: 0.9673054505989227
+
+Round 7: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9696877009807863
+
+Round 8: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9685339456547954
+
+Round 9: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9662985727493023
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+Round 4: Metrics: {'accuracy': 0.9988237772550121, 'precision': 0.6597938144329897, 'recall': 0.6530612244897959, 'f1_score': 0.6564102564102564}, ROC AUC: 0.956538443317676
+
+Round 5: Metrics: {'accuracy': 0.9985253326779256, 'precision': 0.5564516129032258, 'recall': 0.7040816326530612, 'f1_score': 0.6216216216216216}, ROC AUC: 0.9665691790221997
+
+Round 6: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6037735849056604, 'recall': 0.6530612244897959, 'f1_score': 0.6274509803921567}, ROC AUC: 0.9673054505989227
+
+Round 7: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9696877009807863
+
+Round 8: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9685339456547954
+
+Round 9: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9662985727493023
+
+Round 10: Metrics: {'accuracy': 0.9971559987359995, 'precision': 0.34615384615384615, 'recall': 0.7346938775510204, 'f1_score': 0.47058823529411764}, ROC AUC: 0.967595257714791
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.9759839893262174, 'precision': 0.04772079772079772, 'recall': 0.6836734693877551, 'f1_score': 0.08921438082556592}, ROC AUC: 0.9536723137482342
+
+Round 2: Metrics: {'accuracy': 0.917067518696675, 'precision': 0.01671541997492687, 'recall': 0.8163265306122449, 'f1_score': 0.03276003276003276}, ROC AUC: 0.9542357777382197
+
+Round 3: Metrics: {'accuracy': 0.8875039500017555, 'precision': 0.012816553428042, 'recall': 0.8469387755102041, 'f1_score': 0.025250988743535135}, ROC AUC: 0.9611475428663305
+
+Round 4: Metrics: {'accuracy': 0.9988237772550121, 'precision': 0.6597938144329897, 'recall': 0.6530612244897959, 'f1_score': 0.6564102564102564}, ROC AUC: 0.956538443317676
+
+Round 5: Metrics: {'accuracy': 0.9985253326779256, 'precision': 0.5564516129032258, 'recall': 0.7040816326530612, 'f1_score': 0.6216216216216216}, ROC AUC: 0.9665691790221997
+
+Round 6: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6037735849056604, 'recall': 0.6530612244897959, 'f1_score': 0.6274509803921567}, ROC AUC: 0.9673054505989227
+
+Round 7: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9696877009807863
+
+Round 8: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9685339456547954
+
+Round 9: Metrics: {'accuracy': 0.9986657771847899, 'precision': 0.6, 'recall': 0.673469387755102, 'f1_score': 0.6346153846153846}, ROC AUC: 0.9662985727493023
+
+Round 10: Metrics: {'accuracy': 0.9971559987359995, 'precision': 0.34615384615384615, 'recall': 0.7346938775510204, 'f1_score': 0.47058823529411764}, ROC AUC: 0.967595257714791
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+Round 4: Metrics: {'accuracy': 0.9771777676345634, 'precision': 0.05149253731343283, 'recall': 0.7040816326530612, 'f1_score': 0.09596662030598052}, ROC AUC: 0.9429145479942118
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+Round 4: Metrics: {'accuracy': 0.9771777676345634, 'precision': 0.05149253731343283, 'recall': 0.7040816326530612, 'f1_score': 0.09596662030598052}, ROC AUC: 0.9429145479942118
+
+Round 5: Metrics: {'accuracy': 0.879656613180717, 'precision': 0.010575112270027524, 'recall': 0.7448979591836735, 'f1_score': 0.0208541636909013}, ROC AUC: 0.9443368459510986
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+Round 4: Metrics: {'accuracy': 0.9771777676345634, 'precision': 0.05149253731343283, 'recall': 0.7040816326530612, 'f1_score': 0.09596662030598052}, ROC AUC: 0.9429145479942118
+
+Round 5: Metrics: {'accuracy': 0.879656613180717, 'precision': 0.010575112270027524, 'recall': 0.7448979591836735, 'f1_score': 0.0208541636909013}, ROC AUC: 0.9443368459510986
+
+Round 6: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.9444846206631218
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+Round 4: Metrics: {'accuracy': 0.9771777676345634, 'precision': 0.05149253731343283, 'recall': 0.7040816326530612, 'f1_score': 0.09596662030598052}, ROC AUC: 0.9429145479942118
+
+Round 5: Metrics: {'accuracy': 0.879656613180717, 'precision': 0.010575112270027524, 'recall': 0.7448979591836735, 'f1_score': 0.0208541636909013}, ROC AUC: 0.9443368459510986
+
+Round 6: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.9444846206631218
+
+Round 7: Metrics: {'accuracy': 0.8984410659738071, 'precision': 0.012180476925716246, 'recall': 0.7244897959183674, 'f1_score': 0.02395815758393791}, ROC AUC: 0.9501424092428192
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+Round 4: Metrics: {'accuracy': 0.9771777676345634, 'precision': 0.05149253731343283, 'recall': 0.7040816326530612, 'f1_score': 0.09596662030598052}, ROC AUC: 0.9429145479942118
+
+Round 5: Metrics: {'accuracy': 0.879656613180717, 'precision': 0.010575112270027524, 'recall': 0.7448979591836735, 'f1_score': 0.0208541636909013}, ROC AUC: 0.9443368459510986
+
+Round 6: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.9444846206631218
+
+Round 7: Metrics: {'accuracy': 0.8984410659738071, 'precision': 0.012180476925716246, 'recall': 0.7244897959183674, 'f1_score': 0.02395815758393791}, ROC AUC: 0.9501424092428192
+
+Round 8: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.946007139842431
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+Round 4: Metrics: {'accuracy': 0.9771777676345634, 'precision': 0.05149253731343283, 'recall': 0.7040816326530612, 'f1_score': 0.09596662030598052}, ROC AUC: 0.9429145479942118
+
+Round 5: Metrics: {'accuracy': 0.879656613180717, 'precision': 0.010575112270027524, 'recall': 0.7448979591836735, 'f1_score': 0.0208541636909013}, ROC AUC: 0.9443368459510986
+
+Round 6: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.9444846206631218
+
+Round 7: Metrics: {'accuracy': 0.8984410659738071, 'precision': 0.012180476925716246, 'recall': 0.7244897959183674, 'f1_score': 0.02395815758393791}, ROC AUC: 0.9501424092428192
+
+Round 8: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.946007139842431
+
+Round 9: Metrics: {'accuracy': 0.991257329447702, 'precision': 0.1254681647940075, 'recall': 0.6836734693877551, 'f1_score': 0.21202531645569622}, ROC AUC: 0.9496264090188693
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+Round 4: Metrics: {'accuracy': 0.9771777676345634, 'precision': 0.05149253731343283, 'recall': 0.7040816326530612, 'f1_score': 0.09596662030598052}, ROC AUC: 0.9429145479942118
+
+Round 5: Metrics: {'accuracy': 0.879656613180717, 'precision': 0.010575112270027524, 'recall': 0.7448979591836735, 'f1_score': 0.0208541636909013}, ROC AUC: 0.9443368459510986
+
+Round 6: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.9444846206631218
+
+Round 7: Metrics: {'accuracy': 0.8984410659738071, 'precision': 0.012180476925716246, 'recall': 0.7244897959183674, 'f1_score': 0.02395815758393791}, ROC AUC: 0.9501424092428192
+
+Round 8: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.946007139842431
+
+Round 9: Metrics: {'accuracy': 0.991257329447702, 'precision': 0.1254681647940075, 'recall': 0.6836734693877551, 'f1_score': 0.21202531645569622}, ROC AUC: 0.9496264090188693
+
+Round 10: Metrics: {'accuracy': 0.991292440574418, 'precision': 0.12593984962406016, 'recall': 0.6836734693877551, 'f1_score': 0.2126984126984127}, ROC AUC: 0.9496062212166803
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.9990871107053826, 'precision': 0.8382352941176471, 'recall': 0.5816326530612245, 'f1_score': 0.6867469879518072}, ROC AUC: 0.9339722488601517
+
+Round 2: Metrics: {'accuracy': 0.8705979424879744, 'precision': 0.00997170192696402, 'recall': 0.7551020408163265, 'f1_score': 0.019683468546349246}, ROC AUC: 0.9400755149414859
+
+Round 3: Metrics: {'accuracy': 0.6900740844773708, 'precision': 0.004627539503386005, 'recall': 0.8367346938775511, 'f1_score': 0.009204175552811764}, ROC AUC: 0.9399007334363121
+
+Round 4: Metrics: {'accuracy': 0.9771777676345634, 'precision': 0.05149253731343283, 'recall': 0.7040816326530612, 'f1_score': 0.09596662030598052}, ROC AUC: 0.9429145479942118
+
+Round 5: Metrics: {'accuracy': 0.879656613180717, 'precision': 0.010575112270027524, 'recall': 0.7448979591836735, 'f1_score': 0.0208541636909013}, ROC AUC: 0.9443368459510986
+
+Round 6: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.9444846206631218
+
+Round 7: Metrics: {'accuracy': 0.8984410659738071, 'precision': 0.012180476925716246, 'recall': 0.7244897959183674, 'f1_score': 0.02395815758393791}, ROC AUC: 0.9501424092428192
+
+Round 8: Metrics: {'accuracy': 0.9913977739545662, 'precision': 0.12595419847328243, 'recall': 0.673469387755102, 'f1_score': 0.21221864951768485}, ROC AUC: 0.946007139842431
+
+Round 9: Metrics: {'accuracy': 0.991257329447702, 'precision': 0.1254681647940075, 'recall': 0.6836734693877551, 'f1_score': 0.21202531645569622}, ROC AUC: 0.9496264090188693
+
+Round 10: Metrics: {'accuracy': 0.991292440574418, 'precision': 0.12593984962406016, 'recall': 0.6836734693877551, 'f1_score': 0.2126984126984127}, ROC AUC: 0.9496062212166803
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+Round 4: Metrics: {'accuracy': 0.9726308767248341, 'precision': 0.04542626011200996, 'recall': 0.7448979591836735, 'f1_score': 0.08563049853372433}, ROC AUC: 0.9533509239373859
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+Round 4: Metrics: {'accuracy': 0.9726308767248341, 'precision': 0.04542626011200996, 'recall': 0.7448979591836735, 'f1_score': 0.08563049853372433}, ROC AUC: 0.9533509239373859
+
+Round 5: Metrics: {'accuracy': 0.9955233313437029, 'precision': 0.2264808362369338, 'recall': 0.6632653061224489, 'f1_score': 0.33766233766233766}, ROC AUC: 0.9512519308511249
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+Round 4: Metrics: {'accuracy': 0.9726308767248341, 'precision': 0.04542626011200996, 'recall': 0.7448979591836735, 'f1_score': 0.08563049853372433}, ROC AUC: 0.9533509239373859
+
+Round 5: Metrics: {'accuracy': 0.9955233313437029, 'precision': 0.2264808362369338, 'recall': 0.6632653061224489, 'f1_score': 0.33766233766233766}, ROC AUC: 0.9512519308511249
+
+Round 6: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9488488646021154
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+Round 4: Metrics: {'accuracy': 0.9726308767248341, 'precision': 0.04542626011200996, 'recall': 0.7448979591836735, 'f1_score': 0.08563049853372433}, ROC AUC: 0.9533509239373859
+
+Round 5: Metrics: {'accuracy': 0.9955233313437029, 'precision': 0.2264808362369338, 'recall': 0.6632653061224489, 'f1_score': 0.33766233766233766}, ROC AUC: 0.9512519308511249
+
+Round 6: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9488488646021154
+
+Round 7: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498233522446683
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+Round 4: Metrics: {'accuracy': 0.9726308767248341, 'precision': 0.04542626011200996, 'recall': 0.7448979591836735, 'f1_score': 0.08563049853372433}, ROC AUC: 0.9533509239373859
+
+Round 5: Metrics: {'accuracy': 0.9955233313437029, 'precision': 0.2264808362369338, 'recall': 0.6632653061224489, 'f1_score': 0.33766233766233766}, ROC AUC: 0.9512519308511249
+
+Round 6: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9488488646021154
+
+Round 7: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498233522446683
+
+Round 8: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498480262251214
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+Round 4: Metrics: {'accuracy': 0.9726308767248341, 'precision': 0.04542626011200996, 'recall': 0.7448979591836735, 'f1_score': 0.08563049853372433}, ROC AUC: 0.9533509239373859
+
+Round 5: Metrics: {'accuracy': 0.9955233313437029, 'precision': 0.2264808362369338, 'recall': 0.6632653061224489, 'f1_score': 0.33766233766233766}, ROC AUC: 0.9512519308511249
+
+Round 6: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9488488646021154
+
+Round 7: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498233522446683
+
+Round 8: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498480262251214
+
+Round 9: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9501753377912786
+
+--- End of Round 9 ---
+
+--- Communication Round 10 ---
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+Round 4: Metrics: {'accuracy': 0.9726308767248341, 'precision': 0.04542626011200996, 'recall': 0.7448979591836735, 'f1_score': 0.08563049853372433}, ROC AUC: 0.9533509239373859
+
+Round 5: Metrics: {'accuracy': 0.9955233313437029, 'precision': 0.2264808362369338, 'recall': 0.6632653061224489, 'f1_score': 0.33766233766233766}, ROC AUC: 0.9512519308511249
+
+Round 6: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9488488646021154
+
+Round 7: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498233522446683
+
+Round 8: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498480262251214
+
+Round 9: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9501753377912786
+
+Round 10: Metrics: {'accuracy': 0.9967873319054809, 'precision': 0.2946859903381642, 'recall': 0.6224489795918368, 'f1_score': 0.39999999999999997}, ROC AUC: 0.9483730605354127
+
+--- End of Round 10 ---
+
+All Rounds Completed. Metrics Collected:
+
+Round 1: Metrics: {'accuracy': 0.9990695551420246, 'precision': 0.8082191780821918, 'recall': 0.6020408163265306, 'f1_score': 0.6900584795321637}, ROC AUC: 0.9464738818290399
+
+Round 2: Metrics: {'accuracy': 0.9359397493065552, 'precision': 0.019745739789018123, 'recall': 0.7448979591836735, 'f1_score': 0.03847167325428195}, ROC AUC: 0.9494457057583866
+
+Round 3: Metrics: {'accuracy': 0.9866226607211825, 'precision': 0.085, 'recall': 0.6938775510204082, 'f1_score': 0.15144766146993321}, ROC AUC: 0.9522503746856086
+
+Round 4: Metrics: {'accuracy': 0.9726308767248341, 'precision': 0.04542626011200996, 'recall': 0.7448979591836735, 'f1_score': 0.08563049853372433}, ROC AUC: 0.9533509239373859
+
+Round 5: Metrics: {'accuracy': 0.9955233313437029, 'precision': 0.2264808362369338, 'recall': 0.6632653061224489, 'f1_score': 0.33766233766233766}, ROC AUC: 0.9512519308511249
+
+Round 6: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9488488646021154
+
+Round 7: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498233522446683
+
+Round 8: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9498480262251214
+
+Round 9: Metrics: {'accuracy': 0.99750711000316, 'precision': 0.3674698795180723, 'recall': 0.6224489795918368, 'f1_score': 0.46212121212121215}, ROC AUC: 0.9501753377912786
+
+Round 10: Metrics: {'accuracy': 0.9967873319054809, 'precision': 0.2946859903381642, 'recall': 0.6224489795918368, 'f1_score': 0.39999999999999997}, ROC AUC: 0.9483730605354127
+
+--- Communication Round 1 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+--- End of Round 1 ---
+
+--- Communication Round 2 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+Round 2: Metrics: {'accuracy': 0.8939292861907938, 'precision': 0.01326564035375041, 'recall': 0.826530612244898, 'f1_score': 0.02611218568665377}, ROC AUC: 0.9441292256210306
+
+--- End of Round 2 ---
+
+--- Communication Round 3 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+Round 2: Metrics: {'accuracy': 0.8939292861907938, 'precision': 0.01326564035375041, 'recall': 0.826530612244898, 'f1_score': 0.02611218568665377}, ROC AUC: 0.9441292256210306
+
+Round 3: Metrics: {'accuracy': 0.9814964362206383, 'precision': 0.06545454545454546, 'recall': 0.7346938775510204, 'f1_score': 0.12020033388981638}, ROC AUC: 0.9354682098641369
+
+--- End of Round 3 ---
+
+--- Communication Round 4 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+Round 2: Metrics: {'accuracy': 0.8939292861907938, 'precision': 0.01326564035375041, 'recall': 0.826530612244898, 'f1_score': 0.02611218568665377}, ROC AUC: 0.9441292256210306
+
+Round 3: Metrics: {'accuracy': 0.9814964362206383, 'precision': 0.06545454545454546, 'recall': 0.7346938775510204, 'f1_score': 0.12020033388981638}, ROC AUC: 0.9354682098641369
+
+Round 4: Metrics: {'accuracy': 0.990010884449282, 'precision': 0.10945273631840796, 'recall': 0.673469387755102, 'f1_score': 0.18830242510699}, ROC AUC: 0.9347538308373434
+
+--- End of Round 4 ---
+
+--- Communication Round 5 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+Round 2: Metrics: {'accuracy': 0.8939292861907938, 'precision': 0.01326564035375041, 'recall': 0.826530612244898, 'f1_score': 0.02611218568665377}, ROC AUC: 0.9441292256210306
+
+Round 3: Metrics: {'accuracy': 0.9814964362206383, 'precision': 0.06545454545454546, 'recall': 0.7346938775510204, 'f1_score': 0.12020033388981638}, ROC AUC: 0.9354682098641369
+
+Round 4: Metrics: {'accuracy': 0.990010884449282, 'precision': 0.10945273631840796, 'recall': 0.673469387755102, 'f1_score': 0.18830242510699}, ROC AUC: 0.9347538308373434
+
+Round 5: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9087738341678822
+
+--- End of Round 5 ---
+
+--- Communication Round 6 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+Round 2: Metrics: {'accuracy': 0.8939292861907938, 'precision': 0.01326564035375041, 'recall': 0.826530612244898, 'f1_score': 0.02611218568665377}, ROC AUC: 0.9441292256210306
+
+Round 3: Metrics: {'accuracy': 0.9814964362206383, 'precision': 0.06545454545454546, 'recall': 0.7346938775510204, 'f1_score': 0.12020033388981638}, ROC AUC: 0.9354682098641369
+
+Round 4: Metrics: {'accuracy': 0.990010884449282, 'precision': 0.10945273631840796, 'recall': 0.673469387755102, 'f1_score': 0.18830242510699}, ROC AUC: 0.9347538308373434
+
+Round 5: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9087738341678822
+
+Round 6: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9122767318801466
+
+--- End of Round 6 ---
+
+--- Communication Round 7 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+Round 2: Metrics: {'accuracy': 0.8939292861907938, 'precision': 0.01326564035375041, 'recall': 0.826530612244898, 'f1_score': 0.02611218568665377}, ROC AUC: 0.9441292256210306
+
+Round 3: Metrics: {'accuracy': 0.9814964362206383, 'precision': 0.06545454545454546, 'recall': 0.7346938775510204, 'f1_score': 0.12020033388981638}, ROC AUC: 0.9354682098641369
+
+Round 4: Metrics: {'accuracy': 0.990010884449282, 'precision': 0.10945273631840796, 'recall': 0.673469387755102, 'f1_score': 0.18830242510699}, ROC AUC: 0.9347538308373434
+
+Round 5: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9087738341678822
+
+Round 6: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9122767318801466
+
+Round 7: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9066197508125367
+
+--- End of Round 7 ---
+
+--- Communication Round 8 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+Round 2: Metrics: {'accuracy': 0.8939292861907938, 'precision': 0.01326564035375041, 'recall': 0.826530612244898, 'f1_score': 0.02611218568665377}, ROC AUC: 0.9441292256210306
+
+Round 3: Metrics: {'accuracy': 0.9814964362206383, 'precision': 0.06545454545454546, 'recall': 0.7346938775510204, 'f1_score': 0.12020033388981638}, ROC AUC: 0.9354682098641369
+
+Round 4: Metrics: {'accuracy': 0.990010884449282, 'precision': 0.10945273631840796, 'recall': 0.673469387755102, 'f1_score': 0.18830242510699}, ROC AUC: 0.9347538308373434
+
+Round 5: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9087738341678822
+
+Round 6: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9122767318801466
+
+Round 7: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9066197508125367
+
+Round 8: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9100800298312909
+
+--- End of Round 8 ---
+
+--- Communication Round 9 ---
+
+Round 1: Metrics: {'accuracy': 0.9985077771145676, 'precision': 0.5670103092783505, 'recall': 0.5612244897959183, 'f1_score': 0.5641025641025641}, ROC AUC: 0.942713567207975
+
+Round 2: Metrics: {'accuracy': 0.8939292861907938, 'precision': 0.01326564035375041, 'recall': 0.826530612244898, 'f1_score': 0.02611218568665377}, ROC AUC: 0.9441292256210306
+
+Round 3: Metrics: {'accuracy': 0.9814964362206383, 'precision': 0.06545454545454546, 'recall': 0.7346938775510204, 'f1_score': 0.12020033388981638}, ROC AUC: 0.9354682098641369
+
+Round 4: Metrics: {'accuracy': 0.990010884449282, 'precision': 0.10945273631840796, 'recall': 0.673469387755102, 'f1_score': 0.18830242510699}, ROC AUC: 0.9347538308373434
+
+Round 5: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9087738341678822
+
+Round 6: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9122767318801466
+
+Round 7: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9066197508125367
+
+Round 8: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9100800298312909
+
+Round 9: Metrics: {'accuracy': 0.9930128857835048, 'precision': 0.14454976303317535, 'recall': 0.6224489795918368, 'f1_score': 0.23461538461538461}, ROC AUC: 0.9043099073478575
+
+--- End of Round 9 ---
+

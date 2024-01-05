@@ -45,7 +45,7 @@ print(f"{torch.cuda.is_available()}")
 device = torch.device("cpu") #$torch.device("cuda" if torch.cuda.is_available() else "cpu") #torch.device("cpu") #
 
 
-# In[6]:
+# In[5]:
 
 
 import itertools
@@ -53,6 +53,7 @@ import matplotlib.pyplot as plt
 #import plotly.graph_objs as go
 import pandas as pd
 import concurrent.futures
+import threading  # Import the threading module
 
 if True:
 
@@ -85,32 +86,56 @@ if True:
     # List to store all results
     results = []
 
-    # Prepare the dataset (assuming prepare_dataset function and data are defined)
+    # Function to write data to a file
+    def write_to_file(file_path, data, mode='a'):
+        with open(file_path, mode) as file:
+            file.write(data + "\n")
+
+    # Prepare the dataset
+    # Assuming prepare_dataset function and data are defined
     X = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values
     client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance="centroids")
 
+    # Initialize a lock and a shared variable for progress tracking
+    lock = threading.Lock()
+    completed_experiments = 0
+    total_experiments = len(num_sigma_values) * len(kappa_join_values) * len(N_r_values)
+
     # Function to execute model training and evaluation
     def train_evaluate_model(params):
+        global completed_experiments
+        
         num_sigma, kappa_join, N_r = params
         local_model_params.update({"num_sigma": num_sigma, "kappa_join": kappa_join, "N_r": N_r})
 
         local_model = eGAUSSp(**local_model_params)
         train_supervised(local_model, client_train[0])
 
-        _, pred_max, _ = test_model_in_batches(local_model, test_data, batch_size = 1)
+        _, pred_max, _ = test_model_in_batches(local_model, test_data, batch_size = 1000)
         metrics = calculate_metrics(pred_max, test_data, weight="binary")
         f1_score = metrics["f1_score"]
 
-        print(f"num_sigma={num_sigma}, kappa_join={kappa_join}, N_r={N_r}, F1 Score: {f1_score}")
+        result_str = f"num_sigma={num_sigma}, kappa_join={kappa_join}, N_r={N_r}, F1 Score: {f1_score}"
+        print(result_str)
+        write_to_file("experiment_results.txt", result_str)  # Write results to file
+        
+        # Update progress
+        with lock:
+            completed_experiments += 1
+            progress = (completed_experiments / total_experiments) * 100
+            print(f"Progress: {completed_experiments}/{total_experiments} ({progress:.2f}%)")
+
         return {"num_sigma": num_sigma, "kappa_join": kappa_join, "N_r": N_r, "f1_score": f1_score}
+        
+
+    # Write initial setup data to file
+    initial_setup_str = f"Initial Setup: num_clients={num_clients}, num_sigma_values={num_sigma_values}, kappa_join_values={kappa_join_values}, N_r_values={N_r_values}"
+    write_to_file("experiment_results.txt", initial_setup_str, mode='w')  # 'w' to overwrite if exists
 
     # Using ThreadPoolExecutor to run in multiple threads
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Create all parameter combinations
         param_combinations = list(itertools.product(num_sigma_values, kappa_join_values, N_r_values))
-        
-        # Execute the training and evaluation in parallel
         results = list(executor.map(train_evaluate_model, param_combinations))
 
     # Find best parameters and score
@@ -118,11 +143,11 @@ if True:
     best_score = best_result["f1_score"]
     best_params = {k: best_result[k] for k in ["num_sigma", "kappa_join", "N_r"]}
 
+    # After completing all experiments, print final results
     print(f"Best F1 Score: {best_score}")
     print(f"Best Parameters: {best_params}")
-
     results_df = pd.DataFrame(results)
-    
+
 '''
     # Creating a 3D scatter plot
     fig = go.Figure(data=[go.Scatter3d(
@@ -162,11 +187,11 @@ local_model_params = {
     "num_classes": 2,
     "kappa_n": 1,
     "num_sigma": 5,
-    "kappa_join": 0.7,
+    "kappa_join": 0.5,
     "S_0": 1e-10,
-    "N_r": 10,
+    "N_r": 30,
     "c_max": 100,
-    "num_samples": 200,
+    "num_samples": 100,
     "device": device
 }
 
@@ -175,11 +200,11 @@ federated_model_params = {
     "num_classes": 2,
     "kappa_n": 1,
     "num_sigma": 5,
-    "kappa_join": 0.7,
+    "kappa_join": 0.5,
     "S_0": 1e-10,
-    "N_r": 10,
+    "N_r": 30,
     "c_max": 100,
-    "num_samples": 200,
+    "num_samples": 100,
     "device": device
 }
 
@@ -347,8 +372,8 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
             #local_models[client_idx] = federated_model
             
             local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n)
-            #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
-            #local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].score)
+            local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
+            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].score)
 
             #local_models[client_idx].federal_agent.federated_merging()
             

@@ -138,11 +138,12 @@ class eGAUSSp(torch.nn.Module):
                     #     print("removal?")
                         #Removal mechanism
                     
-                    if len(self.matching_clusters) > self.c_max:
+                    #if len(self.matching_clusters) > self.c_max:
+
                         #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1)*(self.num_pred[:self.c] > self.kappa_n))[0] #
                         #self.merging_mech.valid_clusters = self.matching_clusters
                         #self.removal_mech.remove_overlapping()
-                        self.removal_mech.removal_mechanism()
+                        #self.removal_mech.removal_mechanism()
                     
                     # S_inv_ = torch.linalg.inv((self.S[:self.c]/
                     #             self.n[:self.c].view(-1, 1, 1))*
@@ -150,7 +151,7 @@ class eGAUSSp(torch.nn.Module):
                     # S_inv = self.S_inv[:self.c]
                     # if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>1e-4):
                     #     print("removal?")
-        
+        '''
         scores, preds, clusters = test_model_in_batches(self, (data, labels))
 
         # Generate a range tensor of valid cluster indices
@@ -166,7 +167,8 @@ class eGAUSSp(torch.nn.Module):
             # Remove clusters that don't contribute significantly
             for cluster_index in clusters_to_remove:
                 self.removal_mech.remove_cluster(cluster_index)
-
+        '''
+        
         '''
         preds_list = preds.tolist()
         true_labels_list = labels.tolist()
