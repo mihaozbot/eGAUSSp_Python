@@ -350,11 +350,22 @@ class RemovalMechanism:
 
 
                 # Get the scores of the clusters in the pair
-                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row]].item()*self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
-                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col]].item()*self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
+                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row]].item() #*self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
+                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col]].item() #*self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
+
+                # Determine which cluster of the pair to remove
+                if score_row < score_col:
+                    cluster_to_remove_idx = row
+                elif score_row > score_col:
+                    cluster_to_remove_idx = col
+                else:
+                    # If scores are equal, compare the number of predictions
+                    num_pred_row = self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
+                    num_pred_col = self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
+                    cluster_to_remove_idx = row if num_pred_row < num_pred_col else col
+
 
                 # Determine which cluster of the pair to remove based on the smallest score
-                cluster_to_remove_idx = row if score_row < score_col else col
                 cluster_to_remove = self.parent.merging_mech.valid_clusters[cluster_to_remove_idx]
 
 

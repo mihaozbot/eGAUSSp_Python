@@ -51,9 +51,9 @@ class FederalOps:
                 self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
                 self.parent.removal_mech.remove_overlapping()
 
-                #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
-                #self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                #self.parent.removal_mech.removal_mechanism()
+                self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
+                self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
+                self.parent.removal_mech.removal_mechanism()
 
     def merge_model_statistics(self, model):
         ''' Merge the global statistical parameters of another model into the current federated model. '''

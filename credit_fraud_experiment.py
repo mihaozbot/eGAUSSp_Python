@@ -28,6 +28,7 @@ from model.eGauss_plus import eGAUSSp
 file_path = 'Datasets/creditcard.csv'
 data = pd.read_csv(file_path)
 
+'''
 # Initialize the StandardScaler
 scaler = StandardScaler()
 
@@ -36,6 +37,7 @@ cols_to_normalize = [col for col in data.columns if col != 'Class']
 
 # Apply the normalization
 data[cols_to_normalize] = scaler.fit_transform(data[cols_to_normalize])
+'''
 
 
 # In[4]:
@@ -55,7 +57,7 @@ import pandas as pd
 import concurrent.futures
 import threading  # Import the threading module
 
-if True:
+if False:
 
     num_clients = 1
 
@@ -186,12 +188,12 @@ local_model_params = {
     "feature_dim": 30,
     "num_classes": 2,
     "kappa_n": 1,
-    "num_sigma": 5,
+    "num_sigma": 10,
     "kappa_join": 0.5,
     "S_0": 1e-10,
-    "N_r": 4,
+    "N_r": 20,
     "c_max": 100,
-    "num_samples": 100,
+    "num_samples": 1000,
     "device": device
 }
 
@@ -199,12 +201,12 @@ federated_model_params = {
     "feature_dim": 30,
     "num_classes": 2,
     "kappa_n": 1,
-    "num_sigma": 5,
+    "num_sigma": 10,
     "kappa_join": 0.5,
     "S_0": 1e-10,
-    "N_r": 4,
+    "N_r": 20,
     "c_max": 100,
-    "num_samples": 100,
+    "num_samples": 1000,
     "device": device
 }
 
@@ -269,9 +271,10 @@ def write_to_file(file_path, data, mode='a'):
 
 
 import torch.nn as nn
+from concurrent.futures import ThreadPoolExecutor
 
-def run_experiment(num_clients, num_rounds, clients_data, test_data):
-        
+def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance):
+       
     # Initialize a model for each client
     local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)]
     federated_model = eGAUSSp(**federated_model_params)
@@ -284,11 +287,23 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
         print(f"--- Communication Round {round + 1} ---")
         round_info = f"--- Communication Round {round + 1} ---\n"
 
+        # Function to balance data for a single client
+        def balance_client_data(client_data):
+            client_X, client_y = client_data
+            balanced_X, balanced_y = balance_dataset(client_X, client_y, technique=balance)
+            return balanced_X, balanced_y
+
+        # Balance data for each client in this round using threads
+        with ThreadPoolExecutor(max_workers=num_clients) as executor:
+            client_train = list(executor.map(balance_client_data, client_raw_data))
+
+        display_dataset_split(client_train, test_data)
+        
         aggregated_model = eGAUSSp(**federated_model_params)
         federated_model = eGAUSSp(**federated_model_params)
 
         # Train local models
-        train_models_in_threads(local_models, clients_data)
+        train_models_in_threads(local_models, client_train)
         
         '''
         for local_model, client_data in zip(local_models, clients_data):
@@ -310,9 +325,9 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
             # Run the forward function on the training data
             
             
-            all_scores, pred_max, _ = test_model_in_batches(client_model, clients_data[client_idx], batch_size=300)
-            binary = calculate_metrics(pred_max, clients_data[client_idx], "binary")
-            roc_auc = calculate_roc_auc(all_scores, clients_data[client_idx])
+            all_scores, pred_max, _ = test_model_in_batches(client_model, client_train[client_idx], batch_size=300)
+            binary = calculate_metrics(pred_max, client_train[client_idx], "binary")
+            roc_auc = calculate_roc_auc(all_scores, client_train[client_idx])
             print(f"Test Metrics: {binary}")
             print(f"Test ROC AUC: {roc_auc}")
            # plot_confusion_matrix(pred_max, clients_data[client_idx])
@@ -328,7 +343,7 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
             aggregated_model.federal_agent.merge_model_privately(client_model, client_model.kappa_n)
             print(f"Number of agreggated clusters after transfer = {sum(aggregated_model.n[0:aggregated_model.c]> aggregated_model.kappa_n)}")
                 
-        aggregated_model.federal_agent.federated_merging()
+        #aggregated_model.federal_agent.federated_merging()
         print(f"Number of agreggated clusters after merging = {sum(aggregated_model.n[0:aggregated_model.c]> aggregated_model.kappa_n)}")
 
                 
@@ -398,7 +413,8 @@ def run_experiment(num_clients, num_rounds, clients_data, test_data):
         print(f"--- End of Round {round + 1} ---\n")
         #if  round == (num_rounds-1):
         #    pass
-        plot_interesting_features(clients_data[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
+        plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
+        plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
         #test_data, clients_data[0]
         # Write round information and results to file
         write_to_file(result_file, round_info)
@@ -430,33 +446,34 @@ data_config_indices = [1, 3, 1]  # Replace with your actual data configuration i
 
 # Assuming local_models, client_train, federated_model, and test_data are already defined
 # Number of communication rounds
-num_rounds = 10
+num_rounds = 100
 profiler = False
 experiments = []
 # Running the experiment
 for num_clients in client_counts:
     for data_config_index in data_config_indices:
+        X = data.iloc[:, :-1].values
+        y = data.iloc[:, -1].values
+        client_train, test_data, all_data = prepare_dataset(X, y, num_clients) 
+        balance= None
         if data_config_index == 1:
-            X = data.iloc[:, :-1].values
-            y = data.iloc[:, -1].values
-            client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance = 'random') 
-                    #'random': RandomUnderSampler(random_state=None),
-                    #'tomek': TomekLinks(),
-                    #'centroids': ClusterCentroids(random_state=None),
-                    #'nearmiss': NearMiss(version=2),
-                    #'enn': AllKNN(sampling_strategy='all'), NO
-                    #'smote': SMOTE(random_state=None), NO
-                    #'one_sided_selection': OneSidedSelection(random_state=None), NO
-                    #'ncr': NeighbourhoodCleaningRule(), NO
-                    #'function_sampler': FunctionSampler(),  # Identity resampler NO
-                    #'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
-                        
-        if data_config_index == 3:
-            X = data.iloc[:, :-1].values
-            y = data.iloc[:, -1].values
-            client_train, test_data, all_data = prepare_dataset(X, y, num_clients, balance = 'function_sampler') 
 
-        display_dataset_split(client_train, test_data)
+            balance = 'centroids'
+                #'random': RandomUnderSampler(random_state=None),
+                #'tomek': TomekLinks(),
+                #'centroids': ClusterCentroids(random_state=None),
+                #'nearmiss': NearMiss(version=2),
+                #'enn': AllKNN(sampling_strategy='all'), NO
+                #'smote': SMOTE(random_state=None), NO
+                #'one_sided_selection': OneSidedSelection(random_state=None), NO
+                #'ncr': NeighbourhoodCleaningRule(), NO
+                #'function_sampler': FunctionSampler(),  # Identity resampler NO
+                #'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
+        elif data_config_index == 2:    
+             balance = 'Smote'       
+        elif data_config_index == 3:
+
+            balance = None
         
         print(f"Running experiment with {num_clients} clients and data configuration {data_config_index}")
         if profiler:
@@ -469,7 +486,7 @@ for num_clients in client_counts:
             pr = cProfile.Profile()
             pr.enable()
             yappi.start()
-            metrics =  run_experiment(num_clients, num_rounds, client_train, test_data)
+            metrics = run_experiment(num_clients, num_rounds, client_train, test_data, balance)
             yappi.stop()
             pr.disable()
 
@@ -478,7 +495,7 @@ for num_clients in client_counts:
             yappi.get_func_stats().print_all()   
                    
         else:
-            metrics = run_experiment(num_clients, num_rounds, client_train, test_data)
+            metrics = run_experiment(num_clients, num_rounds, client_train, test_data, balance)
             experiments.append(metrics)
 
 

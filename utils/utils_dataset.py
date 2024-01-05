@@ -8,13 +8,12 @@ from imblearn.over_sampling import SMOTE
 from imblearn.pipeline import Pipeline
 import numbers
 from imblearn.under_sampling import (RandomUnderSampler, TomekLinks, ClusterCentroids, NearMiss, 
-                                     AllKNN, OneSidedSelection, 
+                                     AllKNN, OneSidedSelection, CondensedNearestNeighbour,
                                      NeighbourhoodCleaningRule, InstanceHardnessThreshold)
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.over_sampling import SMOTE
-from imblearn.pipeline import make_pipeline
 from imblearn import FunctionSampler
-from sklearn.linear_model import LogisticRegression
+
 
 #from imblearn.over_sampling import SMOTE
 
@@ -104,17 +103,19 @@ def balance_dataset(X, y, technique='random'):
     :param technique: Technique for balancing.
     :return: Balanced feature and label arrays.
     """
+
+
     samplers = {
         'random': RandomUnderSampler(random_state=None),
         'tomek': TomekLinks(),
-        'centroids': ClusterCentroids(random_state=None),
+        'centroids': ClusterCentroids(random_state=None, voting='soft'),
         'nearmiss': NearMiss(version=2),
         'enn': AllKNN(),
+        'CondensedNearestNeighbour':CondensedNearestNeighbour(n_neighbors=1),
         'smote': SMOTE(random_state=None),
-        'one_sided_selection': OneSidedSelection(random_state=None),
+        'one_sided_selection': OneSidedSelection(random_state=None,n_neighbors=1, n_seeds_S=100),
         'ncr': NeighbourhoodCleaningRule(),
         'function_sampler': FunctionSampler(),  # Identity resampler
-        'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
     }
 
     if isinstance(technique, int) or isinstance(technique, numbers.Number):
@@ -128,8 +129,8 @@ def balance_dataset(X, y, technique='random'):
             X, y = oversampler.fit_resample(X, y)
 
         # Undersample the majority classes
-        #undersample_strategy = {label: technique for label in unique_classes}
-        sampler = RandomUnderSampler(random_state=None)
+        undersample_strategy = {label: technique for label in unique_classes}
+        sampler = RandomUnderSampler(sampling_strategy = undersample_strategy, random_state=None)
         X, y = sampler.fit_resample(X, y)
     elif technique in samplers:
         sampler = samplers[technique]
