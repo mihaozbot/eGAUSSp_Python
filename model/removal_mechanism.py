@@ -319,45 +319,54 @@ class RemovalMechanism:
             for cluster_id in clusters_to_remove:
                 self.remove_cluster(cluster_id)
 
-
     def remove_overlapping(self):
         # Compute the volume and kappa initially
         self.parent.merging_mech.compute_volume()
         self.parent.merging_mech.compute_kappa()
 
         with torch.no_grad():
-            while True:
-                # Check if there are no clusters to remove
+            while len(self.parent.merging_mech.valid_clusters) > self.parent.c_max:
+                # Identify the smallest kappa value
+
                 if len(self.parent.merging_mech.valid_clusters) < 2:
                     break
 
-                # Identify clusters that need to be removed based on the kappa condition
-                rows, cols = torch.where(self.parent.merging_mech.kappa < self.parent.kappa_join)
-
-                # If no overlapping clusters are found, break the loop
+                # Find the pair of clusters with the smallest kappa value
+                rows, cols = torch.where(self.parent.merging_mech.kappa)
                 if rows.nelement() == 0 or cols.nelement() == 0:
                     break
+
+                # Flatten the kappa matrix and find the global minimum
+                kappa_flat = self.parent.merging_mech.kappa.view(-1)
+                min_kappa_value, min_kappa_flat_idx = torch.min(kappa_flat, 0)
+
+
+                # Check if the minimum kappa value is infinite
+                if torch.isinf(min_kappa_value):
+                    print("Minimum kappa value is infinite. Exiting removal process.")
+                    break
                 
-                valid_clusters = self.parent.merging_mech.valid_clusters
+                # Convert the flat index back to a 2D index
+                row, col = divmod(min_kappa_flat_idx.item(), self.parent.merging_mech.kappa.shape[1])
 
-                # Gather scores for each cluster in the identified pairs
-                scores_row = self.parent.score[valid_clusters[rows]]
-                scores_col = self.parent.score[valid_clusters[cols]]
 
-                # Determine the index with the smaller score and select that cluster
-                smaller_score_index = torch.argmin(torch.where(scores_row < scores_col, scores_row, scores_col))
-                if scores_row[smaller_score_index] < scores_col[smaller_score_index]:
-                    cluster_to_remove_idx = rows[smaller_score_index].item()
-                else:
-                    cluster_to_remove_idx = cols[smaller_score_index].item()
+                # Get the scores of the clusters in the pair
+                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row]].item()*self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
+                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col]].item()*self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
 
-                # Actual cluster index to remove
-                cluster_to_remove = valid_clusters[cluster_to_remove_idx]
+                # Determine which cluster of the pair to remove based on the smallest score
+                cluster_to_remove_idx = row if score_row < score_col else col
+                cluster_to_remove = self.parent.merging_mech.valid_clusters[cluster_to_remove_idx]
 
-                # Remove cluster
+
+                # Remove the selected cluster
                 self.remove_cluster(cluster_to_remove)
 
-                # Update kappa by removing the corresponding row and column
+                # Update kappa and valid_clusters
+                self.parent.merging_mech.valid_clusters = torch.cat([
+                    self.parent.merging_mech.valid_clusters[:cluster_to_remove_idx],
+                    self.parent.merging_mech.valid_clusters[cluster_to_remove_idx + 1:]
+                ])
                 self.parent.merging_mech.kappa = torch.cat([
                     self.parent.merging_mech.kappa[:cluster_to_remove_idx],
                     self.parent.merging_mech.kappa[cluster_to_remove_idx + 1:]
@@ -367,19 +376,8 @@ class RemovalMechanism:
                     self.parent.merging_mech.kappa[:, cluster_to_remove_idx + 1:]
                 ], dim=1)
 
-                # Update valid_clusters
-                # Update valid_clusters by creating a new tensor excluding the removed cluster
-                valid_clusters = torch.cat([
-                    valid_clusters[:cluster_to_remove_idx],
-                    valid_clusters[cluster_to_remove_idx + 1:]
-                ])
-
-                # Update the reference in merging_mech
-                self.parent.merging_mech.valid_clusters = valid_clusters
-
 
     def remove_score(self):
-
         if self.parent.c < 2:
             return
 
@@ -387,16 +385,18 @@ class RemovalMechanism:
         num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
         if num_clusters_to_remove > 0:
-            
-            # Sort remaining clusters by score and identify those to remove
-            all_scores = self.parent.score[self.parent.matching_clusters]*self.parent.num_pred[self.parent.matching_clusters]
-            _, indices_to_remove = torch.topk(all_scores, num_clusters_to_remove, largest=False)
+            # Create a composite score for each cluster
+            # Lower score is better, and in case of a tie, lower num_pred is better
+            composite_scores = [(self.parent.score[i], self.parent.num_pred[i]) for i in self.parent.matching_clusters]
 
-            # Sort indices in descending order for safe removal
-            indices_to_remove = indices_to_remove.sort(descending=True)[0]
-        
+            # Sort the clusters by composite score
+            sorted_indices = sorted(range(len(composite_scores)), key=lambda i: composite_scores[i])
+
+            # Get the indices of clusters to remove
+            indices_to_remove = sorted_indices[:num_clusters_to_remove]
+
             with torch.no_grad():
-                # Remove additional low scoring clusters
+                # Remove the selected clusters
                 for index in indices_to_remove:
                     self.remove_cluster(self.parent.matching_clusters[index])
 

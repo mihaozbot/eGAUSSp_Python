@@ -37,7 +37,7 @@ class MergingMechanism:
         # Calculate the new covariance matrix for the merged cluster
         S_ij = (S_i + S_j) + (self.parent.n[i_all] * self.parent.n[j_all] / n_ij * torch.outer(mu_diff, mu_diff))
 
-        score_ij = (self.parent.n[i_all] * self.parent.score[i_all]+ self.parent.n[j_all] * self.parent.score[j_all]) / n_ij
+        score_ij = self.parent.score[i_all]* self.parent.score[j_all]
         num_pred_ij = self.parent.num_pred[i_all] + self.parent.num_pred[j_all]
 
         # Perform the merging operation
@@ -296,7 +296,7 @@ class MergingMechanism:
         V_ratio = (self.V/V_S_0)
         
         # Filtering kappa based on conditions
-        kappa_filter = (self.kappa == 0) + (V_ratio > self.parent.num_sigma*np.sqrt(self.parent.feature_dim))
+        kappa_filter = (self.kappa == 0) # + (V_ratio > self.parent.feature_dim)
         self.kappa[kappa_filter] = float("inf")
         self.kappa.fill_diagonal_(float("inf"))
 
@@ -328,8 +328,8 @@ class MergingMechanism:
         V_ratio_col = (self.V[:, i] / V_S_0)
 
         # Filtering kappa based on conditions for the i-th row and column
-        kappa_filter_row = (self.kappa[i, :] == 0) + (V_ratio_i > self.parent.N_r)
-        kappa_filter_col = (self.kappa[:, i] == 0) + (V_ratio_col > self.parent.N_r)
+        kappa_filter_row = (self.kappa[i, :] == 0) # + (V_ratio_i > self.parent.feature_dim)
+        kappa_filter_col = (self.kappa[:, i] == 0) # + (V_ratio_col > self.parent.feature_dim)
         self.kappa[i, kappa_filter_row] = float("inf")
         self.kappa[kappa_filter_col, i] = float("inf")
 

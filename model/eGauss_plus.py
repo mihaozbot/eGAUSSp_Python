@@ -91,14 +91,19 @@ class eGAUSSp(torch.nn.Module):
         self.federal_agent.federated_merging()
 
     def clustering(self, data, labels):
+        sample_count = 0  # Initialize a counter for samples processed
 
         for (z, label) in zip(data, labels):
+            sample_count += 1  # Increment the sample counter
+
+            # Progress update every 10,000 samples
+            if sample_count % 1000 == 0:
+                print(f"Processed {sample_count} samples...")
 
             # Check if the model is in evaluation mode
             # In evaluation mode, match all clusters
                 # Update global statistics
             self.clusterer.update_global_statistics(z, label)
-            
             
             # In training mode, match clusters based on the label
             self.matching_clusters = torch.arange(self.c, dtype=torch.int32, device=self.device)
@@ -138,11 +143,11 @@ class eGAUSSp(torch.nn.Module):
                     #     print("removal?")
                         #Removal mechanism
                     
-                    #if len(self.matching_clusters) > self.c_max:
+                    if len(self.matching_clusters) > self.c_max:
 
-                        #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1)*(self.num_pred[:self.c] > self.kappa_n))[0] #
-                        #self.merging_mech.valid_clusters = self.matching_clusters
-                        #self.removal_mech.remove_overlapping()
+                        self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
+                        self.merging_mech.valid_clusters = self.matching_clusters
+                        self.removal_mech.remove_overlapping()
                         #self.removal_mech.removal_mechanism()
                     
                     # S_inv_ = torch.linalg.inv((self.S[:self.c]/
@@ -205,7 +210,7 @@ class eGAUSSp(torch.nn.Module):
         self.matching_clusters = torch.arange(self.c).repeat(data.shape[0], 1)
         self.Gamma = self.mathematician.compute_batched_activation(data)
     
-        self.Gamma *= self.score[:self.c].unsqueeze(0)
+        #self.Gamma *= self.score[:self.c].unsqueeze(0)
         #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
 
         # Evolving mechanisms can be handled here if they can be batch processed

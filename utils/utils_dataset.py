@@ -265,7 +265,7 @@ def balance_dataset(X, y, technique='random'):
         'tomek': TomekLinks(),
         'centroids': ClusterCentroids(random_state=None),
         'nearmiss': NearMiss(version=2),
-        'enn': AllKNN(sampling_strategy='all'),
+        'enn': AllKNN(),
         'smote': SMOTE(random_state=None),
         'one_sided_selection': OneSidedSelection(random_state=None),
         'ncr': NeighbourhoodCleaningRule(),
@@ -284,8 +284,8 @@ def balance_dataset(X, y, technique='random'):
             X, y = oversampler.fit_resample(X, y)
 
         # Undersample the majority classes
-        undersample_strategy = {label: technique for label in unique_classes}
-        sampler = RandomUnderSampler(undersample_strategy=undersample_strategy, random_state=None)
+        #undersample_strategy = {label: technique for label in unique_classes}
+        sampler = RandomUnderSampler(random_state=None)
         X, y = sampler.fit_resample(X, y)
     elif technique in samplers:
         sampler = samplers[technique]
