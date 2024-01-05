@@ -300,10 +300,17 @@ def plot_interesting_features(dataset, model, N_max, num_sigma, N_combinations=5
     rows = int(np.ceil(np.sqrt(N_combinations)))
     cols = rows if rows * (rows - 1) < N_combinations else rows - 1
 
-    fig, axes = plt.subplots(rows, cols, figsize=(3 * cols, 3 * rows))
+    # Set up the subplot grid – all plots in a single row
+    fig, axes = plt.subplots(1, N_combinations, figsize=(3 * N_combinations, 3))  # Adjust figure size as needed
+
+    # Flatten the axes array for easy indexing (if N_combinations is 1, wrap axes in a list)
+    if N_combinations == 1:
+        axes = [axes]
+    else:
+        axes = axes.flatten()
 
     for idx, (feature_idx1, feature_idx2) in enumerate(top_combinations):
-        ax = axes.flatten()[idx]
+        ax = axes[idx]  # Use the flattened axes array
         ax.scatter(data[:, feature_idx1], data[:, feature_idx2], c=data_colors, alpha=0.5)
 
 

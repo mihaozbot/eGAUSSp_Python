@@ -16,7 +16,6 @@ from imblearn.pipeline import make_pipeline
 from imblearn import FunctionSampler
 from sklearn.linear_model import LogisticRegression
 
-
 #from imblearn.over_sampling import SMOTE
 
 def non_iid_data(X, y, num_clients):
@@ -49,7 +48,7 @@ def non_iid_data(X, y, num_clients):
     return X, y
 
 
-def prepare_dataset(X, y, num_clients, balance=None):
+def prepare_dataset(X, y, num_clients):
     """
     Prepares a dataset for federated learning under a non-IID setting, ensuring each client has 
     approximately the same number of samples from each class.
@@ -64,8 +63,8 @@ def prepare_dataset(X, y, num_clients, balance=None):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # If balancing is required, apply balance_dataset
-    if balance:
-        X_train, y_train = balance_dataset(X_train, y_train, balance)
+    #if balance:
+    #    X_train, y_train = balance_dataset(X_train, y_train, balance)
 
     # Split the training data by class
     unique_classes = np.unique(y_train)
@@ -95,6 +94,55 @@ def prepare_dataset(X, y, num_clients, balance=None):
     all_data = (torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.int64))
 
     return train_data_clients, test_data, all_data
+
+def balance_dataset(X, y, technique='random'):
+    """
+    Balances a dataset by undersampling or oversampling using different techniques.
+
+    :param X: Feature data as a numpy array.
+    :param y: Label data as a numpy array.
+    :param technique: Technique for balancing.
+    :return: Balanced feature and label arrays.
+    """
+    samplers = {
+        'random': RandomUnderSampler(random_state=None),
+        'tomek': TomekLinks(),
+        'centroids': ClusterCentroids(random_state=None),
+        'nearmiss': NearMiss(version=2),
+        'enn': AllKNN(),
+        'smote': SMOTE(random_state=None),
+        'one_sided_selection': OneSidedSelection(random_state=None),
+        'ncr': NeighbourhoodCleaningRule(),
+        'function_sampler': FunctionSampler(),  # Identity resampler
+        'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
+    }
+
+    if isinstance(technique, int) or isinstance(technique, numbers.Number):
+        unique_classes = np.unique(y)
+        class_sample_counts = {label: np.sum(y == label) for label in unique_classes}
+
+        # Oversample the minority classes
+        oversample_strategy = {label: technique for label, count in class_sample_counts.items() if count < technique}
+        if oversample_strategy:
+            oversampler = SMOTE(sampling_strategy=oversample_strategy, random_state=None)
+            X, y = oversampler.fit_resample(X, y)
+
+        # Undersample the majority classes
+        #undersample_strategy = {label: technique for label in unique_classes}
+        sampler = RandomUnderSampler(random_state=None)
+        X, y = sampler.fit_resample(X, y)
+    elif technique in samplers:
+        sampler = samplers[technique]
+        X, y = sampler.fit_resample(X, y)
+    else:
+        raise ValueError("Unknown technique. Please choose a valid technique or provide a number.")
+
+    # Convert numpy arrays to PyTorch tensors
+    X_tensor = torch.tensor(X, dtype=torch.float32)
+    y_tensor = torch.tensor(y, dtype=torch.int64)
+
+    return X_tensor, y_tensor
+
 
 def prepare_non_iid_dataset(X, y, num_clients):
     
@@ -251,49 +299,6 @@ def balance_dataset(data,  proportion, class_column='Class', random_state=None):
     return balanced_data.sample(frac=1, random_state=random_state).reset_index(drop=True)
 '''
 
-def balance_dataset(X, y, technique='random'):
-    """
-    Balances a dataset by undersampling or oversampling using different techniques.
-
-    :param X: Feature data as a numpy array.
-    :param y: Label data as a numpy array.
-    :param technique: Technique for balancing.
-    :return: Balanced feature and label arrays.
-    """
-    samplers = {
-        'random': RandomUnderSampler(random_state=None),
-        'tomek': TomekLinks(),
-        'centroids': ClusterCentroids(random_state=None),
-        'nearmiss': NearMiss(version=2),
-        'enn': AllKNN(),
-        'smote': SMOTE(random_state=None),
-        'one_sided_selection': OneSidedSelection(random_state=None),
-        'ncr': NeighbourhoodCleaningRule(),
-        'function_sampler': FunctionSampler(),  # Identity resampler
-        'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
-    }
-
-    if isinstance(technique, int) or isinstance(technique, numbers.Number):
-        unique_classes = np.unique(y)
-        class_sample_counts = {label: np.sum(y == label) for label in unique_classes}
-
-        # Oversample the minority classes
-        oversample_strategy = {label: technique for label, count in class_sample_counts.items() if count < technique}
-        if oversample_strategy:
-            oversampler = SMOTE(sampling_strategy=oversample_strategy, random_state=None)
-            X, y = oversampler.fit_resample(X, y)
-
-        # Undersample the majority classes
-        #undersample_strategy = {label: technique for label in unique_classes}
-        sampler = RandomUnderSampler(random_state=None)
-        X, y = sampler.fit_resample(X, y)
-    elif technique in samplers:
-        sampler = samplers[technique]
-        X, y = sampler.fit_resample(X, y)
-    else:
-        raise ValueError("Unknown technique. Please choose a valid technique or provide a number.")
-
-    return X, y
 
 def prepare_k_fold_non_iid_dataset(X, y, train_index, test_index, num_clients):
     """
