@@ -120,7 +120,7 @@ def balance_dataset(X, y, technique='random'):
 
     if isinstance(technique, int) or isinstance(technique, numbers.Number):
         unique_classes = np.unique(y)
-        class_sample_counts = {label: np.sum(y == label) for label in unique_classes}
+        class_sample_counts = {label: torch.sum(y == label) for label in unique_classes}
 
         # Oversample the minority classes
         oversample_strategy = {label: technique for label, count in class_sample_counts.items() if count < technique}

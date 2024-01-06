@@ -145,9 +145,9 @@ class eGAUSSp(torch.nn.Module):
                     
                     if len(self.matching_clusters) > self.c_max:
 
-                        self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
-                        self.merging_mech.valid_clusters = self.matching_clusters
-                        self.removal_mech.remove_overlapping()
+                        #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
+                        #self.merging_mech.valid_clusters = self.matching_clusters
+                        #self.removal_mech.remove_overlapping()
 
                         self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
                         self.merging_mech.valid_clusters = self.matching_clusters

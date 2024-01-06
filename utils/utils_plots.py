@@ -361,6 +361,7 @@ def plot_interesting_features(dataset, model, N_max, num_sigma, N_combinations=5
 def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title="", colormap='tab10', legend=False, format = '%.1f', data_name = "Class"):
     """Function to color data points based on their true labels against the first feature."""
 
+    
     # Extract data and labels from the TensorDataset
     data, labels = dataset
     data = data.cpu().detach().numpy() if isinstance(data, torch.Tensor) else data
@@ -377,7 +378,7 @@ def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title=""
     unique_labels = model.num_classes
 
     # Check the number of unique labels and assign color accordingly
-    if len(np.unique(model.cluster_labels[:model.c], axis=0)) == 1:
+    if len(torch.unique(model.cluster_labels[:model.c])) == 1:
         # All clusters are red if there's only one unique label
         cluster_colors = np.array([[1.0, 0.0, 0.0, 1.0]] * unique_labels)
 
@@ -447,7 +448,7 @@ def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title=""
                     ax.scatter(mu_subvector[0], mu_subvector[1], color='black', s=10, marker='o')
 
                 if torch.where(model.cluster_labels[cluster_idx] == 1)[0].item() not in added_labels['ellipse']:
-                    if len(np.unique(model.cluster_labels[:model.c], axis=0)) == 1:
+                    if len(torch.unique(model.cluster_labels[:model.c])) == 1:
                         cluster_name = "Clusters"
                     else:
                         cluster_name = f'Cluster {torch.where(model.cluster_labels[cluster_idx] == 1)[0].item()+1}'

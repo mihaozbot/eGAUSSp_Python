@@ -77,11 +77,11 @@ class FederalOps:
         # Print the updated var_glo values
         print("Updated var_glo values:", self.parent.var_glo[0])
         
-    def merge_model_privately(self, model, n_min):
+    def merge_model_privately(self, model, n_min, pred_min):
         ''' Merge the parameters of another model into the current federated model. '''
 
         # Filter out clusters where model.n > 0
-        valid_clusters = (model.n[:model.c] > n_min)*(model.num_pred[:model.c] > n_min)
+        valid_clusters = (model.n[:model.c] > n_min)*(model.num_pred[:model.c] > pred_min)
         num_valid_clusters = valid_clusters.sum()
 
         # First, merge the global statistical parameters
@@ -90,7 +90,7 @@ class FederalOps:
         # Ensure the federated model has enough capacity for the new clusters
         before_size = self.parent.c  # Current size of the model
         after_size = self.parent.c + num_valid_clusters # Size after merging
-        self.parent.overseer.ensure_capacity(after_size)  # Ensure there's enough space
+        self.parent.overseer.ensure_capacity(after_size+2)  # Ensure there's enough space
 
         # Merge the parameters of the models
         with torch.no_grad():  # Temporarily disable gradient tracking
