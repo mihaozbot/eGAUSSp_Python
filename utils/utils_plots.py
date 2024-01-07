@@ -23,15 +23,17 @@ def calculate_mean_std(metrics, key):
     return means, stds
 
 def plot_with_intervals(rounds, means, stds, metric_name):
-    plt.figure(figsize=(12, 6))
-    plt.errorbar(rounds, means, yerr=stds, fmt='o-', ecolor='lightgray', elinewidth=3, capsize=0, label=metric_name)
+    plt.errorbar(rounds, means, yerr=stds, fmt='o-', ecolor='gray', elinewidth=3, capsize=0, label=metric_name)
+    lower_bound = np.array(means) - np.array(stds)
+    upper_bound = np.array(means) + np.array(stds)
+    plt.fill_between(rounds, lower_bound, upper_bound, color='lightgray', alpha=0.3, label='Std. Dev. Interval')
     plt.xlabel('Round')
     plt.ylabel(metric_name)
     plt.legend()
     plt.grid(False)
 
 def plot_combined_clusters(rounds, aggregated_clusters, federated_clusters, client_clusters_mean, client_clusters_std):
-    plt.figure(figsize=(12, 6))
+    fig = plt.figure(figsize=(12, 6))
     plt.plot(rounds, aggregated_clusters, marker='o', color='red', label='Aggregated Model Clusters')
     plt.plot(rounds, federated_clusters, marker='x', color='green', label='Federated Model Clusters')
     plt.plot(rounds, client_clusters_mean, marker='o', linestyle=':', color='blue', label='Average Client Clusters')
@@ -39,18 +41,17 @@ def plot_combined_clusters(rounds, aggregated_clusters, federated_clusters, clie
     # Adding a shaded area to represent the standard deviation interval
     lower_bound = np.array(client_clusters_mean) - np.array(client_clusters_std)
     upper_bound = np.array(client_clusters_mean) + np.array(client_clusters_std)
-    plt.fill_between(rounds, lower_bound, upper_bound, color='gray', alpha=0.3, label='Std Dev Interval')
-
-    plt.title('Cluster Evolution over Rounds')
+    plt.fill_between(rounds, lower_bound, upper_bound, color='lightblue', alpha=0.3, label='Std. Dev. Interval')
     plt.xlabel('Round')
     plt.ylabel('Number of Clusters')
     plt.legend()
     plt.grid(False)
     plt.show()
     
-def plot_metric(rounds, metric_values, metric_name, title, color='blue', marker='o'):
-    plt.figure(figsize=(10, 4))
-    plt.plot(rounds, metric_values, marker=marker, color=color, label=metric_name)
+    return fig
+    
+def plot_metric(rounds, metric_values, metric_name, title, color='blue', marker='o', linestyle='-'):
+    plt.plot(rounds, metric_values, marker=marker, color=color, linestyle=linestyle, label=metric_name)
     plt.title(title)
     plt.xlabel('Round')
     plt.ylabel(metric_name)
@@ -89,50 +90,54 @@ def extract_metrics(metrics, key):
 
 def plot_aggregated_client_metrics(metrics):
     rounds = [metric['round'] for metric in metrics]
-
+    fig = plt.figure(figsize=(10, 4))
     for key in ['f1_score']: #['accuracy', 'precision', 'recall', 'f1_score']
         # Calculate mean and std for each metric
         means, stds = calculate_mean_std(metrics, key)
-        ax = plot_with_intervals(rounds, means, stds, 'Clients F1 score')
+        ax = plot_with_intervals(rounds, means, stds, 'Clients training F1-score')
 
-def plot_metrics(experiments, client_counts, data_config_indices):
-    for client_count in client_counts:
-        
-        for exp_num, metrics in enumerate(experiments):
-                rounds = [metric['round'] for metric in metrics]
+    return fig
 
-                # Plot aggregated client metrics (mean ± std dev) for each key
-                plot_aggregated_client_metrics(metrics)
+def plot_metrics(experiments):
 
-                # Retrieve federated model metrics for accuracy, precision, recall, and F1 score
-                fed_binary_metrics = {key: [metric.get('federated_model', {}).get('binary', {}).get(key, None) for metric in metrics] for key in ['accuracy', 'precision', 'recall', 'f1_score']}
+    fig_met = {}  # Dictionary to store figures of metrics
+    fig_clust = {}  # Dictionary to store figures of clusters
 
-                # Plotting F1 score, recall, and precision for the federated model on the same plot
-                plt.plot(rounds, fed_binary_metrics['f1_score'], marker='o', color='blue', label='F1 Score')
-                plt.plot(rounds, fed_binary_metrics['recall'], marker='x', color='green', label='Recall')
-                plt.plot(rounds, fed_binary_metrics['precision'], marker='^', color='red', label='Precision')
-                plt.title('Federated Model Performance Metrics over Rounds')
-                plt.xlabel('Round')
-                plt.ylabel('Metrics')
-                plt.legend()
-                plt.grid(False)
-                plt.show()
-                
-                # Plot ROC AUC for federated model
-                fed_roc_aucs = [metric.get('federated_model', {}).get('roc_auc', None) for metric in metrics]
-                plot_metric(rounds, fed_roc_aucs, 'ROC AUC', 'Federated Model ROC AUC over Rounds')
+    for exp_num, metrics in enumerate(experiments):
+            client_count = len(metrics[0]['client_metrics'])
+            rounds = [metric['round'] for metric in metrics]
 
-                # Plot number of clusters for aggregated and federated models
-                aggregated_clusters = [metric['aggregated_model']['clusters'].cpu() for metric in metrics]
-                federated_clusters = [metric['federated_model']['clusters'].cpu() for metric in metrics]
-                client_clusters = []
-                for client_index in range(client_count):
-                    client_clusters.append([client_metrics[client_index]['clusters'].cpu() for client_metrics in [metric['client_metrics'] for metric in metrics]])
-                client_clusters_mean = np.mean(client_clusters,axis=0)
-                client_clusters_std = np.std(client_clusters,axis=0)
+            # Plot aggregated client metrics (mean ± std dev) for each key
+            fig_met[f"metrics_{client_count}_{exp_num}"] = plot_aggregated_client_metrics(metrics)
 
-                plot_combined_clusters(rounds, aggregated_clusters, federated_clusters, client_clusters_mean, client_clusters_std)
+            # Retrieve federated model metrics for accuracy, precision, recall, and F1 score
+            fed_binary_metrics = {key: [metric.get('federated_model', {}).get('binary', {}).get(key, None) for metric in metrics] for key in ['accuracy', 'precision', 'recall', 'f1_score']}
 
+            # Plotting F1 score, recall, and precision for the federated model on the same plot
+            plt.plot(rounds, fed_binary_metrics['f1_score'], marker='o', color='blue', label='F1 Score')
+            plt.plot(rounds, fed_binary_metrics['recall'], marker='x', color='green', label='Recall')
+            plt.plot(rounds, fed_binary_metrics['precision'], marker='^', color='red', label='Precision')
+            plt.xlabel('Round')
+            plt.ylabel('Metrics')
+            plt.legend()
+
+            
+            # Plot ROC AUC for federated model
+            fed_roc_aucs = [metric.get('federated_model', {}).get('roc_auc', None) for metric in metrics]
+            plot_metric(rounds, fed_roc_aucs, 'ROC AUC', title='', color='black', marker='o', linestyle='--')
+
+            # Plot number of clusters for aggregated and federated models
+            aggregated_clusters = [metric['aggregated_model']['clusters'].cpu() for metric in metrics]
+            federated_clusters = [metric['federated_model']['clusters'].cpu() for metric in metrics]
+            client_clusters = []
+            for client_index in range(client_count):
+                client_clusters.append([client_metrics[client_index]['clusters'].cpu() for client_metrics in [metric['client_metrics'] for metric in metrics]])
+            client_clusters_mean = np.mean(client_clusters,axis=0)
+            client_clusters_std = np.std(client_clusters,axis=0)
+
+            fig_clust[f"clusters_{client_count}_{exp_num}"] = plot_combined_clusters(rounds, aggregated_clusters, federated_clusters, client_clusters_mean, client_clusters_std)
+
+    return fig_met, fig_clust
 
 def plot_all_features_upper_triangle(data, labels, model, N_max, num_sigma, colormap='tab10'):
     """
@@ -480,6 +485,8 @@ def plot_interesting_features(dataset, model, N_max, num_sigma, N_combinations=5
 
     plt.tight_layout()
     plt.show()
+
+    return fig
 
 def plot_first_feature_horizontal(dataset, model, N_max=0, num_sigma=2, title="", colormap='tab10', legend=False, format = '%.1f', data_name = "Class"):
     """Function to color data points based on their true labels against the first feature."""

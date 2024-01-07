@@ -31,8 +31,8 @@ class ClusteringOps:
             self.parent.S.data[self.parent.c] = self.parent.S_0
             self.parent.n.data[self.parent.c] = 1.0
         
-        self.parent.score[self.parent.c] = 1
-        self.parent.num_pred[self.parent.c] = 1
+        self.parent.score[self.parent.c] = 0
+        self.parent.num_pred[self.parent.c] = 0
         
         # Construct a diagonal matrix from these reciprocal values
         self.parent.S_inv[self.parent.c] = torch.diag(1.0 / (self.parent.S_0.diagonal()*self.parent.feature_dim))
@@ -74,7 +74,7 @@ class ClusteringOps:
         #self.parent.S[j] += e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
         #self.parent.n[j] +=  1 #
     
-        self.parent.S[j] = self.parent.S[j]*self.parent.forgeting_factor + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1) + self.parent.S_0
+        self.parent.S[j] = self.parent.S[j]*self.parent.forgeting_factor + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1) # + self.parent.S_0
         self.parent.n[j] = self.parent.n[j]*self.parent.forgeting_factor + 1 #*self.parent.forgeting_factor
         
         #x_minus_c = z - self.parent.mu[j]  # Difference between data point and cluster center

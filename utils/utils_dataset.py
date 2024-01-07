@@ -178,36 +178,53 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
         majority_y = client_y[client_y == majority_class_label]
 
         # Determine the number of additional samples to select from the majority class
-        num_additional_samples = len(minority_X)
+        n_neighbors = 3
+        num_additional_samples = int(np.floor(len(minority_X)))
         # Select majority class samples with highest errors
         selected_high_error_X, selected_high_error_y = select_high_error_samples(
             majority_X, majority_y, fed_scores[client_y == majority_class_label], majority_class_label, num_additional_samples)
-
-        # Randomly select additional majority class samples
-        random_indices = np.random.choice(np.where(client_y == majority_class_label)[0], num_additional_samples, replace=False)
-        selected_random_X = client_X[random_indices]
-        selected_random_y = client_y[random_indices]
-
-        # Combine all minority class samples with selected majority samples
-        balanced_X = np.concatenate((minority_X, selected_high_error_X, selected_random_X))
-        balanced_y = np.concatenate((minority_y, selected_high_error_y, selected_random_y))
-
-        # Instantiate and fit NearestNeighbors
-        nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(client_X)
-        _, indices = nbrs.kneighbors(selected_high_error_X)
-
-        # Flatten the array of neighbor indices and remove duplicates
-        neighbor_indices = np.unique(indices.flatten())
-
-        # Add the neighbors to the balanced dataset
-        neighbor_X = client_X[neighbor_indices]
-        neighbor_y = client_y[neighbor_indices]
-        balanced_X = np.concatenate((balanced_X, neighbor_X))
-        balanced_y = np.concatenate((balanced_y, neighbor_y))
         
+        if True:
+            # Randomly select additional majority class samples
+            num_additional_samples = num_additional_samples
+            random_indices = np.random.choice(np.where(client_y == majority_class_label)[0], num_additional_samples, replace=False)
+            selected_random_X = client_X[random_indices]
+            selected_random_y = client_y[random_indices]
+
+
+        if True:
+            # Instantiate and fit NearestNeighbors
+            nbrs = NearestNeighbors(n_neighbors=n_neighbors, algorithm='ball_tree').fit(client_X)
+            _, indices = nbrs.kneighbors(selected_high_error_X)
+
+            # Flatten the array of neighbor indices and remove duplicates
+            neighbor_indices = np.unique(indices.flatten())
+
+            # Add the neighbors to the balanced dataset
+            neighbor_X = client_X[neighbor_indices]
+            neighbor_y = client_y[neighbor_indices]
+
+        balanced_X = np.concatenate((minority_X, selected_high_error_X, neighbor_X, selected_random_X))
+        balanced_y = np.concatenate((minority_y, selected_high_error_y, neighbor_y, selected_random_y))
+
+        # Generate shuffled indices
+        shuffled_indices = np.arange(balanced_X.shape[0])
+        np.random.shuffle(shuffled_indices)
+
+        # Use the shuffled indices to shuffle both X and y
+        shuffled_X = balanced_X[shuffled_indices]
+        shuffled_y = balanced_y[shuffled_indices]
+
+        '''
+        # Apply SMOTE to the combined dataset
+        smote = SMOTE()
+        balanced_X_resampled, balanced_y_resampled = smote.fit_resample(balanced_X, balanced_y)
+        '''
+
         # Convert numpy arrays to PyTorch tensors
-        X_tensor = torch.tensor(balanced_X, dtype=torch.float32)
-        y_tensor = torch.tensor(balanced_y, dtype=torch.int64)
+        X_tensor = torch.tensor(shuffled_X, dtype=torch.float32)
+        y_tensor = torch.tensor(shuffled_y, dtype=torch.int64)
+
         client_train[client_idx] = (X_tensor, y_tensor)
 
     def balance_client_data(client_data):
@@ -253,13 +270,13 @@ def select_high_error_samples(majority_X, majority_y, fed_scores, majority_class
     direct_error_magnitude = 1 - probabilities_majority_class
 
     # Calculate error magnitude as deviation from threshold
-    threshold_error_magnitude = torch.abs(0.5 - probabilities_majority_class)
+    threshold_error_magnitude = torch.abs(0.25 - probabilities_majority_class)
 
     # Sort indices of majority class samples by direct error magnitude in descending order
     sorted_indices_direct_error = np.argsort(-direct_error_magnitude.numpy())
 
     # Sort indices of majority class samples by threshold error magnitude in descending order
-    sorted_indices_threshold_error = np.argsort(-threshold_error_magnitude.numpy())
+    sorted_indices_threshold_error = np.argsort(threshold_error_magnitude.numpy())
 
     # Select the top num_samples indices from each error type
     selected_indices_direct_error = sorted_indices_direct_error[:min(len(majority_X), num_samples)]

@@ -57,6 +57,7 @@ class RemovalMechanism:
         first_correct_index = None
         first_wrong_index = None
 
+        
         for index in sorted_indices:
             if correct_clusters_mask[index] and first_wrong_index is None:
                 correct_to_update.append(index)
@@ -66,7 +67,7 @@ class RemovalMechanism:
                 wrong_to_update.append(index)
                 if first_wrong_index is None:
                     first_wrong_index = index
-        
+        '''
         # Update correct clusters
         if correct_to_update:
             self.update_cluster_scores(correct_to_update, label, correct=True)
@@ -75,7 +76,8 @@ class RemovalMechanism:
         if wrong_to_update:
             self.update_cluster_scores(wrong_to_update, label, correct=False)
         
-        
+        '''
+
         # Extra update for the first correct cluster
         if first_correct_index is not None:
             self.update_cluster_scores([first_correct_index], label, correct=True)
@@ -317,23 +319,6 @@ class RemovalMechanism:
         # Normalize the log loss by the number of samples for the true label and update the score
         self.parent.score[0:self.parent.c] += torch.sum(current_log_losses /  self.parent.n_glo[label], dim = 1)
         '''
-        
-    def remove_small(self):
-        if self.parent.c < 2:
-            return
-
-        V = torch.exp(torch.linalg.slogdet(self.parent.S[self.parent.matching_clusters])[1]) # [1] is the log determinant
-        V_S_0 = torch.prod(torch.diag(self.parent.S_0))
-        V_ratio = (V / V_S_0)**(1/self.parent.feature_dim)
-
-        clusters_to_remove = self.parent.matching_clusters[V_ratio < 1/(10*self.parent.N_r)]
-        #num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
-
-        #if num_clusters_to_remove > 0:
-            # Remove the clusters
-        with torch.no_grad():
-            for cluster_id in clusters_to_remove:
-                self.remove_cluster(cluster_id)
 
     def remove_overlapping(self):
         # Compute the volume and kappa initially
@@ -427,8 +412,11 @@ class RemovalMechanism:
         num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
         if num_clusters_to_remove > 0:
-            # Sort the clusters first by num_pred (ascending) and then by score (descending)
-            sorted_indices = sorted(self.parent.matching_clusters, key=lambda i: (self.parent.num_pred[i], -self.parent.score[i]))
+            # Filter out clusters with num_pred == 1
+            clusters_eligible_for_removal = [i for i in self.parent.matching_clusters if self.parent.num_pred[i] > 1]
+
+            # Sort the eligible clusters first by num_pred (ascending) and then by score (descending)
+            sorted_indices = sorted(clusters_eligible_for_removal, key=lambda i: (self.parent.num_pred[i], -self.parent.score[i]))
 
             # Indices of clusters to remove in descending order
             indices_to_remove = sorted(sorted_indices[:num_clusters_to_remove], reverse=True)
@@ -436,8 +424,7 @@ class RemovalMechanism:
             with torch.no_grad():
                 # Remove selected clusters
                 for index in indices_to_remove:
-                        self.remove_cluster(index)
-
+                    self.remove_cluster(index)
                     
 
     def removal_mechanism(self):

@@ -226,10 +226,10 @@ class eGAUSSp(torch.nn.Module):
 
         # Assuming defuzzify returns batched scores and predictions
         scores = label_scores.clone().detach().requires_grad_(False)
-        preds = preds_max
+
         clusters = self.Gamma.argmax(dim=1)  # Get the cluster indices for the entire batch
 
-        return scores, preds, clusters
+        return scores, preds_max, clusters
 
     '''
     def forward(self, data, labels):

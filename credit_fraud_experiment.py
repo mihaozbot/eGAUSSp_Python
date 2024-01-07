@@ -8,7 +8,7 @@ import pandas as pd
 import torch
 from sklearn.preprocessing import StandardScaler
 from utils.utils_train import train_supervised, train_models_in_threads, test_model_in_batches
-from utils.utils_plots import plot_interesting_features, plot_metrics
+from utils.utils_plots import plot_interesting_features, plot_metrics, save_figure
 from utils.utils_dataset import balance_dataset, prepare_dataset, balance_data_for_clients
 from utils.utils_dataset import display_dataset_split
 from utils.utils_metrics import calculate_metrics, plot_confusion_matrix, calculate_roc_auc
@@ -204,7 +204,7 @@ federated_model_params = {
     "kappa_join": 0.5,
     "S_0": 1e-10,
     "N_r": 20,
-    "c_max": 600,
+    "c_max": 200,
     "num_samples": 100,
     "device": device
 }
@@ -278,7 +278,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
     # Initialize a list to store the metrics for each round
     round_metrics = []
     result_file = "experiment_results.txt"
-
+    client_train = []
     for round in range(num_rounds):
         print(f"--- Communication Round {round + 1} ---")
         round_info = f"--- Communication Round {round + 1} ---\n"
@@ -399,10 +399,10 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             print(f"Returning updated model to client {client_idx + 1}")
             
             local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n, pred_min = 0)
-            #local_models[client_idx].federal_agent.federated_merging()
+            local_models[client_idx].federal_agent.federated_merging()
 
             #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
-            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
+            #local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
 
             '''
             # Return the updated federated model to each client
@@ -419,9 +419,11 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
         # Plot features for the current round
         plt.close('all')  # Close all existing plots to free up memory
-        if True:
-            plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
-            #plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
+        if num_clients == 10 and True:
+            #fig1 = plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
+            #save_figure(fig1, "./Images/credit_fraud_clusters", format='pdf')
+            fig2 = plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
+            save_figure(fig2, ".Images/credit_fraud_clusters_test.pdf", format='pdf')
 
         # Iterate over each round's metrics and write to file
         for metric in round_metrics:
@@ -442,7 +444,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
         metric_info += f"Aggregated Model - Clusters: {metric['aggregated_model']['clusters']}\n"
 
         for client_metric in metric['client_metrics']:
-            metric_info += f"Client {client_metric['client_idx']} - Binary: {client_metric['binary']}, ROC AUC: {client_metric['roc_auc']}\n"
+            metric_info += f"Client {client_metric['client_idx']} - Binary: {client_metric['binary']}\n"
 
         print(metric_info)  # Print each round's metrics
         write_to_file(result_file, metric_info)  # Write to file
@@ -454,12 +456,12 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
 
 # List of client counts and data configuration indices
-client_counts = [ 3]
+client_counts = [ 3, 10]
 data_config_indices = [1]  # Replace with your actual data configuration indices
 
 # Assuming local_models, client_train, federated_model, and test_data are already defined
 # Number of communication rounds
-num_rounds = 10
+num_rounds = 20
 profiler = False
 experiments = []
 # Running the experiment
@@ -511,14 +513,22 @@ for num_clients in client_counts:
             metrics = run_experiment(num_clients, num_rounds, client_train, test_data, balance)
             
         experiments.append(metrics)
-            
-        plot_metrics(experiments, client_counts, data_config_indices)
+    
 
 
 # In[ ]:
 
 
-plot_metrics(experiments, client_counts, data_config_indices)
+fig_metrics, fig_clusters = plot_metrics(experiments)
+# Save figures from fig_metrics
+for fig_name, figure in fig_metrics.items():
+    save_path = f".Images/credit_fraud_{fig_name}.pdf"
+    save_figure(figure, save_path, "pdf")
+
+# Save figures from fig_clusters
+for fig_name, figure in fig_clusters.items():
+    save_path = f".Images/credit_fraud_{fig_name}.pdf"
+    save_figure(figure, save_path, "pdf")
 
 
 # In[ ]:
