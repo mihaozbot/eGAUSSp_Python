@@ -13,7 +13,7 @@ from imblearn.under_sampling import (RandomUnderSampler, TomekLinks, ClusterCent
 from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.over_sampling import SMOTE
 from imblearn import FunctionSampler
-
+from utils.utils_train import test_model_in_batches
 
 #from imblearn.over_sampling import SMOTE
 
@@ -108,8 +108,8 @@ def balance_dataset(X, y, technique='random'):
     samplers = {
         'random': RandomUnderSampler(random_state=None),
         'tomek': TomekLinks(),
-        'centroids': ClusterCentroids(random_state=None, voting='hard', sampling_strategy='all'),
-        'nearmiss': NearMiss(version=2),
+        'centroids': ClusterCentroids(random_state=None, voting='soft'),
+        'nearmiss': NearMiss(version=3),
         'enn': AllKNN(),
         'CondensedNearestNeighbour':CondensedNearestNeighbour(n_neighbors=1),
         'smote': SMOTE(random_state=None),
@@ -144,6 +144,106 @@ def balance_dataset(X, y, technique='random'):
 
     return X_tensor, y_tensor
 
+
+import threading
+import torch
+
+def balance_data_for_clients(client_raw_data, local_models, balance, round):
+    """
+    Balances data for each client. In the initial round, balances data using a specified technique.
+    In subsequent rounds, focuses on misclassified samples.
+
+    :param client_raw_data: List of data for each client.
+    :param local_models: List of models, one for each client.
+    :param balance: The balancing technique to be used.
+    :param round: The current round of the experiment.
+    :return: List of balanced client data.
+    """
+
+    def balance_client_data(client_data):
+        client_X, client_y = client_data
+        balanced_X, balanced_y = balance_dataset(client_X, client_y, technique=balance)
+        return balanced_X, balanced_y
+
+    def balance_thread(client_data, result, index):
+        result[index] = balance_client_data(client_data)
+
+    client_train = [None] * len(client_raw_data)  # Placeholder for results
+
+    if round == 0:
+        # First round: Balance data using threads
+        threads = [threading.Thread(target=balance_thread, args=(client_data, client_train, i))
+                   for i, client_data in enumerate(client_raw_data)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+    else:
+        # Subsequent rounds: Focus on incorrect predictions for majority class
+        for client_idx, client_model in enumerate(local_models):
+            fed_scores, fed_pred, _ = test_model_in_batches(client_model, client_raw_data[client_idx], batch_size=500)
+            client_X, client_y = client_raw_data[client_idx]
+
+            # Identify minority and majority classes
+            unique_classes, class_counts = np.unique(client_y, return_counts=True)
+            majority_class_label = unique_classes[np.argmax(class_counts)]
+            minority_class_label = unique_classes[np.argmin(class_counts)]
+
+            minority_X = client_X[client_y == minority_class_label]
+            minority_y = client_y[client_y == minority_class_label]
+
+            majority_X = client_X[client_y == majority_class_label]
+            majority_y = client_y[client_y == majority_class_label]
+
+            # Select majority class samples with highest errors
+            selected_high_error_X, selected_high_error_y = select_high_error_samples(
+                majority_X, majority_y, fed_scores[client_y == majority_class_label], majority_class_label, len(minority_X))
+
+            # Randomly select additional majority class samples
+            num_additional_samples = len(minority_X)
+            random_indices = np.random.choice(np.where(client_y == majority_class_label)[0], num_additional_samples, replace=False)
+            selected_random_X = client_X[random_indices]
+            selected_random_y = client_y[random_indices]
+
+            # Combine minority class samples with selected majority samples (both high-error and random)
+            balanced_X = np.concatenate((minority_X, selected_high_error_X, selected_random_X))
+            balanced_y = np.concatenate((minority_y, selected_high_error_y, selected_random_y))
+
+            # Convert numpy arrays to PyTorch tensors
+            X_tensor = torch.tensor(balanced_X, dtype=torch.float32)
+            y_tensor = torch.tensor(balanced_y, dtype=torch.int64)
+            client_train[client_idx] = (X_tensor, y_tensor)
+
+    return client_train
+
+
+def select_high_error_samples(majority_X, majority_y, fed_scores, majority_class_label, num_samples):
+    # Extract the probabilities for the majority class
+    probabilities_majority_class = fed_scores[:, majority_class_label]
+
+    # Error is 1 minus the probability of the majority class
+    error_magnitude = 1 - probabilities_majority_class
+    #error_magnitude = torch.abs(0.5 - probabilities_majority_class)
+
+    # Sort indices of majority class samples by error magnitude in descending order
+    sorted_indices = np.argsort(-error_magnitude)
+
+    # Select the top num_samples indices
+    selected_indices = sorted_indices[:min(len(majority_X), num_samples)]
+    selected_majority_X = majority_X[selected_indices]
+    selected_majority_y = majority_y[selected_indices]
+
+    return selected_majority_X, selected_majority_y
+
+def select_equal_samples_from_majority(majority_X, majority_y, num_samples):
+    indices = np.random.choice(len(majority_X), num_samples, replace=False)
+    selected_majority_X = majority_X[indices]
+    selected_majority_y = majority_y[indices]
+    return selected_majority_X, selected_majority_y
+
+def get_misclassified_samples(predictions, true_labels):
+    misclassified_indices = (predictions != true_labels).nonzero(as_tuple=True)[0]
+    return misclassified_indices
 
 def prepare_non_iid_dataset(X, y, num_clients):
     

@@ -8,11 +8,10 @@ import pandas as pd
 import torch
 from sklearn.preprocessing import StandardScaler
 from utils.utils_train import train_supervised, train_models_in_threads, test_model_in_batches
-from utils.utils_plots import plot_first_feature, plot_interesting_features
+from utils.utils_plots import plot_interesting_features, plot_metrics
 from utils.utils_dataset import balance_dataset, prepare_dataset
-from utils.utils_dataset import prepare_non_iid_dataset, plot_dataset_split, display_dataset_split
+from utils.utils_dataset import display_dataset_split
 from utils.utils_metrics import calculate_metrics, plot_confusion_matrix, calculate_roc_auc
-#%load_ext line_profiler
 
 
 # In[2]:
@@ -44,7 +43,7 @@ data[cols_to_normalize] = scaler.fit_transform(data[cols_to_normalize])
 
 
 print(f"{torch.cuda.is_available()}")
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu") #torch.device("cpu") #
+device = torch.device("cpu") # torch.device("cuda" if torch.cuda.is_available() else "cpu") #torch.device("cpu") #
 
 
 # In[5]:
@@ -205,7 +204,7 @@ federated_model_params = {
     "kappa_join": 0.5,
     "S_0": 1e-10,
     "N_r": 20,
-    "c_max": 1000,
+    "c_max": 300,
     "num_samples": 1000,
     "device": device
 }
@@ -270,6 +269,7 @@ def write_to_file(file_path, data, mode='a'):
 # In[10]:
 
 
+from cycler import L
 import torch.nn as nn
 
 def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance):
@@ -285,6 +285,9 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
     for round in range(num_rounds):
         print(f"--- Communication Round {round + 1} ---")
         round_info = f"--- Communication Round {round + 1} ---\n"
+
+        # Reset client metrics for the new round
+        client_metrics = []
 
         # Function to balance data for a single client
         def balance_client_data(client_data):
@@ -316,7 +319,9 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
         # Train local models
         train_models_in_threads(local_models, client_train)
-        
+
+        # Initialize dictionary to store metrics for this round
+        # Initialize dictionary to store metrics for this round
         '''
         for local_model, client_data in zip(local_models, clients_data):
              train_supervised(local_model, client_data)
@@ -336,14 +341,22 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             print(f"Number of local model clusters = {sum(client_model.n[0:client_model.c]> 0)}")
             # Run the forward function on the training data
             
-            
-            all_scores, pred_max, _ = test_model_in_batches(client_model, client_train[client_idx], batch_size=300)
-            binary = calculate_metrics(pred_max, client_train[client_idx], "binary")
-            roc_auc = calculate_roc_auc(all_scores, client_train[client_idx])
-            print(f"Test Metrics: {binary}")
-            print(f"Test ROC AUC: {roc_auc}")
+            # Calculate and collect metrics for each client model
+            client_scores, client_pred, _ = test_model_in_batches(client_model, client_train[client_idx], batch_size=500)
+            client_binary = calculate_metrics(client_pred, client_train[client_idx], "binary")
+            client_roc_auc = calculate_roc_auc(client_scores, client_train[client_idx])
+
+            print(f"Test Metrics: {client_binary}")
+            print(f"Test ROC AUC: {client_roc_auc}")
            # plot_confusion_matrix(pred_max, clients_data[client_idx])
             
+            # Calculate additional metrics for each client
+            client_metrics.append({
+                'client_idx': client_idx,
+                'binary': client_binary,
+                'roc_auc': client_roc_auc,
+                'clusters': sum(client_model.n[0:client_model.c].cpu()> 0)
+            })
 
             #client_model.federal_agent.federated_merging()
             #print(f"Number of local model clusters after merging = {sum(client_model.n[0:client_model.c]> client_model.kappa_n)}")
@@ -351,13 +364,9 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             #client_model.federal_agent.federated_merging()
             print(f"Updating agreggated model with client {client_idx + 1}")
 
-            #client_model.federal_agent.federated_merging()
-            aggregated_model.federal_agent.merge_model_privately(client_model, client_model.kappa_n)
+            aggregated_model.federal_agent.merge_model_privately(client_model, client_model.kappa_n, pred_min = 2)
             print(f"Number of agreggated clusters after transfer = {sum(aggregated_model.n[0:aggregated_model.c]> aggregated_model.kappa_n)}")
                 
-        aggregated_model.federal_agent.federated_merging()
-        print(f"Number of agreggated clusters after merging = {sum(aggregated_model.n[0:aggregated_model.c]> aggregated_model.kappa_n)}")
-
                 
         #client_model.score = 0*client_model.score  
         #aggregated_model.S_glo = client_model.S_glo
@@ -378,42 +387,50 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
         # Update federated model with local models
         print(f"Updating federated model with agreggated model")
-        federated_model = aggregated_model #.federal_agent.merge_model_privately(aggregated_model, federated_model.kappa_n)
-        print(f"Number of federated clusters after transfer = {sum(federated_model.n[0:federated_model.c]> federated_model.kappa_n)}")
 
+        federated_model.federal_agent.merge_model_privately(aggregated_model, federated_model.kappa_n, pred_min = 1)
+        print(f"Number of federated clusters after transfer = {sum(federated_model.n[0:federated_model.c] > federated_model.kappa_n)}")
+        
+        federated_model.federal_agent.federated_merging()
+        print(f"Number of agreggated clusters after merging = {sum(federated_model.n[0:federated_model.c]> federated_model.kappa_n)}")
+        
         #local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)]  
         
         # Perform federated merging and removal mechanism on the federated model
         if any(federated_model.n[0:federated_model.c]> federated_model.kappa_n):
 
             # Evaluate federated model
-            all_scores_fed, pred_max_fed, _ = test_model_in_batches(federated_model, test_data, batch_size=500)
-            binary_fed = calculate_metrics(pred_max_fed, test_data, "binary")
-            roc_auc_fed = calculate_roc_auc(all_scores_fed, test_data)
-            print(f"Test Metrics: {binary_fed}")
-            print(f"Test ROC AUC: {roc_auc_fed}")
+            fed_scores, fed_pred, _ = test_model_in_batches(federated_model, test_data, batch_size=500)
+            fed_binary = calculate_metrics(fed_pred, test_data, "binary")
+            fed_roc_auc = calculate_roc_auc(fed_scores, test_data)
+            print(f"Test Metrics: {fed_binary}")
+            print(f"Test ROC AUC: {fed_roc_auc}")
 
             #plot_confusion_matrix(pred_max_fed, test_data)
 
-            # Append metrics to the list
             round_metrics.append({
                 'round': round + 1,
-                'clusters': federated_model.c,
-                'binary': binary_fed,
-                'roc_auc': roc_auc_fed
+                'federated_model': {
+                    'clusters': sum(federated_model.n[0:federated_model.c].cpu() > federated_model.kappa_n),
+                    'binary': fed_binary,
+                    'roc_auc': fed_roc_auc
+                },
+                'aggregated_model': {
+                    'clusters': sum(aggregated_model.n[0:aggregated_model.c].cpu() > aggregated_model.kappa_n),
+                },
+                'client_metrics': client_metrics
             })
 
         # Return the updated federated model to each client
         for client_idx in range(len(local_models)):
             print(f"Returning updated model to client {client_idx + 1}")
-            #local_models[client_idx] = federated_model
             
-            local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n)
-            local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
-            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].score)
-
+            local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n, pred_min = 0)
             #local_models[client_idx].federal_agent.federated_merging()
-            
+
+            #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
+            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
+
             '''
             # Return the updated federated model to each client
             for client_idx, client_model in enumerate(local_models):
@@ -422,30 +439,40 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
                 client_model.federal_agent.federated_merging()
             '''
             
-        print(f"--- End of Round {round + 1} ---\n")
-        #if  round == (num_rounds-1):
-        #    pass
-        plt.close('all')
-        #plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
-        #plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max = federated_model.kappa_n)   
-        #test_data, clients_data[0]
-        # Write round information and results to file
-        write_to_file(result_file, round_info)
-        for metric in round_metrics:
-            metric_info = f"Round {metric['round']}: Metrics: {metric['binary']}, ROC AUC: {metric['roc_auc']}\n"
-            write_to_file(result_file, metric_info)
-
-        print(f"--- End of Round {round + 1} ---\n")
+          # Print and write round information to file
         round_info = f"--- End of Round {round + 1} ---\n"
+        print(round_info)
         write_to_file(result_file, round_info)
+
+        # Plot features for the current round
+        plt.close('all')  # Close all existing plots to free up memory
+        if False:
+            plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
+            plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
+
+        # Iterate over each round's metrics and write to file
+        for metric in round_metrics:
+            metric_info = f"Round {metric['round']}: Metrics: {metric['federated_model']['binary']}, ROC AUC: {metric['federated_model']['roc_auc']}\n"
+            print(metric_info)  # Print each round's metrics
+            write_to_file(result_file, metric_info)  # Write to file
 
     # After all rounds
     final_info = "All Rounds Completed. Metrics Collected:\n"
+    print(final_info)
     write_to_file(result_file, final_info)
+
+    # Iterate over each round's metrics and write to file
     for metric in round_metrics:
-        final_metric_info = f"Round {metric['round']}: Metrics: {metric['binary']}, ROC AUC: {metric['roc_auc']}\n"
-        print(final_metric_info)
-        write_to_file(result_file, final_metric_info)
+        metric_info = f"Round {metric['round']}: "
+        metric_info += f"Federated Model - Clusters: {metric['federated_model']['clusters']}, "
+        metric_info += f"Binary Metrics: {metric['federated_model']['binary']}, ROC AUC: {metric['federated_model']['roc_auc']}\n"
+        metric_info += f"Aggregated Model - Clusters: {metric['aggregated_model']['clusters']}\n"
+
+        for client_metric in metric['client_metrics']:
+            metric_info += f"Client {client_metric['client_idx']} - Binary: {client_metric['binary']}, ROC AUC: {client_metric['roc_auc']}\n"
+
+        print(metric_info)  # Print each round's metrics
+        write_to_file(result_file, metric_info)  # Write to file
 
     return round_metrics
 
@@ -454,7 +481,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
 
 # List of client counts and data configuration indices
-client_counts = [ 3 ,10]
+client_counts = [ 3]
 data_config_indices = [1]  # Replace with your actual data configuration indices
 
 # Assuming local_models, client_train, federated_model, and test_data are already defined
@@ -509,16 +536,16 @@ for num_clients in client_counts:
                    
         else:
             metrics = run_experiment(num_clients, num_rounds, client_train, test_data, balance)
-            experiments.append(metrics)
+            
+        experiments.append(metrics)
+            
+        plot_metrics(experiments, client_counts, data_config_indices)
 
 
 # In[ ]:
 
 
-print("All Rounds Completed. Metrics Collected:")
-for metric in metrics:
-    print(f"Round {metric['round']}: Metrics: {metric['binary']}, ROC AUC: {metric['roc_auc']}")
-    print(f"                         Weighted: {metric['weighted']}")
+plot_metrics(experiments, client_counts, data_config_indices)
 
 
 # In[ ]:

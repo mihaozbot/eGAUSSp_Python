@@ -46,14 +46,15 @@ class FederalOps:
                 self.parent.merging_mech.merging_mechanism()
 
             #Remove small clusters 
-            if self.parent.c>self.parent.c_max:
+            if len(self.parent.matching_clusters) > self.parent.c_max:
+                
                 self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
                 self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                self.parent.removal_mech.remove_overlapping()
-
+                self.parent.removal_mech.remove_score()
+                self.parent.removal_mech.remove_irrelevant()
                 #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
                 #self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-                #self.parent.removal_mech.removal_mechanism()
+                #self.parent.removal_mech.remove_overlapping()
 
     def merge_model_statistics(self, model):
         ''' Merge the global statistical parameters of another model into the current federated model. '''
@@ -81,7 +82,7 @@ class FederalOps:
         ''' Merge the parameters of another model into the current federated model. '''
 
         # Filter out clusters where model.n > 0
-        valid_clusters = (model.n[:model.c] > n_min)*(model.num_pred[:model.c] > pred_min)
+        valid_clusters = (model.n[:model.c] > n_min)*(model.num_pred[:model.c] >= pred_min)
         num_valid_clusters = valid_clusters.sum()
 
         # First, merge the global statistical parameters

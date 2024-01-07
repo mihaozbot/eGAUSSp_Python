@@ -38,8 +38,10 @@ class RemovalMechanism:
             first_incorrect_lower_index = torch.where(incorrect_clusters_lower_activation)[0][0]  # Get the first such index
             self.update_cluster_score(first_incorrect_lower_index, label, correct=True)
     '''
-
     def update_score(self, label):
+        if len(torch.unique(self.parent.cluster_labels[:self.parent.c],dim= 0)) < 2:
+            return 
+        
         normalized_gamma = self.parent.consequence.compute_normalized_gamma()
 
         # Masks for correct and incorrect clusters
@@ -49,34 +51,48 @@ class RemovalMechanism:
         # Sorted indices by activation
         sorted_indices = torch.argsort(normalized_gamma, descending=True)
 
-        # Find the first cluster that should be updated
-        first_update_index = None
-        update_correct = True  # Flag to indicate if we are updating correct or incorrect clusters
+        # Lists to keep track of indices to update
+        correct_to_update = []
+        wrong_to_update = []
+        first_correct_index = None
+        first_wrong_index = None
 
         for index in sorted_indices:
-            if correct_clusters_mask[index]:
-                first_update_index = index
-                update_correct = True
-                break
-            elif incorrect_clusters_mask[index]:
-                first_update_index = index
-                update_correct = False
-                break
+            if correct_clusters_mask[index] and first_wrong_index is None:
+                correct_to_update.append(index)
+                if first_correct_index is None:
+                    first_correct_index = index
+            elif incorrect_clusters_mask[index] and first_correct_index is None:
+                wrong_to_update.append(index)
+                if first_wrong_index is None:
+                    first_wrong_index = index
+        
+        # Update correct clusters
+        if correct_to_update:
+            self.update_cluster_scores(correct_to_update, label, correct=True)
 
-        if first_update_index is not None:
-            # Determine the range of indices to update
-            # +1 because we include the first cluster of the opposite type
-            update_indices = sorted_indices[:sorted_indices.tolist().index(first_update_index) + 1]
+        # Update wrong clusters
+        if wrong_to_update:
+            self.update_cluster_scores(wrong_to_update, label, correct=False)
+        
+        
+        # Extra update for the first correct cluster
+        if first_correct_index is not None:
+            self.update_cluster_scores([first_correct_index], label, correct=True)
 
-            # Update the scores
-            self.update_cluster_scores(update_indices, label, correct=update_correct)
+        # Extra update for the first wrong cluster
+        if first_wrong_index is not None:
+            self.update_cluster_scores([first_wrong_index], label, correct=False)
 
 
     def update_cluster_scores(self, cluster_indices, label, correct=True):
-        score_increment = 1.0 if correct else 0.0
-        score_increment_tensor = torch.tensor(score_increment, dtype=torch.float32)
+        cluster_indices = torch.tensor(cluster_indices)
 
-        # Update num_pred for all clusters
+        score_increment = 1.0 if correct else 0.0
+
+        # Create a tensor of score increments with the same length as cluster_indices
+        score_increment_tensor = torch.full((len(cluster_indices),), score_increment, dtype=torch.float32)
+
         self.parent.num_pred[cluster_indices] += 1
 
         # Calculate new scores
@@ -325,7 +341,7 @@ class RemovalMechanism:
         self.parent.merging_mech.compute_kappa()
 
         with torch.no_grad():
-            while len(self.parent.merging_mech.valid_clusters) > self.parent.c_max:
+            while len(self.parent.merging_mech.valid_clusters) > 1:
                 # Identify the smallest kappa value
 
                 if len(self.parent.merging_mech.valid_clusters) < 2:
@@ -348,26 +364,18 @@ class RemovalMechanism:
                 # Convert the flat index back to a 2D index
                 row, col = divmod(min_kappa_flat_idx.item(), self.parent.merging_mech.kappa.shape[1])
 
-
                 # Get the scores of the clusters in the pair
-                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row]].item() #*self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
-                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col]].item() #*self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
+                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row]].item()*self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
+                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col]].item()*self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
 
                 # Determine which cluster of the pair to remove
                 if score_row < score_col:
                     cluster_to_remove_idx = row
-                elif score_row > score_col:
+                elif score_row >= score_col:
                     cluster_to_remove_idx = col
-                else:
-                    # If scores are equal, compare the number of predictions
-                    num_pred_row = self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
-                    num_pred_col = self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
-                    cluster_to_remove_idx = row if num_pred_row < num_pred_col else col
-
 
                 # Determine which cluster of the pair to remove based on the smallest score
                 cluster_to_remove = self.parent.merging_mech.valid_clusters[cluster_to_remove_idx]
-
 
                 # Remove the selected cluster
                 self.remove_cluster(cluster_to_remove)
@@ -386,7 +394,6 @@ class RemovalMechanism:
                     self.parent.merging_mech.kappa[:, cluster_to_remove_idx + 1:]
                 ], dim=1)
 
-
     def remove_score(self):
         if self.parent.c < 2:
             return
@@ -395,20 +402,42 @@ class RemovalMechanism:
         num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
 
         if num_clusters_to_remove > 0:
-            # Create a composite score for each cluster, lower score is better
-            # In case of a tie in score, lower num_pred is better
-            composite_scores = [(self.parent.score[i], -self.parent.num_pred[i]) for i in self.parent.matching_clusters]
+            # Create a composite score for each cluster
+            composite_scores = [(self.parent.score[i], -self.parent.num_pred[i], i) for i in self.parent.matching_clusters]
 
-            # Sort the clusters by composite score
-            sorted_indices = sorted(range(len(composite_scores)), key=lambda i: composite_scores[i], reverse=True)
+            # Sort the clusters by composite score, excluding those with a score of 1
+            sorted_indices = sorted([idx for score, _, idx in composite_scores if score < 1], 
+                                    key=lambda idx: (self.parent.score[idx], -self.parent.num_pred[idx]), 
+                                    reverse=True)
 
-            # Get the indices of clusters to remove in descending order
+            # Get the indices of clusters to remove in descending order, up to the number needed
             indices_to_remove = sorted(sorted_indices[:num_clusters_to_remove], reverse=True)
 
             with torch.no_grad():
                 # Remove the selected clusters
                 for index in indices_to_remove:
-                    self.remove_cluster(self.parent.matching_clusters[index])
+                    self.remove_cluster(index)
+
+    def remove_irrelevant(self):
+        if self.parent.c < 2:
+            return
+        
+        # Calculate how many clusters to remove
+        num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
+
+        if num_clusters_to_remove > 0:
+            # Sort the clusters first by num_pred (ascending) and then by score (descending)
+            sorted_indices = sorted(self.parent.matching_clusters, key=lambda i: (self.parent.num_pred[i], -self.parent.score[i]))
+
+            # Indices of clusters to remove in descending order
+            indices_to_remove = sorted(sorted_indices[:num_clusters_to_remove], reverse=True)
+
+            with torch.no_grad():
+                # Remove selected clusters
+                for index in indices_to_remove:
+                        self.remove_cluster(index)
+
+                    
 
     def removal_mechanism(self):
         ''' Remove clusters with negative scores and additional low scoring clusters if necessary. '''
@@ -455,7 +484,6 @@ class RemovalMechanism:
             #labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
             #if not labels_check:
             #    print("Critical error: Labels consistency in matching clusters after remove_score:", labels_check)
-
 
     '''      
     def removal_mechanism(self):

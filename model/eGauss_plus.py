@@ -110,7 +110,7 @@ class eGAUSSp(torch.nn.Module):
             
             # Compute activation
             self.Gamma = self.mathematician.compute_activation(z)
-            self.Gamma *= self.score[:self.c]
+            #self.Gamma *= self.score[:self.c]
 
             self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
             
@@ -143,39 +143,38 @@ class eGAUSSp(torch.nn.Module):
                     #     print("removal?")
                         #Removal mechanism
                     
-                    if len(self.matching_clusters) > self.c_max:
-
-                        #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
-                        #self.merging_mech.valid_clusters = self.matching_clusters
-                        #self.removal_mech.remove_overlapping()
-
+                    if len(torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] ) > self.c_max:
                         self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
-                        self.merging_mech.valid_clusters = self.matching_clusters
-                        self.removal_mech.removal_mechanism()
-                    
+                        self.removal_mech.remove_score()
+                        self.removal_mech.remove_irrelevant()
+                        #self.removal_mech.remove_overlapping()
+                        #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
+                        
+                
                     # S_inv_ = torch.linalg.inv((self.S[:self.c]/
                     #             self.n[:self.c].view(-1, 1, 1))*
                     #             self.feature_dim)
                     # S_inv = self.S_inv[:self.c]
                     # if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>1e-4):
                     #     print("removal?")
-        '''
-        scores, preds, clusters = test_model_in_batches(self, (data, labels))
+                        
+            '''
+            scores, preds, clusters = test_model_in_batches(self, (data, labels))
 
-        # Generate a range tensor of valid cluster indices
-        valid_clusters = torch.arange(self.c, dtype=torch.int32, device=self.device)
+            # Generate a range tensor of valid cluster indices
+            valid_clusters = torch.arange(self.c, dtype=torch.int32, device=self.device)
 
-        # Check which clusters in the 'clusters' tensor are not in the 'valid_clusters' tensor
-        clusters_to_remove_mask = ~clusters.to(self.device).unsqueeze(1).eq(valid_clusters).any(dim=1)
+            # Check which clusters in the 'clusters' tensor are not in the 'valid_clusters' tensor
+            clusters_to_remove_mask = ~clusters.to(self.device).unsqueeze(1).eq(valid_clusters).any(dim=1)
 
-        # Get the indices of clusters to remove
-        clusters_to_remove = torch.where(clusters_to_remove_mask)[0]
+            # Get the indices of clusters to remove
+            clusters_to_remove = torch.where(clusters_to_remove_mask)[0]
 
-        with torch.no_grad():
-            # Remove clusters that don't contribute significantly
-            for cluster_index in clusters_to_remove:
-                self.removal_mech.remove_cluster(cluster_index)
-        '''
+            with torch.no_grad():
+                # Remove clusters that don't contribute significantly
+                for cluster_index in clusters_to_remove:
+                    self.removal_mech.remove_cluster(cluster_index)
+            '''
         
         '''
         preds_list = preds.tolist()
@@ -213,7 +212,7 @@ class eGAUSSp(torch.nn.Module):
         self.matching_clusters = torch.arange(self.c).repeat(data.shape[0], 1)
         self.Gamma = self.mathematician.compute_batched_activation(data)
     
-        self.Gamma *= self.score[:self.c].unsqueeze(0)
+        #self.Gamma *= self.score[:self.c].unsqueeze(0)
         #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
 
         # Evolving mechanisms can be handled here if they can be batch processed
