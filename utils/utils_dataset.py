@@ -160,6 +160,43 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
     :return: List of balanced client data.
     """
 
+    def balance_subsequent_rounds(client_idx, client_model, client_data, client_train):
+        fed_scores, fed_pred, _ = test_model_in_batches(client_model, client_data, batch_size=500)
+        client_X, client_y = client_data
+
+        # Identify minority and majority classes
+        unique_classes, class_counts = np.unique(client_y, return_counts=True)
+        majority_class_label = unique_classes[np.argmax(class_counts)]
+        minority_class_label = unique_classes[np.argmin(class_counts)]
+
+        # Identify misclassified samples in the minority class
+        misclassified_minority_indices = np.where((client_y == minority_class_label) & (fed_pred != client_y))[0]
+        misclassified_minority_X = client_X[misclassified_minority_indices]
+        misclassified_minority_y = client_y[misclassified_minority_indices]
+
+        majority_X = client_X[client_y == majority_class_label]
+        majority_y = client_y[client_y == majority_class_label]
+
+        num_additional_samples = sum((client_y == minority_class_label))
+        # Select majority class samples with highest errors
+        selected_high_error_X, selected_high_error_y = select_high_error_samples(
+            majority_X, majority_y, fed_scores[client_y == majority_class_label], majority_class_label, num_additional_samples)
+
+        # Randomly select additional majority class samples
+        random_indices = np.random.choice(np.where(client_y == majority_class_label)[0], num_additional_samples.numpy(), replace=False)
+        selected_random_X = client_X[random_indices]
+        selected_random_y = client_y[random_indices]
+
+        # Combine misclassified minority class samples with selected majority samples (both high-error and random)
+        balanced_X = np.concatenate((misclassified_minority_X, selected_high_error_X, selected_random_X))
+        balanced_y = np.concatenate((misclassified_minority_y, selected_high_error_y, selected_random_y))
+
+        # Convert numpy arrays to PyTorch tensors
+        X_tensor = torch.tensor(balanced_X, dtype=torch.float32)
+        y_tensor = torch.tensor(balanced_y, dtype=torch.int64)
+        client_train[client_idx] = (X_tensor, y_tensor)
+
+
     def balance_client_data(client_data):
         client_X, client_y = client_data
         balanced_X, balanced_y = balance_dataset(client_X, client_y, technique=balance)
@@ -180,50 +217,27 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
             thread.join()
     else:
         # Subsequent rounds: Focus on incorrect predictions for majority class
-        for client_idx, client_model in enumerate(local_models):
-            fed_scores, fed_pred, _ = test_model_in_batches(client_model, client_raw_data[client_idx], batch_size=500)
-            client_X, client_y = client_raw_data[client_idx]
+        #for client_idx, client_model in enumerate(local_models):
+                # Subsequent rounds: Use threads for balancing
+        threads = []
+        for client_idx, (client_model, client_data) in enumerate(zip(local_models, client_raw_data)):
+            thread = threading.Thread(target=balance_subsequent_rounds, args=(client_idx, client_model, client_data, client_train))
+            threads.append(thread)
+            thread.start()
 
-            # Identify minority and majority classes
-            unique_classes, class_counts = np.unique(client_y, return_counts=True)
-            majority_class_label = unique_classes[np.argmax(class_counts)]
-            minority_class_label = unique_classes[np.argmin(class_counts)]
-
-            minority_X = client_X[client_y == minority_class_label]
-            minority_y = client_y[client_y == minority_class_label]
-
-            majority_X = client_X[client_y == majority_class_label]
-            majority_y = client_y[client_y == majority_class_label]
-
-            # Select majority class samples with highest errors
-            selected_high_error_X, selected_high_error_y = select_high_error_samples(
-                majority_X, majority_y, fed_scores[client_y == majority_class_label], majority_class_label, len(minority_X))
-
-            # Randomly select additional majority class samples
-            num_additional_samples = len(minority_X)
-            random_indices = np.random.choice(np.where(client_y == majority_class_label)[0], num_additional_samples, replace=False)
-            selected_random_X = client_X[random_indices]
-            selected_random_y = client_y[random_indices]
-
-            # Combine minority class samples with selected majority samples (both high-error and random)
-            balanced_X = np.concatenate((minority_X, selected_high_error_X, selected_random_X))
-            balanced_y = np.concatenate((minority_y, selected_high_error_y, selected_random_y))
-
-            # Convert numpy arrays to PyTorch tensors
-            X_tensor = torch.tensor(balanced_X, dtype=torch.float32)
-            y_tensor = torch.tensor(balanced_y, dtype=torch.int64)
-            client_train[client_idx] = (X_tensor, y_tensor)
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
 
     return client_train
-
 
 def select_high_error_samples(majority_X, majority_y, fed_scores, majority_class_label, num_samples):
     # Extract the probabilities for the majority class
     probabilities_majority_class = fed_scores[:, majority_class_label]
 
     # Error is 1 minus the probability of the majority class
-    error_magnitude = 1 - probabilities_majority_class
-    #error_magnitude = torch.abs(0.5 - probabilities_majority_class)
+    #error_magnitude = 1 - probabilities_majority_class
+    error_magnitude = torch.abs(0.5 - probabilities_majority_class)
 
     # Sort indices of majority class samples by error magnitude in descending order
     sorted_indices = np.argsort(-error_magnitude)

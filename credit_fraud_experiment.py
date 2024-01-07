@@ -9,7 +9,7 @@ import torch
 from sklearn.preprocessing import StandardScaler
 from utils.utils_train import train_supervised, train_models_in_threads, test_model_in_batches
 from utils.utils_plots import plot_interesting_features, plot_metrics
-from utils.utils_dataset import balance_dataset, prepare_dataset
+from utils.utils_dataset import balance_dataset, prepare_dataset, balance_data_for_clients
 from utils.utils_dataset import display_dataset_split
 from utils.utils_metrics import calculate_metrics, plot_confusion_matrix, calculate_roc_auc
 
@@ -191,7 +191,7 @@ local_model_params = {
     "kappa_join": 0.5,
     "S_0": 1e-10,
     "N_r": 20,
-    "c_max": 300,
+    "c_max": 100,
     "num_samples": 1000,
     "device": device
 }
@@ -269,9 +269,6 @@ def write_to_file(file_path, data, mode='a'):
 # In[10]:
 
 
-from cycler import L
-import torch.nn as nn
-
 def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance):
        
     # Initialize a model for each client
@@ -289,28 +286,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
         # Reset client metrics for the new round
         client_metrics = []
 
-        # Function to balance data for a single client
-        def balance_client_data(client_data):
-            client_X, client_y = client_data
-            balanced_X, balanced_y = balance_dataset(client_X, client_y, technique=balance)
-            return balanced_X, balanced_y
-        
-        def balance_thread(client_data, result, index):
-            result[index] = balance_client_data(client_data)
-
-        # Assuming client_raw_data is a list of data for each client
-        client_train = [None] * len(client_raw_data)  # Placeholder for results
-        threads = []
-
-        # Create and start threads
-        for i, client_data in enumerate(client_raw_data):
-            thread = threading.Thread(target=balance_thread, args=(client_data, client_train, i))
-            threads.append(thread)
-            thread.start()
-
-        # Wait for all threads to complete
-        for thread in threads:
-            thread.join()
+        client_train = balance_data_for_clients(client_raw_data, local_models, balance, round)
 
         display_dataset_split(client_train, test_data)
         
@@ -364,7 +340,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             #client_model.federal_agent.federated_merging()
             print(f"Updating agreggated model with client {client_idx + 1}")
 
-            aggregated_model.federal_agent.merge_model_privately(client_model, client_model.kappa_n, pred_min = 2)
+            aggregated_model.federal_agent.merge_model_privately(client_model, client_model.kappa_n, pred_min = 0)
             print(f"Number of agreggated clusters after transfer = {sum(aggregated_model.n[0:aggregated_model.c]> aggregated_model.kappa_n)}")
                 
                 
@@ -388,7 +364,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
         # Update federated model with local models
         print(f"Updating federated model with agreggated model")
 
-        federated_model.federal_agent.merge_model_privately(aggregated_model, federated_model.kappa_n, pred_min = 1)
+        federated_model.federal_agent.merge_model_privately(aggregated_model, federated_model.kappa_n, pred_min = 0)
         print(f"Number of federated clusters after transfer = {sum(federated_model.n[0:federated_model.c] > federated_model.kappa_n)}")
         
         federated_model.federal_agent.federated_merging()
@@ -429,7 +405,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             #local_models[client_idx].federal_agent.federated_merging()
 
             #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
-            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
+            #local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
 
             '''
             # Return the updated federated model to each client
@@ -446,9 +422,9 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
         # Plot features for the current round
         plt.close('all')  # Close all existing plots to free up memory
-        if False:
+        if True:
             plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
-            plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
+            #plot_interesting_features(test_data, model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
 
         # Iterate over each round's metrics and write to file
         for metric in round_metrics:
