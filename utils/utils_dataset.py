@@ -14,6 +14,7 @@ from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.over_sampling import SMOTE
 from imblearn import FunctionSampler
 from utils.utils_train import test_model_in_batches
+from sklearn.neighbors import NearestNeighbors
 
 #from imblearn.over_sampling import SMOTE
 
@@ -169,33 +170,45 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
         majority_class_label = unique_classes[np.argmax(class_counts)]
         minority_class_label = unique_classes[np.argmin(class_counts)]
 
-        # Identify misclassified samples in the minority class
-        misclassified_minority_indices = np.where((client_y == minority_class_label) & (fed_pred != client_y))[0]
-        misclassified_minority_X = client_X[misclassified_minority_indices]
-        misclassified_minority_y = client_y[misclassified_minority_indices]
+        # Take all samples from the minority class
+        minority_X = client_X[client_y == minority_class_label]
+        minority_y = client_y[client_y == minority_class_label]
 
         majority_X = client_X[client_y == majority_class_label]
         majority_y = client_y[client_y == majority_class_label]
 
-        num_additional_samples = sum((client_y == minority_class_label))
+        # Determine the number of additional samples to select from the majority class
+        num_additional_samples = len(minority_X)
         # Select majority class samples with highest errors
         selected_high_error_X, selected_high_error_y = select_high_error_samples(
             majority_X, majority_y, fed_scores[client_y == majority_class_label], majority_class_label, num_additional_samples)
 
         # Randomly select additional majority class samples
-        random_indices = np.random.choice(np.where(client_y == majority_class_label)[0], num_additional_samples.numpy(), replace=False)
+        random_indices = np.random.choice(np.where(client_y == majority_class_label)[0], num_additional_samples, replace=False)
         selected_random_X = client_X[random_indices]
         selected_random_y = client_y[random_indices]
 
-        # Combine misclassified minority class samples with selected majority samples (both high-error and random)
-        balanced_X = np.concatenate((misclassified_minority_X, selected_high_error_X, selected_random_X))
-        balanced_y = np.concatenate((misclassified_minority_y, selected_high_error_y, selected_random_y))
+        # Combine all minority class samples with selected majority samples
+        balanced_X = np.concatenate((minority_X, selected_high_error_X, selected_random_X))
+        balanced_y = np.concatenate((minority_y, selected_high_error_y, selected_random_y))
 
+        # Instantiate and fit NearestNeighbors
+        nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(client_X)
+        _, indices = nbrs.kneighbors(selected_high_error_X)
+
+        # Flatten the array of neighbor indices and remove duplicates
+        neighbor_indices = np.unique(indices.flatten())
+
+        # Add the neighbors to the balanced dataset
+        neighbor_X = client_X[neighbor_indices]
+        neighbor_y = client_y[neighbor_indices]
+        balanced_X = np.concatenate((balanced_X, neighbor_X))
+        balanced_y = np.concatenate((balanced_y, neighbor_y))
+        
         # Convert numpy arrays to PyTorch tensors
         X_tensor = torch.tensor(balanced_X, dtype=torch.float32)
         y_tensor = torch.tensor(balanced_y, dtype=torch.int64)
         client_train[client_idx] = (X_tensor, y_tensor)
-
 
     def balance_client_data(client_data):
         client_X, client_y = client_data
@@ -231,23 +244,41 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
 
     return client_train
 
+
 def select_high_error_samples(majority_X, majority_y, fed_scores, majority_class_label, num_samples):
     # Extract the probabilities for the majority class
     probabilities_majority_class = fed_scores[:, majority_class_label]
 
-    # Error is 1 minus the probability of the majority class
-    #error_magnitude = 1 - probabilities_majority_class
-    error_magnitude = torch.abs(0.5 - probabilities_majority_class)
+    # Calculate direct error magnitude
+    direct_error_magnitude = 1 - probabilities_majority_class
 
-    # Sort indices of majority class samples by error magnitude in descending order
-    sorted_indices = np.argsort(-error_magnitude)
+    # Calculate error magnitude as deviation from threshold
+    threshold_error_magnitude = torch.abs(0.5 - probabilities_majority_class)
 
-    # Select the top num_samples indices
-    selected_indices = sorted_indices[:min(len(majority_X), num_samples)]
-    selected_majority_X = majority_X[selected_indices]
-    selected_majority_y = majority_y[selected_indices]
+    # Sort indices of majority class samples by direct error magnitude in descending order
+    sorted_indices_direct_error = np.argsort(-direct_error_magnitude.numpy())
 
-    return selected_majority_X, selected_majority_y
+    # Sort indices of majority class samples by threshold error magnitude in descending order
+    sorted_indices_threshold_error = np.argsort(-threshold_error_magnitude.numpy())
+
+    # Select the top num_samples indices from each error type
+    selected_indices_direct_error = sorted_indices_direct_error[:min(len(majority_X), num_samples)]
+    selected_indices_threshold_error = sorted_indices_threshold_error[:min(len(majority_X), num_samples)]
+
+    # Extract samples based on direct error
+    selected_majority_X_direct_error = majority_X[selected_indices_direct_error]
+    selected_majority_y_direct_error = majority_y[selected_indices_direct_error]
+
+    # Extract samples based on threshold error
+    selected_majority_X_threshold_error = majority_X[selected_indices_threshold_error]
+    selected_majority_y_threshold_error = majority_y[selected_indices_threshold_error]
+
+    # Concatenate both sets of samples
+    concatenated_X = np.concatenate((selected_majority_X_direct_error, selected_majority_X_threshold_error), axis=0)
+    concatenated_y = np.concatenate((selected_majority_y_direct_error, selected_majority_y_threshold_error), axis=0)
+
+    # Return the concatenated samples
+    return concatenated_X, concatenated_y
 
 def select_equal_samples_from_majority(majority_X, majority_y, num_samples):
     indices = np.random.choice(len(majority_X), num_samples, replace=False)

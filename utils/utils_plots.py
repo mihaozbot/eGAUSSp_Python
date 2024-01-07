@@ -22,10 +22,9 @@ def calculate_mean_std(metrics, key):
 
     return means, stds
 
-def plot_with_intervals(rounds, means, stds, metric_name, title):
+def plot_with_intervals(rounds, means, stds, metric_name):
     plt.figure(figsize=(12, 6))
     plt.errorbar(rounds, means, yerr=stds, fmt='o-', ecolor='lightgray', elinewidth=3, capsize=0, label=metric_name)
-    plt.title(title)
     plt.xlabel('Round')
     plt.ylabel(metric_name)
     plt.legend()
@@ -94,7 +93,7 @@ def plot_aggregated_client_metrics(metrics):
     for key in ['f1_score']: #['accuracy', 'precision', 'recall', 'f1_score']
         # Calculate mean and std for each metric
         means, stds = calculate_mean_std(metrics, key)
-        ax = plot_with_intervals(rounds, means, stds, key.capitalize(), f'Client {key.capitalize()} over Rounds (Mean ± Std Dev)')
+        ax = plot_with_intervals(rounds, means, stds, 'Clients F1 score')
 
 def plot_metrics(experiments, client_counts, data_config_indices):
     for client_count in client_counts:

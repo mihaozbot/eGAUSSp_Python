@@ -191,8 +191,8 @@ local_model_params = {
     "kappa_join": 0.5,
     "S_0": 1e-10,
     "N_r": 20,
-    "c_max": 100,
-    "num_samples": 1000,
+    "c_max": 200,
+    "num_samples": 100,
     "device": device
 }
 
@@ -204,8 +204,8 @@ federated_model_params = {
     "kappa_join": 0.5,
     "S_0": 1e-10,
     "N_r": 20,
-    "c_max": 300,
-    "num_samples": 1000,
+    "c_max": 600,
+    "num_samples": 100,
     "device": device
 }
 
@@ -320,17 +320,14 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             # Calculate and collect metrics for each client model
             client_scores, client_pred, _ = test_model_in_batches(client_model, client_train[client_idx], batch_size=500)
             client_binary = calculate_metrics(client_pred, client_train[client_idx], "binary")
-            client_roc_auc = calculate_roc_auc(client_scores, client_train[client_idx])
 
             print(f"Test Metrics: {client_binary}")
-            print(f"Test ROC AUC: {client_roc_auc}")
            # plot_confusion_matrix(pred_max, clients_data[client_idx])
             
             # Calculate additional metrics for each client
             client_metrics.append({
                 'client_idx': client_idx,
                 'binary': client_binary,
-                'roc_auc': client_roc_auc,
                 'clusters': sum(client_model.n[0:client_model.c].cpu()> 0)
             })
 
@@ -405,7 +402,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             #local_models[client_idx].federal_agent.federated_merging()
 
             #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
-            #local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
+            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
 
             '''
             # Return the updated federated model to each client
@@ -462,7 +459,7 @@ data_config_indices = [1]  # Replace with your actual data configuration indices
 
 # Assuming local_models, client_train, federated_model, and test_data are already defined
 # Number of communication rounds
-num_rounds = 100
+num_rounds = 10
 profiler = False
 experiments = []
 # Running the experiment

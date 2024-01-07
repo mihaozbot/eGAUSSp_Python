@@ -223,7 +223,7 @@ class MergingMechanism:
 
         # Compare cluster volume to standard volume for the i-th row and column
         V_ratio = self.V/V_S_0
-        kappa_filter = V_ratio > 3
+        kappa_filter = V_ratio > 1
         self.kappa[kappa_filter] = float("inf")
 
         kappa_min = torch.min(self.kappa[self.kappa==self.kappa])

@@ -341,7 +341,7 @@ class RemovalMechanism:
         self.parent.merging_mech.compute_kappa()
 
         with torch.no_grad():
-            while len(self.parent.merging_mech.valid_clusters) > 1:
+            while len(self.parent.merging_mech.valid_clusters) > self.parent.c_max:
                 # Identify the smallest kappa value
 
                 if len(self.parent.merging_mech.valid_clusters) < 2:
@@ -351,7 +351,7 @@ class RemovalMechanism:
                 rows, cols = torch.where(self.parent.merging_mech.kappa)
                 if rows.nelement() == 0 or cols.nelement() == 0:
                     break
-
+            
                 # Flatten the kappa matrix and find the global minimum
                 kappa_flat = self.parent.merging_mech.kappa.view(-1)
                 min_kappa_value, min_kappa_flat_idx = torch.min(kappa_flat, 0)
@@ -365,9 +365,10 @@ class RemovalMechanism:
                 row, col = divmod(min_kappa_flat_idx.item(), self.parent.merging_mech.kappa.shape[1])
 
                 # Get the scores of the clusters in the pair
-                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row]].item()*self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
-                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col]].item()*self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
+                score_row = self.parent.score[self.parent.merging_mech.valid_clusters[row]].item() #*self.parent.num_pred[self.parent.merging_mech.valid_clusters[row]].item()
+                score_col = self.parent.score[self.parent.merging_mech.valid_clusters[col]].item() #*self.parent.num_pred[self.parent.merging_mech.valid_clusters[col]].item()
 
+                cluster_to_remove_idx = []
                 # Determine which cluster of the pair to remove
                 if score_row < score_col:
                     cluster_to_remove_idx = row

@@ -74,8 +74,8 @@ class ClusteringOps:
         #self.parent.S[j] += e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
         #self.parent.n[j] +=  1 #
     
-        self.parent.S[j] = self.parent.S[j] + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1) #+ self.parent.S_0
-        self.parent.n[j] = self.parent.n[j] + 1 #*self.parent.forgeting_factor
+        self.parent.S[j] = self.parent.S[j]*self.parent.forgeting_factor + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1) + self.parent.S_0
+        self.parent.n[j] = self.parent.n[j]*self.parent.forgeting_factor + 1 #*self.parent.forgeting_factor
         
         #x_minus_c = z - self.parent.mu[j]  # Difference between data point and cluster center
         #term = torch.matmul(self.parent.S_inv[j], x_minus_c.unsqueeze(1))  # Adjust dimensions for matrix multiplication
