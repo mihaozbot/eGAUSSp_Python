@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.metrics import f1_score
 import torch
 from matplotlib import cm
 from matplotlib.patches import Ellipse
@@ -9,6 +10,7 @@ from matplotlib.ticker import FormatStrFormatter
 from sklearn.preprocessing import StandardScaler
 from itertools import combinations
 
+
 def calculate_mean_std(metrics, key):
     # Calculate mean and standard deviation for the given key in client metrics
     means = []
@@ -16,45 +18,74 @@ def calculate_mean_std(metrics, key):
 
     num_rounds = len(metrics)
     for round_idx in range(num_rounds):
-        round_values = [client_metric['binary'][key]  for client_metric in metrics[round_idx]['client_metrics']]
+        round_values = [client_metric['binary'][key] for client_metric in metrics[round_idx]['client_metrics']]
         means.append(np.mean(round_values))
         stds.append(np.std(round_values))
 
     return means, stds
 
-
-def plot_with_intervals(rounds, means, stds, label, color, y_label):
-    plt.errorbar(rounds, means, yerr=stds, fmt='o-', ecolor=color, elinewidth=3, capsize=0, label=label, color=color)
+def plot_with_intervals(rounds, means, stds, label, color, y_label, alpha=1.0, marker='o'):
+    plt.errorbar(rounds, means, yerr=stds, fmt=marker + '-', ecolor=color, elinewidth=3, capsize=0, label=label, color=color, alpha=alpha)
     lower_bound = np.array(means) - np.array(stds)
     upper_bound = np.array(means) + np.array(stds)
-    plt.fill_between(rounds, lower_bound, upper_bound, color=color, alpha=0.3)
-    plt.xlabel('Round')
+    plt.fill_between(rounds, lower_bound, upper_bound, color=color, alpha=alpha * 0.15)  # Adjust alpha for fill
+    plt.xlabel('Communication Round')
     plt.ylabel(y_label)
-    plt.legend()
+
     plt.grid(True)
 
-def plot_metric_data(metrics, metric_keys, rounds, title):
-    # Get the 'tab10' colormap
-    colormap = plt.get_cmap('tab10')
-    num_colors = len(metric_keys)
-    
-    fig = plt.figure(figsize=(12, 6))
-    for idx, key in enumerate(metric_keys):
-        color = colormap(idx / num_colors)  # Get a color from the colormap
-        means, stds = calculate_mean_std(metrics, key)
-        plot_with_intervals(rounds, means, stds, f'Clients {key}', color, key)
+def plot_model_metric(rounds, values, label, color, linestyle, alpha=1.0, marker='o'):
+    plt.plot(rounds, values, marker + linestyle, label=label, color=color, linewidth=2, alpha=alpha)
 
-    plt.title(title)
+def plot_metric_data(metrics, metric_keys, rounds, title, legend= True):
+    # Define colors for each model type
+    client_color = plt.get_cmap('tab10')(0)  # First color for clients
+    agg_color = plt.get_cmap('tab10')(2)  # Third color for aggregated model
+    fed_color = plt.get_cmap('tab10')(3)  # Fourth color for federated model
+    fed_roc_auc_color = plt.get_cmap('tab10')(4)  # Fifth color for federated model ROC AUC
+
+    # Define line styles and markers for federated model metrics
+    line_styles = ['-', '--', ':', '-.']
+    markers = ['o', 's', '^', 'D']  # Circle, square, triangle up, diamond
+    metric_names = [ 'F1-score','Precision', 'Recall']
+    fig = plt.figure(figsize=(8, 4.5))
+    
+    # Plot 'f1_score' for clients
+    client_means, client_stds = calculate_mean_std(metrics,  'f1_score')
+    plot_with_intervals(rounds, client_means, client_stds, 'Client Models F1-Scores', client_color, 'f1_score', alpha=1, marker=markers[0])
+
+    agg_values = [m['aggregated_model']['binary']['f1_score'] for m in metrics]
+    plot_model_metric(rounds, agg_values, 'Aggregated Model F1-Score', agg_color, linestyle = line_styles[0], alpha=1, marker=markers[0])
+
+    for idx, key in enumerate(metric_keys):
+        linestyle = line_styles[idx % len(line_styles)]
+        marker = markers[idx % len(markers)]
+        alpha = 1.0 if idx == 0 else 0.5  # Full opacity for the first metric, faded for others
+
+        # Plot each metric for the federated model
+        fed_values = [m['federated_model']['binary'][key] for m in metrics]
+        plot_model_metric(rounds, fed_values, f'Federated Model {metric_names[idx]}', fed_color, linestyle, alpha=alpha, marker=marker)
+
+
+    # Plot ROC AUC for the federated model
+    fed_roc_auc_values = [m['federated_model']['roc_auc'] for m in metrics]
+    plot_model_metric(rounds, fed_roc_auc_values, 'Federated Model ROC AUC', fed_color, line_styles[-1], alpha=0.5, marker=markers[-1])
+
+    plt.xticks(np.arange(min(rounds), max(rounds)+1, 1.0))  # Set x-axis ticks to integers
+    plt.xlabel('Communication Round')
+    plt.ylabel('Metric Value')
+    if legend:
+        plt.legend()
     plt.show()
+
     return fig
 
-def plot_cluster_data(metrics, rounds):
+def plot_cluster_data(metrics, rounds, legend= True):
     # Get the 'tab10' colormap and assign colors
     colormap = plt.get_cmap('tab10')
     color_clients = colormap(0)
-    color_aggregated = colormap(1)
-    color_federated = colormap(2)
-
+    color_aggregated = colormap(2)
+    color_federated = colormap(3)
 
     aggregated_clusters = [m['aggregated_model']['clusters'] for m in metrics]
     federated_clusters = [m['federated_model']['clusters'] for m in metrics]
@@ -62,13 +93,19 @@ def plot_cluster_data(metrics, rounds):
     client_clusters_mean = np.mean(client_clusters, axis=1)
     client_clusters_std = np.std(client_clusters, axis=1)
 
-    fig = plt.figure(figsize=(12, 6))
-    plot_with_intervals(rounds, client_clusters_mean, client_clusters_std, 'Average Client Clusters', color_clients, 'Number of Clusters')
-    plt.plot(rounds, aggregated_clusters, marker='o', color=color_aggregated, label='Number of Aggregated Clusters')
-    plt.plot(rounds, federated_clusters, marker='o', color=color_federated, label='Number of Federated Clusters')
+    fig = plt.figure(figsize=(8, 4.5))
+    plot_with_intervals(rounds, client_clusters_mean, client_clusters_std, 'Average Client Clusters', color_clients, 'Number of Clusters', marker='s')
+    plt.plot(rounds, aggregated_clusters, marker='^', linestyle='-', color=color_aggregated, label='Aggregated Clusters')
+    plt.plot(rounds, federated_clusters, marker='D', linestyle='-', color=color_federated, label='Federated Clusters')
+
+    plt.xticks(np.arange(min(rounds), max(rounds)+1, 1.0))  # Set x-axis ticks to integers
+    plt.xlabel('Communication Round')
+    plt.ylabel('Number of Clusters')
+    if legend:
+        plt.legend()
     plt.show()
 
-    return fig  
+    return fig
 
 def plot_all_features_upper_triangle(data, labels, model, N_max, num_sigma, colormap='tab10'):
     """
