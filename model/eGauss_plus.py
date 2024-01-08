@@ -42,6 +42,7 @@ class eGAUSSp(torch.nn.Module):
         
         self.score = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize cluster labels
         self.num_pred = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize number of predictions
+        self.age = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize cluster age
 
         self.one_hot_labels = torch.eye(num_classes, dtype=torch.int32) #One hot labels 
         
@@ -148,10 +149,9 @@ class eGAUSSp(torch.nn.Module):
                         #threshold = np.exp(-(self.num_sigma) ** 2)
                         #self.valid_clusters = self.matching_clusters[(self.Gamma[self.matching_clusters] > threshold)*
                         #                                                    (self.n[self.matching_clusters] >= self.kappa_n)] #np.sqrt(
-                    
-                        self.removal_mech.remove_score()
-                        self.removal_mech.remove_irrelevant()
-                        #self.removal_mech.remove_overlapping()
+
+
+                        self.removal_mech.removal_mechanism(self.c_max)
                         #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
                         
                 
@@ -219,7 +219,7 @@ class eGAUSSp(torch.nn.Module):
         #self.Gamma *= self.score[:self.c].unsqueeze(0)
         #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
 
-        # Evolving mechanisms can be handled here if they can be batch processed
+        #Evolving mechanisms can be handled here if they can be batch processed
 
         # Defuzzify label scores for the entire batch
         label_scores, preds_max = self.consequence.defuzzify_batch()  # Adapt this method for batch processing

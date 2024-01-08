@@ -45,14 +45,12 @@ class FederalOps:
                 #Use the merging mechanism 
                 self.parent.merging_mech.merging_mechanism()
 
-            #Remove small clusters 
-            self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
-            self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
-            if len(self.parent.matching_clusters) > self.parent.c_max:
-                
-                self.parent.removal_mech.remove_score()
-                self.parent.removal_mech.remove_irrelevant()
-                
+                #Remove small clusters 
+                self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
+                #self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
+                if len(self.parent.matching_clusters) > self.parent.c_max:
+
+                    self.parent.removal_mech.removal_mechanism(int(np.floor(self.parent.c_max)))              
                 #self.parent.matching_clusters = torch.where(self.parent.cluster_labels[:self.parent.c][:, label])[0]
                 #self.parent.merging_mech.valid_clusters = self.parent.matching_clusters
                 #self.parent.removal_mech.remove_overlapping()

@@ -1,6 +1,6 @@
 from sklearn.model_selection import train_test_split
 import torch
-import numpy as np
+import threading
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
@@ -14,8 +14,8 @@ from imblearn.combine import SMOTEENN, SMOTETomek
 from imblearn.over_sampling import SMOTE
 from imblearn import FunctionSampler
 from utils.utils_train import test_model_in_batches
+from utils.utils_metrics import calculate_metrics
 from sklearn.neighbors import NearestNeighbors
-
 #from imblearn.over_sampling import SMOTE
 
 def non_iid_data(X, y, num_clients):
@@ -94,17 +94,15 @@ def prepare_dataset(X, y, num_clients):
     all_data = (torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.int64))
 
     return train_data_clients, test_data, all_data
-
-def balance_dataset(X, y, technique='random'):
+def balance_dataset(X, y, techniques=['random']):
     """
-    Balances a dataset by undersampling or oversampling using different techniques.
+    Balances a dataset by using a combination of undersampling and oversampling techniques.
 
     :param X: Feature data as a numpy array.
     :param y: Label data as a numpy array.
-    :param technique: Technique for balancing.
+    :param techniques: List of techniques for balancing.
     :return: Balanced feature and label arrays.
     """
-
 
     samplers = {
         'random': RandomUnderSampler(random_state=None),
@@ -114,40 +112,27 @@ def balance_dataset(X, y, technique='random'):
         'enn': AllKNN(),
         'CondensedNearestNeighbour':CondensedNearestNeighbour(n_neighbors=1),
         'smote': SMOTE(random_state=None),
-        'one_sided_selection': OneSidedSelection(random_state=None,n_neighbors=1, n_seeds_S=100),
-        'ncr': NeighbourhoodCleaningRule(),
-        'function_sampler': FunctionSampler(),  # Identity resampler
+        'one_sided_selection': OneSidedSelection(random_state=None, n_neighbors=1, n_seeds_S=200),
+        'ncr': NeighbourhoodCleaningRule()
     }
 
-    if isinstance(technique, int) or isinstance(technique, numbers.Number):
-        unique_classes = np.unique(y)
-        class_sample_counts = {label: torch.sum(y == label) for label in unique_classes}
+    balanced_X, balanced_y = [], []
+    for technique in techniques:
+        if technique in samplers:
+            sampler = samplers[technique]
+            X_resampled, y_resampled = sampler.fit_resample(X, y)
+            balanced_X.append(X_resampled)
+            balanced_y.append(y_resampled)
+        else:
+            raise ValueError(f"Unknown technique: {technique}. Please choose a valid technique.")
 
-        # Oversample the minority classes
-        oversample_strategy = {label: technique for label, count in class_sample_counts.items() if count < technique}
-        if oversample_strategy:
-            oversampler = SMOTE(sampling_strategy=oversample_strategy, random_state=None)
-            X, y = oversampler.fit_resample(X, y)
+    X_tensor = torch.tensor(np.vstack(balanced_X), dtype=torch.float32)
+    y_tensor = torch.tensor( np.concatenate(balanced_y), dtype=torch.int64)
+    
+    # Shuffle the data to mix samples from different techniques
+    X_balanced, y_balanced = shuffle(X_tensor, y_tensor)
 
-        # Undersample the majority classes
-        undersample_strategy = {label: technique for label in unique_classes}
-        sampler = RandomUnderSampler(sampling_strategy = undersample_strategy, random_state=None)
-        X, y = sampler.fit_resample(X, y)
-    elif technique in samplers:
-        sampler = samplers[technique]
-        X, y = sampler.fit_resample(X, y)
-    else:
-        raise ValueError("Unknown technique. Please choose a valid technique or provide a number.")
-
-    # Convert numpy arrays to PyTorch tensors
-    X_tensor = torch.tensor(X, dtype=torch.float32)
-    y_tensor = torch.tensor(y, dtype=torch.int64)
-
-    return X_tensor, y_tensor
-
-
-import threading
-import torch
+    return X_balanced, y_balanced
 
 def balance_data_for_clients(client_raw_data, local_models, balance, round):
     """
@@ -162,8 +147,11 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
     """
 
     def balance_subsequent_rounds(client_idx, client_model, client_data, client_train):
-        fed_scores, fed_pred, _ = test_model_in_batches(client_model, client_data, batch_size=500)
+        fed_scores, fed_pred, _ = test_model_in_batches(client_model, client_data, batch_size=200)
         client_X, client_y = client_data
+
+        binary = calculate_metrics(fed_pred, client_data, "binary")
+        print(f"Client {client_idx} Metrics: {binary}")
 
         # Identify minority and majority classes
         unique_classes, class_counts = np.unique(client_y, return_counts=True)
@@ -178,7 +166,7 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
         majority_y = client_y[client_y == majority_class_label]
 
         # Determine the number of additional samples to select from the majority class
-        n_neighbors = 3
+        n_neighbors = 1
         num_additional_samples = int(np.floor(len(minority_X)))
         # Select majority class samples with highest errors
         selected_high_error_X, selected_high_error_y = select_high_error_samples(
@@ -192,7 +180,7 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
             selected_random_y = client_y[random_indices]
 
 
-        if True:
+        if False:
             # Instantiate and fit NearestNeighbors
             nbrs = NearestNeighbors(n_neighbors=n_neighbors, algorithm='ball_tree').fit(client_X)
             _, indices = nbrs.kneighbors(selected_high_error_X)
@@ -204,8 +192,8 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
             neighbor_X = client_X[neighbor_indices]
             neighbor_y = client_y[neighbor_indices]
 
-        balanced_X = np.concatenate((minority_X, selected_high_error_X, neighbor_X, selected_random_X))
-        balanced_y = np.concatenate((minority_y, selected_high_error_y, neighbor_y, selected_random_y))
+        balanced_X = np.concatenate((minority_X, selected_high_error_X, selected_random_X))
+        balanced_y = np.concatenate((minority_y, selected_high_error_y, selected_random_y))
 
         # Generate shuffled indices
         shuffled_indices = np.arange(balanced_X.shape[0])
@@ -229,7 +217,7 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
 
     def balance_client_data(client_data):
         client_X, client_y = client_data
-        balanced_X, balanced_y = balance_dataset(client_X, client_y, technique=balance)
+        balanced_X, balanced_y = balance_dataset(client_X, client_y, techniques=balance)
         return balanced_X, balanced_y
 
     def balance_thread(client_data, result, index):
@@ -237,14 +225,15 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
 
     client_train = [None] * len(client_raw_data)  # Placeholder for results
 
-    if round == 0:
-        # First round: Balance data using threads
-        threads = [threading.Thread(target=balance_thread, args=(client_data, client_train, i))
-                   for i, client_data in enumerate(client_raw_data)]
-        for thread in threads:
-            thread.start()
-        for thread in threads:
-            thread.join()
+    #if round == 0:
+    # First round: Balance data using threads
+    threads = [threading.Thread(target=balance_thread, args=(client_data, client_train, i))
+                for i, client_data in enumerate(client_raw_data)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+        '''
     else:
         # Subsequent rounds: Focus on incorrect predictions for majority class
         #for client_idx, client_model in enumerate(local_models):
@@ -258,7 +247,7 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
         # Wait for all threads to complete
         for thread in threads:
             thread.join()
-
+    '''
     return client_train
 
 
@@ -274,9 +263,21 @@ def select_high_error_samples(majority_X, majority_y, fed_scores, majority_class
 
     # Sort indices of majority class samples by direct error magnitude in descending order
     sorted_indices_direct_error = np.argsort(-direct_error_magnitude.numpy())
-
-    # Sort indices of majority class samples by threshold error magnitude in descending order
     sorted_indices_threshold_error = np.argsort(threshold_error_magnitude.numpy())
+
+    # Identify samples where the predicted probability is below 0.5 and calculate their distance from 0.5
+    #below_05_indices = np.where(probabilities_majority_class < 0.5)[0]
+    #distances_from_05 = 0.5 - probabilities_majority_class[below_05_indices]
+
+    # Sort these indices by how close they are to 0.5 (ascending order)
+    #sorted_by_distance_indices = below_05_indices[np.argsort(distances_from_05)]
+
+    # Select the top num_samples indices
+    #low_probability_indices = sorted_by_distance_indices[:min(len(majority_X), num_samples)]
+
+    # Select the samples based on the low_probability_indices
+    #selected_majority_X_low_prob = majority_X[low_probability_indices]
+    #selected_majority_y_low_prob = majority_y[low_probability_indices]
 
     # Select the top num_samples indices from each error type
     selected_indices_direct_error = sorted_indices_direct_error[:min(len(majority_X), num_samples)]

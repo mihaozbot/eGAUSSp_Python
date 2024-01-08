@@ -179,45 +179,20 @@ if False:
 '''
 
 
+# In[ ]:
+
+
+
+
+
 # In[6]:
-
-
-# Model parameters
-local_model_params = {
-    "feature_dim": 30,
-    "num_classes": 2,
-    "kappa_n": 1,
-    "num_sigma": 10,
-    "kappa_join": 0.5,
-    "S_0": 1e-10,
-    "N_r": 20,
-    "c_max": 200,
-    "num_samples": 100,
-    "device": device
-}
-
-federated_model_params = {
-    "feature_dim": 30,
-    "num_classes": 2,
-    "kappa_n": 1,
-    "num_sigma": 10,
-    "kappa_join": 0.5,
-    "S_0": 1e-10,
-    "N_r": 20,
-    "c_max": 200,
-    "num_samples": 100,
-    "device": device
-}
-
-
-# In[7]:
 
 
 #display_dataset_split(client_train, test_data)
 #plot_dataset_split(client_train, test_data)
 
 
-# In[8]:
+# In[7]:
 
 
 def compare_models(model1, model2):
@@ -258,7 +233,7 @@ def compare_models(model1, model2):
         return True, "Models are identical"
 
 
-# In[9]:
+# In[8]:
 
 
 def write_to_file(file_path, data, mode='a'):
@@ -266,11 +241,38 @@ def write_to_file(file_path, data, mode='a'):
         file.write(data + "\n")
 
 
-# In[10]:
+# In[9]:
 
 
 def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance):
-       
+        
+        # Model parameters
+    local_model_params = {
+        "feature_dim": 30,
+        "num_classes": 2,
+        "kappa_n": 1,
+        "num_sigma": 10,
+        "kappa_join": 1,
+        "S_0": 1e-10,
+        "N_r": 20,
+        "c_max": 300,
+        "num_samples": 100,
+        "device": device
+    }
+
+    federated_model_params = {
+        "feature_dim": 30,
+        "num_classes": 2,
+        "kappa_n": 1,
+        "num_sigma": 10,
+        "kappa_join": 1,
+        "S_0": 1e-10,
+        "N_r": 20,
+        "c_max": local_model_params["c_max"]*num_clients,
+        "num_samples": 100,
+        "device": device
+    }
+
     # Initialize a model for each client
     local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)]
     federated_model = eGAUSSp(**federated_model_params)
@@ -399,7 +401,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             print(f"Returning updated model to client {client_idx + 1}")
             
             local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n, pred_min = 0)
-            local_models[client_idx].federal_agent.federated_merging()
+            #local_models[client_idx].federal_agent.federated_merging()
 
             #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
             #local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
@@ -419,11 +421,11 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
         # Plot features for the current round
         plt.close('all')  # Close all existing plots to free up memory
-        if num_clients == 10 and True:
+        if  True:
             #fig1 = plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
             #save_figure(fig1, "./Images/credit_fraud_clusters", format='pdf')
             fig2 = plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
-            save_figure(fig2, ".Images/credit_fraud_clusters_test.pdf", format='pdf')
+            save_figure(fig2, ".Images/credit_fraud_samples.pdf", format='pdf')
 
         # Iterate over each round's metrics and write to file
         for metric in round_metrics:
@@ -452,16 +454,16 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
     return round_metrics
 
 
-# In[11]:
+# In[10]:
 
 
 # List of client counts and data configuration indices
-client_counts = [ 3, 10]
+client_counts = [3, 10]
 data_config_indices = [1]  # Replace with your actual data configuration indices
 
 # Assuming local_models, client_train, federated_model, and test_data are already defined
 # Number of communication rounds
-num_rounds = 20
+num_rounds = 5
 profiler = False
 experiments = []
 # Running the experiment

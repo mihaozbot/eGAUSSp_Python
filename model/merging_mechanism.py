@@ -44,6 +44,7 @@ class MergingMechanism:
         self.parent.mu[i_all] = mu_ij
         self.parent.S[i_all] = S_ij
         self.parent.n[i_all] = n_ij
+        self.parent.age[i_all] = torch.min(self.parent.age[i_all], self.parent.age[j_all])
 
         #Merge score and number of predictions
         self.parent.score[i_all] = score_ij
@@ -55,31 +56,31 @@ class MergingMechanism:
         self.parent.S_inv[i_all] = torch.linalg.inv((self.parent.S[i_all] / self.parent.n[i_all]) * self.parent.feature_dim)
 
          # Compute eigenvalues
-        eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[i_all])
+        #eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[i_all])
         
         # Check if all eigenvalues are positive (matrix is positive definite)
-        if not torch.all(eigenvalues > 0):
+        #if not torch.all(eigenvalues > 0):
             # Handle the case where the matrix is not positive definite
             # Depending on your requirements, you might set a default value or handle it differently
-            print("Matrix is not positive definite for index", i_all)
+        #    print("Matrix is not positive definite for index", i_all)
             # Example: set S_inv[j] to a matrix of zeros or some other default value
             # Adjust the dimensions as needed
-            self.parent.S_inv[i_all] = torch.zeros_like(self.parent.S[i_all])
+         #   self.parent.S_inv[i_all] = torch.zeros_like(self.parent.S[i_all])
 
         # Use RemovalMechanism to remove the j-th cluster
         self.parent.removal_mech.remove_cluster(j_all)
         
         # Compute eigenvalues
-        eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[j_all])
+        #eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[j_all])
         
         # Check if all eigenvalues are positive (matrix is positive definite)
-        if not torch.all(eigenvalues > 0):
+        #if not torch.all(eigenvalues > 0):
             # Handle the case where the matrix is not positive definite
             # Depending on your requirements, you might set a default value or handle it differently
-            print("Matrix is not positive definite for index", i_all)
+            #print("Matrix is not positive definite for index", i_all)
             # Example: set S_inv[j] to a matrix of zeros or some other default value
             # Adjust the dimensions as needed
-            self.parent.S_inv[i_all] = torch.zeros_like(self.parent.S[i_all])
+            #self.parent.S_inv[i_all] = torch.zeros_like(self.parent.S[i_all])
 
         # Visualize the clusters after merging, for debugging
         if self.parent.enable_debugging:

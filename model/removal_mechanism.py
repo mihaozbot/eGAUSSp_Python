@@ -1,3 +1,4 @@
+from re import S
 import torch
 import numpy as np
 import torch.nn.functional as F
@@ -67,6 +68,7 @@ class RemovalMechanism:
                 wrong_to_update.append(index)
                 if first_wrong_index is None:
                     first_wrong_index = index
+
         '''
         # Update correct clusters
         if correct_to_update:
@@ -75,9 +77,7 @@ class RemovalMechanism:
         # Update wrong clusters
         if wrong_to_update:
             self.update_cluster_scores(wrong_to_update, label, correct=False)
-        
         '''
-
         # Extra update for the first correct cluster
         if first_correct_index is not None:
             self.update_cluster_scores([first_correct_index], label, correct=True)
@@ -93,7 +93,7 @@ class RemovalMechanism:
         score_increment = 1.0 if correct else 0.0
 
         # Create a tensor of score increments with the same length as cluster_indices
-        score_increment_tensor = torch.full((len(cluster_indices),), score_increment, dtype=torch.float32)
+        score_increment_tensor = torch.full((len(cluster_indices),), score_increment, dtype=torch.float32, device=self.parent.device)
 
         self.parent.num_pred[cluster_indices] += 1
 
@@ -380,12 +380,34 @@ class RemovalMechanism:
                     self.parent.merging_mech.kappa[:, cluster_to_remove_idx + 1:]
                 ], dim=1)
 
-    def remove_score(self):
+
+    def remove_aged(self, c_max):
         if self.parent.c < 2:
             return
 
         # Determine how many clusters to remove to meet the desired count
-        num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
+        num_clusters_to_remove = len(self.parent.matching_clusters) - c_max
+
+        if num_clusters_to_remove > 0:
+            # Sort the clusters based on age, highest (oldest) first
+            sorted_clusters_by_age = sorted(self.parent.matching_clusters, 
+                                            key=lambda idx: self.parent.age[idx], 
+                                            reverse=True)
+
+            # Get the indices of clusters to remove, oldest first
+            indices_to_remove = sorted_clusters_by_age[:num_clusters_to_remove]
+
+            with torch.no_grad():
+                # Remove the selected clusters
+                for index in indices_to_remove:
+                    self.remove_cluster(index)
+
+    def remove_score(self,c_max):
+        if self.parent.c < 2:
+            return
+
+        # Determine how many clusters to remove to meet the desired count
+        num_clusters_to_remove = len(self.parent.matching_clusters) - c_max
 
         if num_clusters_to_remove > 0:
             # Create a composite score for each cluster
@@ -404,13 +426,41 @@ class RemovalMechanism:
                 for index in indices_to_remove:
                     self.remove_cluster(index)
 
-    def remove_irrelevant(self):
+
+    '''
+    def remove_score(self, c_max):
+        if self.parent.c < 2:
+            return
+
+        # Determine how many clusters to remove to meet the desired count
+        num_clusters_to_remove = len(self.parent.matching_clusters) - c_max
+
+        if num_clusters_to_remove > 0:
+            # Create a composite score for each cluster, including distance from 0.5
+            composite_scores = [(abs(self.parent.score[i] - 0.5), -self.parent.num_pred[i], i) for i in self.parent.matching_clusters]
+
+            # Sort the clusters by their distance from 0.5 and other criteria
+            sorted_indices = sorted(composite_scores, 
+                                    key=lambda x: (x[0], -x[1]), 
+                                    reverse=False)  # False to prioritize those closer to 0.5
+
+            # Get the indices of clusters to remove, up to the number needed
+            indices_to_remove = [idx for _, _, idx in sorted_indices[:num_clusters_to_remove]]
+
+            # Indices of clusters to remove in descending order
+            indices_to_remove = sorted(indices_to_remove, reverse=True)
+
+            with torch.no_grad():
+                # Remove the selected clusters
+                for index in indices_to_remove:
+                    self.remove_cluster(index)
+    '''
+    def remove_irrelevant(self, c_max):
         if self.parent.c < 2:
             return
         
         # Calculate how many clusters to remove
-        num_clusters_to_remove = len(self.parent.matching_clusters) - self.parent.c_max
-
+        num_clusters_to_remove = len(self.parent.matching_clusters) - c_max
         if num_clusters_to_remove > 0:
             # Filter out clusters with num_pred == 1
             clusters_eligible_for_removal = [i for i in self.parent.matching_clusters if self.parent.num_pred[i] > 1]
@@ -427,7 +477,7 @@ class RemovalMechanism:
                     self.remove_cluster(index)
                     
 
-    def removal_mechanism(self):
+    def removal_mechanism(self, c_max):
         ''' Remove clusters with negative scores and additional low scoring clusters if necessary. '''
 
         '''
@@ -463,7 +513,9 @@ class RemovalMechanism:
             #if not labels_check:
             #    print("Critical error: Labels consistency in matching clusters after remove_overlapping:", labels_check)
             
-        self.remove_score()
+
+        #self.remove_score(c_max)
+        self.remove_aged(c_max)
 
             # Print the number of samples after removal
             #print("Number of samples after remove_score:", len(self.parent.matching_clusters))
@@ -522,6 +574,8 @@ class RemovalMechanism:
             self.parent.n[cluster_index] = self.parent.n[last_active_index]
 
             self.parent.S_inv[cluster_index] = self.parent.S_inv[last_active_index]
+            
+            self.parent.age[cluster_index] = self.parent.age[last_active_index]
 
             self.parent.score[cluster_index] = self.parent.score[last_active_index]
             self.parent.num_pred[cluster_index] = self.parent.num_pred[last_active_index]
@@ -531,7 +585,7 @@ class RemovalMechanism:
 
             # Update the Gamma value for the cluster 
             self.parent.Gamma[cluster_index] = self.parent.Gamma[last_active_index]
-            
+
             #if last_active_index == self.parent.matching_clusters[-1]: #if the last cluster is on the list, it is the last elements as the list is ordered
                 # The last cluster was moved to the where the jth index is pointing so just remove the last cluster from the list
                 # Remove the last index if last_active_index is in matching_clusters

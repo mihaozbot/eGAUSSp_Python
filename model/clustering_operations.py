@@ -33,6 +33,7 @@ class ClusteringOps:
         
         self.parent.score[self.parent.c] = 0
         self.parent.num_pred[self.parent.c] = 0
+        self.parent.age[self.parent.c] = 0
         
         # Construct a diagonal matrix from these reciprocal values
         self.parent.S_inv[self.parent.c] = torch.diag(1.0 / (self.parent.S_0.diagonal()*self.parent.feature_dim))
@@ -74,8 +75,9 @@ class ClusteringOps:
         #self.parent.S[j] += e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1)
         #self.parent.n[j] +=  1 #
     
-        self.parent.S[j] = self.parent.S[j]*self.parent.forgeting_factor + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1) # + self.parent.S_0
-        self.parent.n[j] = self.parent.n[j]*self.parent.forgeting_factor + 1 #*self.parent.forgeting_factor
+        self.parent.S[j] = self.parent.S[j] + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1) # + self.parent.S_0
+        self.parent.n[j] = self.parent.n[j] + 1 #*self.parent.forgeting_factor
+        self.parent.age[j] = 0
         
         #x_minus_c = z - self.parent.mu[j]  # Difference between data point and cluster center
         #term = torch.matmul(self.parent.S_inv[j], x_minus_c.unsqueeze(1))  # Adjust dimensions for matrix multiplication
@@ -120,6 +122,8 @@ class ClusteringOps:
     def increment_or_add_cluster(self, z, label):
         ''' Increment an existing cluster if a cluster is activated enough, else add a new one'''
         
+        self.parent.age[:self.parent.c] += 1
+
         if len(self.parent.matching_clusters) == 0:
             self._add_new_cluster(z, label)
             # logging.info(f"Info. Added new cluster for label {label} due to no matching clusters. Total clusters now: {self.parent.c}")
@@ -144,6 +148,7 @@ class ClusteringOps:
         ''' ''' 
         # Compute S[j]/n[j]
         self.parent.S_inv[j] = torch.linalg.inv((self.parent.S[j] / self.parent.n[j]) * self.parent.feature_dim)
+        
             # Simplified update of the inverse covariance matrix for cluster j
 
         # Compute eigenvalues
