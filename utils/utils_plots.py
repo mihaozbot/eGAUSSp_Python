@@ -47,7 +47,7 @@ def plot_metric_data(metrics, metric_keys, rounds, title, legend= True):
     # Define line styles and markers for federated model metrics
     line_styles = ['-', '--', ':', '-.']
     markers = ['o', 's', '^', 'D']  # Circle, square, triangle up, diamond
-    metric_names = [ 'F1-score','Precision', 'Recall']
+    metric_names = [ 'F1 score','Precision', 'Recall']
     fig = plt.figure(figsize=(8, 4.5))
     
     # Plot 'f1_score' for clients

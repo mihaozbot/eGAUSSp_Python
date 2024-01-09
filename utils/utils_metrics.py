@@ -121,7 +121,7 @@ def calculate_unsupervised_metrics(assignments, dataset):
     data, labels = dataset
 
     if len(np.unique(assignments))>1:
-        silhouette = silhouette_score(data, assignments, metric="euclidean")
+        silhouette = silhouette_score(data, assignments, metric="mahalanobis")
         davies_bouldin = davies_bouldin_score(data, assignments)
         calinski_harabasz = calinski_harabasz_score(data, assignments)
 

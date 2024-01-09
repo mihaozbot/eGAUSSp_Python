@@ -6,9 +6,11 @@
 
 import pandas as pd
 import torch
+import json
 from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 from utils.utils_train import train_supervised, train_models_in_threads, test_model_in_batches
-from utils.utils_plots import plot_interesting_features, plot_metrics, save_figure
+from utils.utils_plots import plot_interesting_features, plot_metric_data, save_figure, plot_cluster_data
 from utils.utils_dataset import balance_dataset, prepare_dataset, balance_data_for_clients
 from utils.utils_dataset import display_dataset_split
 from utils.utils_metrics import calculate_metrics, plot_confusion_matrix, calculate_roc_auc
@@ -26,6 +28,16 @@ from model.eGauss_plus import eGAUSSp
 # Load the dataset
 file_path = 'Datasets/creditcard.csv'
 data = pd.read_csv(file_path)
+feature_dim = 29
+
+# Remove the first dimension/column
+data = data.drop(data.columns[0], axis=1)
+
+# Compute the ranges
+ranges = data.max() - data.min()
+
+# Display the ranges
+print(ranges)
 
 '''
 # Initialize the StandardScaler
@@ -36,6 +48,23 @@ cols_to_normalize = [col for col in data.columns if col != 'Class']
 
 # Apply the normalization
 data[cols_to_normalize] = scaler.fit_transform(data[cols_to_normalize])
+
+# Set the number of PCA components
+feature_dim = 10  # Change this value to adjust the number of components
+
+# Initialize PCA
+pca = PCA(n_components=feature_dim)
+
+# Apply PCA to the normalized data
+# Note that we don't apply PCA to the 'Class' column
+pca_data = pca.fit_transform(data[cols_to_normalize])
+
+# Create a DataFrame with PCA results and the 'Class' column
+pca_columns = ['PC' + str(i+1) for i in range(feature_dim)]
+pca_data_df = pd.DataFrame(pca_data, columns=pca_columns)
+pca_data_df['Class'] = data['Class']
+
+data = pca_data_df
 '''
 
 
@@ -43,7 +72,7 @@ data[cols_to_normalize] = scaler.fit_transform(data[cols_to_normalize])
 
 
 print(f"{torch.cuda.is_available()}")
-device = torch.device("cpu") # torch.device("cuda" if torch.cuda.is_available() else "cpu") #torch.device("cpu") #
+device = torch.device("cpu") #torch.device("cuda" if torch.cuda.is_available() else "cpu") #torch.device("cpu") #
 
 
 # In[5]:
@@ -56,7 +85,7 @@ import pandas as pd
 import concurrent.futures
 import threading  # Import the threading module
 
-if False:
+if 0:
 
     num_clients = 1
 
@@ -179,12 +208,6 @@ if False:
 '''
 
 
-# In[ ]:
-
-
-
-
-
 # In[6]:
 
 
@@ -244,32 +267,35 @@ def write_to_file(file_path, data, mode='a'):
 # In[9]:
 
 
+from torch import no_grad
+
+
 def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance):
         
         # Model parameters
     local_model_params = {
-        "feature_dim": 30,
+        "feature_dim": feature_dim,
         "num_classes": 2,
         "kappa_n": 1,
         "num_sigma": 10,
-        "kappa_join": 1,
+        "kappa_join": 3,
         "S_0": 1e-10,
-        "N_r": 20,
+        "N_r": 30,
         "c_max": 300,
-        "num_samples": 100,
+        "num_samples": 1000,
         "device": device
     }
 
     federated_model_params = {
-        "feature_dim": 30,
+        "feature_dim": feature_dim,
         "num_classes": 2,
         "kappa_n": 1,
         "num_sigma": 10,
-        "kappa_join": 1,
+        "kappa_join": 3,
         "S_0": 1e-10,
-        "N_r": 20,
-        "c_max": local_model_params["c_max"]*num_clients,
-        "num_samples": 100,
+        "N_r": 30,
+        "c_max": 300*local_model_params["c_max"]*num_clients; #local_model_params["c_max"]*num_clients,
+        "num_samples": 1000,
         "device": device
     }
 
@@ -292,7 +318,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 
         display_dataset_split(client_train, test_data)
         
-        aggregated_model = eGAUSSp(**federated_model_params)
+        #aggregated_model = eGAUSSp(**federated_model_params)
         federated_model = eGAUSSp(**federated_model_params)
 
         # Train local models
@@ -322,25 +348,18 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             # Calculate and collect metrics for each client model
             client_scores, client_pred, _ = test_model_in_batches(client_model, client_train[client_idx], batch_size=500)
             client_binary = calculate_metrics(client_pred, client_train[client_idx], "binary")
-
-            print(f"Test Metrics: {client_binary}")
-           # plot_confusion_matrix(pred_max, clients_data[client_idx])
             
-            # Calculate additional metrics for each client
-            client_metrics.append({
-                'client_idx': client_idx,
-                'binary': client_binary,
-                'clusters': sum(client_model.n[0:client_model.c].cpu()> 0)
-            })
+            
+            print(f"Train Metrics: {client_binary}")
+           # plot_confusion_matrix(pred_max, clients_data[client_idx])
 
             #client_model.federal_agent.federated_merging()
             #print(f"Number of local model clusters after merging = {sum(client_model.n[0:client_model.c]> client_model.kappa_n)}")
 
-            #client_model.federal_agent.federated_merging()
             print(f"Updating agreggated model with client {client_idx + 1}")
 
-            aggregated_model.federal_agent.merge_model_privately(client_model, client_model.kappa_n, pred_min = 0)
-            print(f"Number of agreggated clusters after transfer = {sum(aggregated_model.n[0:aggregated_model.c]> aggregated_model.kappa_n)}")
+            federated_model.federal_agent.merge_model_privately(client_model, client_model.kappa_n, pred_min = 0)
+
                 
                 
         #client_model.score = 0*client_model.score  
@@ -361,50 +380,75 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
         #print(f"Comparison details: {comparison_message}")
 
         # Update federated model with local models
-        print(f"Updating federated model with agreggated model")
+        #print(f"Updating federated model with agreggated model")
 
-        federated_model.federal_agent.merge_model_privately(aggregated_model, federated_model.kappa_n, pred_min = 0)
-        print(f"Number of federated clusters after transfer = {sum(federated_model.n[0:federated_model.c] > federated_model.kappa_n)}")
+        #federated_model.federal_agent.merge_model_privately(aggregated_model, federated_model.kappa_n, pred_min = 0)
         
-        federated_model.federal_agent.federated_merging()
-        print(f"Number of agreggated clusters after merging = {sum(federated_model.n[0:federated_model.c]> federated_model.kappa_n)}")
+        #federated_model.federal_agent.federated_merging()
+        #print(f"\nNumber of federated clusters after merging = {sum(federated_model.n[0:federated_model.c]> federated_model.kappa_n)}")
         
-        #local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)]  
+        #local_models = [eGAUSSp(**local_model_params) for _ in range(num_clients)] 
+        #  
+        print("\n")
         
         # Perform federated merging and removal mechanism on the federated model
         if any(federated_model.n[0:federated_model.c]> federated_model.kappa_n):
 
             # Evaluate federated model
-            fed_scores, fed_pred, _ = test_model_in_batches(federated_model, test_data, batch_size=500)
+            agg_scores, agg_pred, _ = test_model_in_batches(federated_model, test_data, batch_size=1000)
+            agg_binary = calculate_metrics(agg_pred, test_data, "binary")
+            agg_clusters = sum(federated_model.n[0:federated_model.c].cpu() > federated_model.kappa_n)
+            print(f"Aggregated Metrics: {agg_binary}")
+            
+            print(f"Agreggated clusters after transfer = {sum(federated_model.n[0:federated_model.c]> federated_model.kappa_n)}")
+
+            federated_model.federal_agent.federated_merging()
+            print(f"Federated clusters after merging = {sum(federated_model.n[0:federated_model.c]> federated_model.kappa_n)}")
+        
+            # Evaluate federated model
+            fed_scores, fed_pred, _ = test_model_in_batches(federated_model, test_data, batch_size=1000)
             fed_binary = calculate_metrics(fed_pred, test_data, "binary")
             fed_roc_auc = calculate_roc_auc(fed_scores, test_data)
             print(f"Test Metrics: {fed_binary}")
             print(f"Test ROC AUC: {fed_roc_auc}")
-
+            
             #plot_confusion_matrix(pred_max_fed, test_data)
 
-            round_metrics.append({
-                'round': round + 1,
-                'federated_model': {
-                    'clusters': sum(federated_model.n[0:federated_model.c].cpu() > federated_model.kappa_n),
-                    'binary': fed_binary,
-                    'roc_auc': fed_roc_auc
-                },
-                'aggregated_model': {
-                    'clusters': sum(aggregated_model.n[0:aggregated_model.c].cpu() > aggregated_model.kappa_n),
-                },
-                'client_metrics': client_metrics
-            })
-
+        print("\n")
+ 
         # Return the updated federated model to each client
-        for client_idx in range(len(local_models)):
+        for client_idx, _ in enumerate(local_models):
             print(f"Returning updated model to client {client_idx + 1}")
-            
-            local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n, pred_min = 0)
-            #local_models[client_idx].federal_agent.federated_merging()
+                                    
+            '''
+             # Calculate and collect metrics for each client model
+            client_scores, client_pred, _ = test_model_in_batches(local_models[client_idx], test_data, batch_size=500)
+            client_binary = calculate_metrics(client_pred, test_data, "binary")
 
+            print(f"Test Metrics client {client_idx} before merge: {client_binary}")
+            # plot_confusion_matrix(pred_max, clients_data[client_idx])
+            '''
+
+            local_models[client_idx].federal_agent.merge_model_privately(federated_model, federated_model.kappa_n, pred_min = 0)
+            local_models[client_idx].federal_agent.federated_merging()
+            print(f"Number of local model clusters after transfer = {sum(local_models[client_idx].n[0:local_models[client_idx].c]> 0)}")
+
+            # Calculate and collect metrics for each client model
+            client_scores, client_pred, _ = test_model_in_batches(local_models[client_idx], test_data, batch_size=500)
+            client_binary = calculate_metrics(client_pred, test_data, "binary")
+
+            print(f"Test Metrics client {client_idx} after merge: {client_binary}")
+            # plot_confusion_matrix(pred_max, clients_data[client_idx])
+            
+            # Calculate additional metrics for each client
+            client_metrics.append({
+                'client_idx': client_idx,
+                'binary': client_binary,
+                'clusters': sum(local_models[client_idx].n[0:local_models[client_idx].c].cpu()> 0)
+            })
+        
             #local_models[client_idx].score = torch.ones_like(local_models[client_idx].score)
-            #local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
+            local_models[client_idx].num_pred = torch.zeros_like(local_models[client_idx].num_pred)
 
             '''
             # Return the updated federated model to each client
@@ -417,14 +461,29 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
           # Print and write round information to file
         round_info = f"--- End of Round {round + 1} ---\n"
         print(round_info)
-        write_to_file(result_file, round_info)
+        #write_to_file(result_file, round_info)
 
+        round_metrics.append({
+            'round': round + 1,
+            'federated_model': {
+                'clusters': sum(federated_model.n[0:federated_model.c].cpu() > federated_model.kappa_n),
+                'binary': fed_binary,
+                'roc_auc': fed_roc_auc
+            },
+            'aggregated_model': {
+                'clusters': agg_clusters,
+                'binary': agg_binary,
+            },
+            'client_metrics': client_metrics
+        })
+        
+        
         # Plot features for the current round
         plt.close('all')  # Close all existing plots to free up memory
-        if  True:
+        if  False:
             #fig1 = plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
             #save_figure(fig1, "./Images/credit_fraud_clusters", format='pdf')
-            fig2 = plot_interesting_features(client_train[0], model=federated_model, num_sigma=federated_model.num_sigma, N_max=federated_model.kappa_n)   
+            fig2 = plot_interesting_features(client_train[0], model=federated_model, num_sigma=2, N_max=federated_model.kappa_n)   
             save_figure(fig2, ".Images/credit_fraud_samples.pdf", format='pdf')
 
         # Iterate over each round's metrics and write to file
@@ -436,7 +495,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
     # After all rounds
     final_info = "All Rounds Completed. Metrics Collected:\n"
     print(final_info)
-    write_to_file(result_file, final_info)
+    #write_to_file(result_file, final_info)
 
     # Iterate over each round's metrics and write to file
     for metric in round_metrics:
@@ -449,7 +508,7 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
             metric_info += f"Client {client_metric['client_idx']} - Binary: {client_metric['binary']}\n"
 
         print(metric_info)  # Print each round's metrics
-        write_to_file(result_file, metric_info)  # Write to file
+        #write_to_file(result_file, metric_info)  # Write to file
 
     return round_metrics
 
@@ -457,81 +516,104 @@ def run_experiment(num_clients, num_rounds, client_raw_data, test_data, balance)
 # In[10]:
 
 
-# List of client counts and data configuration indices
-client_counts = [3, 10]
-data_config_indices = [1]  # Replace with your actual data configuration indices
+if 1:
 
-# Assuming local_models, client_train, federated_model, and test_data are already defined
-# Number of communication rounds
-num_rounds = 5
-profiler = False
-experiments = []
-# Running the experiment
-for num_clients in client_counts:
-    for data_config_index in data_config_indices:
-        X = data.iloc[:, :-1].values
-        y = data.iloc[:, -1].values
-        client_train, test_data, all_data = prepare_dataset(X, y, num_clients) 
-        balance= None
-        if data_config_index == 1:
+    # List of client counts and data configuration indices
+    client_counts = [3, 10]
+    data_config_indices = [1, 3]  # Replace with your actual data configuration indices
 
-            balance = 'random'
-                #'random': RandomUnderSampler(random_state=None),
-                #'tomek': TomekLinks(),
-                #'centroids': ClusterCentroids(random_state=None),
-                #'nearmiss': NearMiss(version=2),
-                #'enn': AllKNN(sampling_strategy='all'), NO
-                #'smote': SMOTE(random_state=None), NO
-                #'one_sided_selection': OneSidedSelection(random_state=None), NO
-                #'ncr': NeighbourhoodCleaningRule(), NO
-                #'function_sampler': FunctionSampler(),  # Identity resampler NO
-                #'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
-        elif data_config_index == 2:    
-             balance = 'Smote'       
-        elif data_config_index == 3:
+    # Assuming local_models, client_train, federated_model, and test_data are already defined
+    # Number of communication rounds
+    num_rounds = 20
+    profiler = False
+    experiments = []
+    # Running the experiment
+    for num_clients in client_counts:
+        for data_config_index in data_config_indices:
+            X = data.iloc[:, :-1].values
+            y = data.iloc[:, -1].values
+            client_train, test_data, all_data = prepare_dataset(X, y, num_clients) 
+            balance= None
+            if data_config_index == 1:
 
-            balance = None
-        
-        print(f"Running experiment with {num_clients} clients and data configuration {data_config_index}")
-        if profiler:
-                        
-            import cProfile
-            get_ipython().run_line_magic('load_ext', 'memory_profiler')
-            import yappi
+                balance = ['random']
+                    #'random': RandomUnderSampler(random_state=None),
+                    #'tomek': TomekLinks(),
+                    #'centroids': ClusterCentroids(random_state=None),
+                    #'nearmiss': NearMiss(version=2),
+                    #'enn': AllKNN(sampling_strategy='all'), NO
+                    #'smote': SMOTE(random_state=None), NO
+                    #'one_sided_selection': OneSidedSelection(random_state=None), NO
+                    #'ncr': NeighbourhoodCleaningRule(), NO
+                    #'function_sampler': FunctionSampler(),  # Identity resampler NO
+                    #'instance_hardness_threshold': InstanceHardnessThreshold(estimator=LogisticRegression(), random_state=0),
+            elif data_config_index == 2:    
+                balance = 'Smote'       
+            elif data_config_index == 3:
 
-            print(f"... with profiler")
-            pr = cProfile.Profile()
-            pr.enable()
-            yappi.start()
-            metrics = run_experiment(num_clients, num_rounds, client_train, test_data, balance)
-            yappi.stop()
-            pr.disable()
-
-            pr.print_stats(sort='cumtime')
-            yappi.get_thread_stats().print_all()
-            yappi.get_func_stats().print_all()   
-                   
-        else:
-            metrics = run_experiment(num_clients, num_rounds, client_train, test_data, balance)
+                balance = None
             
-        experiments.append(metrics)
-    
+            print(f"Running experiment with {num_clients} clients and data configuration {data_config_index}")
+            if profiler:
+                            
+                import cProfile
+                get_ipython().run_line_magic('load_ext', 'memory_profiler')
+                import yappi
+
+                print(f"... with profiler")
+                pr = cProfile.Profile()
+                pr.enable()
+                yappi.start()
+                metrics = run_experiment(num_clients, num_rounds, client_train, test_data, balance)
+                yappi.stop()
+                pr.disable()
+
+                pr.print_stats(sort='cumtime')
+                yappi.get_thread_stats().print_all()
+                yappi.get_func_stats().print_all()   
+                    
+            else:
+                metrics = run_experiment(num_clients, num_rounds, client_train, test_data, balance)
+                
+            experiments.append((f"num_clients_{num_clients}_sampling_{data_config_index}", metrics))
+            
+            # Assuming 'experiments' is your dictionary containing PyTorch tensors
+            torch.save(experiments, 'experiment_metrics.pth')
 
 
 # In[ ]:
 
 
-fig_metrics, fig_clusters = plot_metrics(experiments)
+experiments = torch.load('experiment_metrics.pth')
+
+
+# In[ ]:
+
+
+figs_metrics = []
+figs_clusters = []
+experiment_name = []
+for exp_num, (name, metrics) in enumerate(experiments):
+    rounds = [m['round'] for m in metrics]
+
+    # Plot and collect figures
+    legend = True if exp_num == 0 else False
+    experiment_name.append(name)
+    figs_metrics.append(plot_metric_data(metrics, ['f1_score', 'precision', 'recall'], rounds, f'Experiment {exp_num+1} - Metrics', legend=legend))
+    figs_clusters.append(plot_cluster_data(metrics, rounds, legend=legend))
+
 # Save figures from fig_metrics
-for fig_name, figure in fig_metrics.items():
-    save_path = f".Images/credit_fraud_{fig_name}.pdf"
+for i, figure in enumerate(figs_metrics):
+    save_path = f".Images/credit_fraud_metrics_{experiment_name[i]}.pdf"
     save_figure(figure, save_path, "pdf")
 
 # Save figures from fig_clusters
-for fig_name, figure in fig_clusters.items():
-    save_path = f".Images/credit_fraud_{fig_name}.pdf"
+for i, figure in enumerate(figs_clusters):
+    save_path = f".Images/credit_fraud_clusters_{experiment_name[i]}.pdf"
     save_figure(figure, save_path, "pdf")
 
+
+# 
 
 # In[ ]:
 

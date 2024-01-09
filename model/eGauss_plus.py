@@ -150,7 +150,8 @@ class eGAUSSp(torch.nn.Module):
                         #self.valid_clusters = self.matching_clusters[(self.Gamma[self.matching_clusters] > threshold)*
                         #                                                    (self.n[self.matching_clusters] >= self.kappa_n)] #np.sqrt(
 
-
+                            
+                        self.federal_agent.federated_merging()
                         self.removal_mech.removal_mechanism(self.c_max)
                         #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
                         

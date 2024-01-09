@@ -94,6 +94,7 @@ def prepare_dataset(X, y, num_clients):
     all_data = (torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.int64))
 
     return train_data_clients, test_data, all_data
+
 def balance_dataset(X, y, techniques=['random']):
     """
     Balances a dataset by using a combination of undersampling and oversampling techniques.
@@ -134,7 +135,7 @@ def balance_dataset(X, y, techniques=['random']):
 
     return X_balanced, y_balanced
 
-def balance_data_for_clients(client_raw_data, local_models, balance, round):
+def balance_data_for_clients(client_raw_data, balance, local_models = None, round = 1):
     """
     Balances data for each client. In the initial round, balances data using a specified technique.
     In subsequent rounds, focuses on misclassified samples.
@@ -142,7 +143,7 @@ def balance_data_for_clients(client_raw_data, local_models, balance, round):
     :param client_raw_data: List of data for each client.
     :param local_models: List of models, one for each client.
     :param balance: The balancing technique to be used.
-    :param round: The current round of the experiment.
+
     :return: List of balanced client data.
     """
 
