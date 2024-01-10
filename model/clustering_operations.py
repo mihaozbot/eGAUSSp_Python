@@ -122,7 +122,7 @@ class ClusteringOps:
     def increment_or_add_cluster(self, z, label):
         ''' Increment an existing cluster if a cluster is activated enough, else add a new one'''
         
-        self.parent.age[:self.parent.c] += 1
+        self.parent.age[self.parent.matching_clusters] += 1
 
         if len(self.parent.matching_clusters) == 0:
             self._add_new_cluster(z, label)

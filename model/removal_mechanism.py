@@ -7,38 +7,6 @@ class RemovalMechanism:
     def __init__(self, parent):
         self.parent = parent
 
-
-    '''     
-    def update_score(self, label):
-        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
-
-        # Step 1: Find the closest correct cluster
-        correct_clusters_mask = (self.parent.cluster_labels[:self.parent.c, label] == 1)
-        if not correct_clusters_mask.any():
-            # Handle the case where no correct clusters are found
-            return
-
-        correct_activations = normalized_gamma * correct_clusters_mask
-        best_correct_index = torch.argmax(correct_activations)
-
-        # Step 2: Update the score of the closest correct cluster
-        self.update_cluster_score(best_correct_index, label, correct = self.parent.cluster_labels[best_correct_index][label] == 1)
-
-        # Step 3: Identify incorrect clusters with higher activation than the best correct cluster
-        incorrect_clusters_mask = (self.parent.cluster_labels[:self.parent.c, label] == 0)
-        incorrect_clusters_higher_activation = incorrect_clusters_mask & (normalized_gamma > normalized_gamma[best_correct_index])
-        incorrect_higher_indices = torch.where(incorrect_clusters_higher_activation)[0]
-
-        # Step 4: Update the scores of identified incorrect clusters
-        for index in incorrect_higher_indices:
-            self.update_cluster_score(index, label, correct=False)
-
-        # Step 5: Identify the first incorrect cluster with lower activation than the best correct cluster
-        incorrect_clusters_lower_activation = incorrect_clusters_mask & (normalized_gamma <= normalized_gamma[best_correct_index])
-        if incorrect_clusters_lower_activation.any():
-            first_incorrect_lower_index = torch.where(incorrect_clusters_lower_activation)[0][0]  # Get the first such index
-            self.update_cluster_score(first_incorrect_lower_index, label, correct=True)
-    '''
     def update_score(self, label):
         if len(torch.unique(self.parent.cluster_labels[:self.parent.c],dim= 0)) < 2:
             return 
@@ -69,7 +37,6 @@ class RemovalMechanism:
                 if first_wrong_index is None:
                     first_wrong_index = index
 
-        '''
         # Update correct clusters
         if correct_to_update:
             self.update_cluster_scores(correct_to_update, label, correct=True)
@@ -77,7 +44,7 @@ class RemovalMechanism:
         # Update wrong clusters
         if wrong_to_update:
             self.update_cluster_scores(wrong_to_update, label, correct=False)
-        '''
+
         # Extra update for the first correct cluster
         if first_correct_index is not None:
             self.update_cluster_scores([first_correct_index], label, correct=True)
@@ -103,222 +70,6 @@ class RemovalMechanism:
         new_scores = ((num_preds - 1) * prev_scores + score_increment_tensor) / num_preds
 
         self.parent.score[cluster_indices] = new_scores
-
-    '''
-    def update_score(self, label):
-        # Normalize Gamma (this is used as the weight)
-        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
-
-        # Identify the winning cluster for this sample (the one with the highest normalized_gamma)
-        j = torch.argmax(normalized_gamma)
-        # The weight for this prediction is the normalized gamma value of the winning cluster
-        weight = normalized_gamma[j]
-
-        # Check if the winning cluster's prediction matches the true class (label)
-        correct = self.parent.cluster_labels[j][label] == 1
-
-        # Update the sum of weights for the winning cluster
-        #old_weight_sum = self.parent.num_pred[j]
-        self.parent.num_pred[j] += 1
-
-        # Compute the new score (weighted accuracy)
-        if self.parent.num_pred[j] == 1:
-            # First prediction for this cluster, the score is the weight if correct, and 0 if incorrect
-            new_score = torch.tensor(1) if correct else torch.tensor(0.0)
-        else:
-            # Update the score based on the accumulated weighted accuracy formula
-            weighted_correct = torch.tensor(1) if correct else torch.tensor(0.0)
-            new_score = ((self.parent.num_pred[j] -1) * self.parent.score[j] + weighted_correct) / self.parent.num_pred[j]
-
-        # Check for NaN in the new score
-        if torch.isnan(new_score):
-            print("Warning: Computed score is NaN. Setting score to 0.")
-            new_score = torch.tensor(0.0)
-
-        self.parent.score[j] = new_score
-
-    '''
-    '''
-    def update_score(self, label):
-        # Normalize Gamma (used as the weights for each cluster's prediction)
-        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
-
-        # Check if each cluster's prediction matches the true class (label)
-        correct_predictions = self.parent.cluster_labels[:self.parent.c, label] == 1
-
-        # Convert correct_predictions to float for calculations
-        correct_predictions = correct_predictions.float()
-
-        # Update the sum of weights for each cluster
-        old_weight_sum = self.parent.num_pred[:self.parent.c].clone()
-        self.parent.num_pred[:self.parent.c] += normalized_gamma
-
-        # Compute the new scores (weighted accuracy) for all clusters
-        weighted_correct = normalized_gamma * correct_predictions
-        new_scores = torch.where(
-            old_weight_sum == 0,
-            weighted_correct,
-            (old_weight_sum * self.parent.score[:self.parent.c] + weighted_correct) / self.parent.num_pred[:self.parent.c]
-        )
-
-        # Check for NaN in the new scores and set them to 0
-        nan_mask = torch.isnan(new_scores)
-        if nan_mask.any():
-            print("Warning: Computed scores contain NaN. Setting those scores to 0.")
-            new_scores[nan_mask] = 0.0
-
-        self.parent.score[:self.parent.c] = new_scores
-    '''
-    
-    
-    '''
-    def update_score(self, label):
-    
-        # Normalize Gamma
-        normalized_gamma = self.parent.consequence.compute_normalized_gamma() # self.parent.Gamma[:self.parent.c] #
-        
-        # Assuming target_label is defined (the label you're comparing against)
-        matching_clusters = self.parent.cluster_labels[:self.parent.c][:, label] == 1
-        label_adjustment = torch.where(matching_clusters, 1, 0)
-
-        number_of_samples = self.parent.n_glo[label]
-        
-        # Apply the label adjustment to normalized_gamma
-        self.parent.score[0:self.parent.c] = (self.parent.score[0:self.parent.c] + normalized_gamma*label_adjustment/number_of_samples)/sum( self.parent.n_glo)
-    '''
-
-    '''
-    def update_score(self, label):
-        # Normalize Gamma
-        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
-
-        # Ensure there are at least two clusters
-        if normalized_gamma.numel() < 2:
-            return
-
-        top_two_indices = torch.topk(normalized_gamma, 2).indices
-        best_cluster_idx = top_two_indices[0]
-        second_best_cluster_idx = top_two_indices[1]
-
-        # Check if the best and second-best clusters' predictions match the true class
-        best_correct = self.parent.cluster_labels[best_cluster_idx][label] == 1
-        second_best_correct = self.parent.cluster_labels[second_best_cluster_idx][label] == 1
-
-        # Set 'correct' to False if the second-best cluster is not of the opposite label
-        if best_correct == second_best_correct:
-            correct = False
-        else:
-            correct = best_correct
-
-        # Update the score for the best cluster
-        self.update_individual_score(best_cluster_idx, correct)
-
-        # Update the score for the second-best cluster
-        # Increase if they are different, decrease if they are the same
-        self.update_individual_score(second_best_cluster_idx, not correct)
-
-    def update_individual_score(self, cluster_idx, correct):
-        # Increment the number of predictions for the cluster
-        self.parent.num_pred[cluster_idx] += 1
-
-        # Compute the new score
-        if self.parent.num_pred[cluster_idx] == 1:
-            new_score = torch.tensor(float(correct))
-        else:
-            N = self.parent.num_pred[cluster_idx]
-            new_score = ((N - 1) * self.parent.score[cluster_idx] + float(correct)) / N
-
-        # Check for NaN in the new score and update
-        if torch.isnan(new_score):
-            print(f"Warning: Computed score is NaN for cluster {cluster_idx}. Setting score to 0.")
-            self.parent.score[cluster_idx] = torch.tensor(0.0)
-        else:
-            self.parent.score[cluster_idx] = new_score
-        '''
-
-    '''
-    def update_score(self, label):
-        # Normalize Gamma
-        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
-
-        # Identify the winning cluster for this sample (the one with the highest normalized_gamma)
-        j = torch.argmax(normalized_gamma)
-
-        # Check if the winning cluster's prediction matches the true class (label)
-        correct = self.parent.cluster_labels[j][label] == 1
-        
-        # Update the error rate for the winning cluster
-
-        N = torch.sum(self.parent.n_glo) # number of samples
-        n = self.parent.n_glo[label] # number of class samples
-        if (N != n):
-            T = (self.parent.score[j] *self.parent.num_pred[j] * n / (N - n)) / (1 - self.parent.score[j] + self.parent.score[j] * n / (N - n))
-
-            self.parent.num_pred[j] = self.parent.num_pred[j]+1# number of classifications
-
-            # Calculate new score
-            if correct:
-                new_score = ((T + 1) / (n + 1)) / ((T + 1) / (n + 1) + (self.parent.num_pred[j] - T) / (N - n))
-            else:
-                new_score = (T / n) / (T / n + (self.parent.num_pred[j] - T) / (N - n))
-            
-            # Check for NaN in the new score
-            if torch.isnan(new_score):
-                print("Warning: Computed score is NaN. Setting score to 0.")
-                self.parent.score[j] = torch.tensor(0.0)
-            else:
-                self.parent.score[j] = new_score
-    '''
-    ''' 
-    def update_score(self, label):
-
-        # Compute normalized gamma values
-        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
-
-        # Find the index of the cluster with the maximal gamma value
-        max_gamma_index = torch.argmax(normalized_gamma)
-
-        # Check if the label matches for the cluster with the maximal gamma
-        is_label_match = self.parent.cluster_labels[max_gamma_index, label] == 1
-
-        # Calculate the adjustment based on the label correctness
-        label_adjustment = 1 if is_label_match else -1
-
-        # Calculate the number of samples for the given label
-        number_of_samples = torch.sum(self.parent.n_glo[label])
-
-        # Update the score only for the cluster with the maximal gamma
-        self.parent.score[max_gamma_index] = self.parent.score[max_gamma_index] + label_adjustment / number_of_samples
-    ''' 
-    '''
-    def update_score(self, label):
-        """
-        Update the running log loss (score) for each cluster in a vectorized manner.
-
-        Args:
-        true_label (int): The true label of the sample.
-        """
-        # Compute normalized gamma values (predicted probabilities for each cluster)
-        normalized_gamma = self.parent.consequence.compute_normalized_gamma()
-
-        # Get the one-hot encoded class labels for each cluster
-        one_hot_labels = normalized_gamma.unsqueeze(-1) *self.parent.cluster_labels[:self.parent.c]
-
-        # Compute the predicted probability for the true label
-        predicted_probabilities = one_hot_labels
-
-        # Create a tensor of the true label in float and match the shape
-        true_label_tensor = torch.zeros_like(predicted_probabilities)
-        true_label_tensor[:,label] = 1
-
-        # Compute log loss for the predicted probabilities
-        current_log_losses = F.binary_cross_entropy(predicted_probabilities, 
-                                                    true_label_tensor, 
-                                                    reduction='none')
-
-        # Normalize the log loss by the number of samples for the true label and update the score
-        self.parent.score[0:self.parent.c] += torch.sum(current_log_losses /  self.parent.n_glo[label], dim = 1)
-        '''
 
     def remove_overlapping(self):
         # Compute the volume and kappa initially
@@ -426,35 +177,6 @@ class RemovalMechanism:
                 for index in indices_to_remove:
                     self.remove_cluster(index)
 
-
-    '''
-    def remove_score(self, c_max):
-        if self.parent.c < 2:
-            return
-
-        # Determine how many clusters to remove to meet the desired count
-        num_clusters_to_remove = len(self.parent.matching_clusters) - c_max
-
-        if num_clusters_to_remove > 0:
-            # Create a composite score for each cluster, including distance from 0.5
-            composite_scores = [(abs(self.parent.score[i] - 0.5), -self.parent.num_pred[i], i) for i in self.parent.matching_clusters]
-
-            # Sort the clusters by their distance from 0.5 and other criteria
-            sorted_indices = sorted(composite_scores, 
-                                    key=lambda x: (x[0], -x[1]), 
-                                    reverse=False)  # False to prioritize those closer to 0.5
-
-            # Get the indices of clusters to remove, up to the number needed
-            indices_to_remove = [idx for _, _, idx in sorted_indices[:num_clusters_to_remove]]
-
-            # Indices of clusters to remove in descending order
-            indices_to_remove = sorted(indices_to_remove, reverse=True)
-
-            with torch.no_grad():
-                # Remove the selected clusters
-                for index in indices_to_remove:
-                    self.remove_cluster(index)
-    '''
     def remove_irrelevant(self, c_max):
         if self.parent.c < 2:
             return
@@ -478,75 +200,11 @@ class RemovalMechanism:
                     
 
     def removal_mechanism(self, c_max):
-        ''' Remove clusters with negative scores and additional low scoring clusters if necessary. '''
-
-        '''
-        # Identify and sort indices of clusters with negative scores
-        negative_score_indices = torch.where(self.parent.score[self.parent.matching_clusters] < 0)[0]
-        negative_score_indices = negative_score_indices.sort(descending=True)[0]
-
-        # Remove clusters with negative scores
-        with torch.no_grad():
-            for index in negative_score_indices:
-                self.remove_cluster(self.parent.matching_clusters[index])
-        '''
-        # Determine how many clusters to remove to meet the desired count
-
-        #if len(self.parent.matching_clusters) > self.parent.c_max:
-            #self.remove_small()
-            
-            # Print the number of samples after removal
-            #print("Number of samples after remove_small:", len(self.parent.matching_clusters))
-            
-            # Labels consistency check
-            #labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
-            #if not labels_check:
-            #    print("Critical error: Labels consistency in matching clusters after remove_small:", labels_check)
-
-        #self.remove_overlapping()
-
-            # Print the number of samples after removal
-            #print("Number of samples after remove_overlapping:", len(self.parent.matching_clusters))
-            
-            # Labels consistency check
-           # labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
-            #if not labels_check:
-            #    print("Critical error: Labels consistency in matching clusters after remove_overlapping:", labels_check)
-            
 
         #self.remove_score(c_max)
         self.remove_aged(c_max)
 
-            # Print the number of samples after removal
-            #print("Number of samples after remove_score:", len(self.parent.matching_clusters))
 
-            # Labels consistency check
-            #labels_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
-            #if not labels_check:
-            #    print("Critical error: Labels consistency in matching clusters after remove_score:", labels_check)
-
-    '''      
-    def removal_mechanism(self):
-    #Compute the initial merging candidates
-        if len(self.parent.matching_clusters) < self.parent.c_max:
-            return
-        
-        # Continue removing the smallest clusters while the condition is not met
-        while len(self.parent.matching_clusters) > self.parent.c_max:
-            
-            self.parent.merging_mech.valid_candidate = torch.arange(self.parent.c, dtype=torch.int32, device=self.parent.device)
-
-            self.parent.merging_mech.compute_merging_condition()
-
-            kappa = self.parent.merging_mech.kappa[self.parent.merging_mech.kappa==self.parent.merging_mech.kappa]
-            
-            i_smallest_n = torch.argmin(self.parent.n[kappa < self.parent.kappa_join])
-            
-            # Remove the smallest overlapping luster
-            with torch.no_grad():
-                self.remove_cluster(self.parent.matching_clusters[i_smallest_n])
-    '''
-    
     def remove_cluster(self, cluster_index):
         '''Remove a specified cluster by replacing it with the last active cluster and updating relevant parameters. '''
         #Copy everhing from the last active cluster to the remove cluster index
@@ -603,9 +261,9 @@ class RemovalMechanism:
         self.parent.c -= 1
 
         # Check if all elements in self.parent.cluster_labels[self.parent.matching_clusters] are the same
-        labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
-        if not labels_consistency_check:
-            print("Critical error: Labels consistency in matching clusters after removal:", labels_consistency_check)
+        #labels_consistency_check = len(torch.unique(self.parent.cluster_labels[self.parent.matching_clusters], dim=0)) < 2
+        #if not labels_consistency_check:
+        #    print("Critical error: Labels consistency in matching clusters after removal:", labels_consistency_check)
 
         # # Compute eigenvalues
         # eigenvalues = torch.linalg.eigvalsh(self.parent.S_inv[cluster_index])

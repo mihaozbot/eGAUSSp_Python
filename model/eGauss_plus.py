@@ -144,14 +144,14 @@ class eGAUSSp(torch.nn.Module):
                     #     print("removal?")
                         #Removal mechanism
                     
-                    if len(torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] ) > self.c_max:
-                        self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
+                    if self.c > self.c_max:
+
                         #threshold = np.exp(-(self.num_sigma) ** 2)
                         #self.valid_clusters = self.matching_clusters[(self.Gamma[self.matching_clusters] > threshold)*
                         #                                                    (self.n[self.matching_clusters] >= self.kappa_n)] #np.sqrt(
+                        #self.federal_agent.federated_merging()
 
-                            
-                        self.federal_agent.federated_merging()
+                        self.matching_clusters = torch.arange(self.c, dtype=torch.int32, device=self.device)
                         self.removal_mech.removal_mechanism(self.c_max)
                         #self.matching_clusters = torch.where((self.cluster_labels[:self.c][:, label] == 1))[0] #*(self.num_pred[:self.c] > self.kappa_n)
                         
