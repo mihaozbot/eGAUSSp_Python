@@ -139,10 +139,10 @@ def balance_dataset(X, y, techniques=['random']):
     X_smote = np.vstack([resampled_majority_X, X[y == minority_class]])
     y_smote = np.concatenate([resampled_majority_y, y[y == minority_class]])
 
-    #if len(y[y == minority_class]) != len(np.concatenate(balanced_y)):
-    smote = SMOTE()
-    X_smote, y_smote = smote.fit_resample(X_smote, y_smote)
-    #X_smote, y_smote = np.array(X_smote), np.array(y_smote)
+    if len(y[y == minority_class]) != len(np.concatenate(balanced_y)):
+        smote = SMOTE()
+        X_smote, y_smote = smote.fit_resample(X_smote, y_smote)
+        #X_smote, y_smote = np.array(X_smote), np.array(y_smote)
 
     # Convert to tensors and shuffle
     X_tensor = torch.tensor(X_smote, dtype=torch.float32)
