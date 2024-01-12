@@ -1,3 +1,4 @@
+from tkinter import Label
 import torch
 import torch.nn as nn
 import math
@@ -47,11 +48,17 @@ class eGAUSSp(torch.nn.Module):
         self.one_hot_labels = torch.eye(num_classes, dtype=torch.int32) #One hot labels 
         
         # Trainable parameters
+        #Antecedent clusters
         self.n = nn.Parameter(torch.zeros(self.current_capacity, dtype=torch.float32, device=device, requires_grad=False))  # Initialize cluster sizes
         self.mu = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, dtype=torch.float32, device=device, requires_grad=False))  # Initialize cluster means
         self.S = nn.Parameter(torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
         self.S_inv = torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device)  # Initialize covariance matrices
-
+        
+        #Consequence ARX local linear models 
+        self.P0 = 1e10*torch.eye(feature_dim+1, dtype=torch.float32, device=device, requires_grad=False)
+        self.P = nn.Parameter(torch.zeros(self.current_capacity, feature_dim+1, feature_dim+1, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
+        self.theta =  nn.Parameter(torch.zeros(self.current_capacity, feature_dim+1, self.num_classes, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
+        
         # Global statistics
         self.n_glo = torch.zeros((num_classes), dtype=torch.float32, device=device)  # Global number of sampels per class
         self.mu_glo = torch.zeros((feature_dim), dtype=torch.float32, device=device)  # Global mean
@@ -94,7 +101,7 @@ class eGAUSSp(torch.nn.Module):
     def clustering(self, data, labels):
         sample_count = 0  # Initialize a counter for samples processed
 
-        for (z, label) in zip(data, labels):
+        for (x, label) in zip(data, labels):
             sample_count += 1  # Increment the sample counter
 
             # Progress update every 10,000 samples
@@ -104,13 +111,13 @@ class eGAUSSp(torch.nn.Module):
             # Check if the model is in evaluation mode
             # In evaluation mode, match all clusters
                 # Update global statistics
-            self.clusterer.update_global_statistics(z, label)
+            self.clusterer.update_global_statistics(x, label)
             
             # In training mode, match clusters based on the label
             self.matching_clusters = torch.arange(self.c, dtype=torch.int32, device=self.device)
             
             # Compute activation
-            self.Gamma = self.mathematician.compute_activation(z)
+            self.Gamma = self.mathematician.compute_activation(x)
             #self.Gamma *= self.score[:self.c]
 
             self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
@@ -124,7 +131,7 @@ class eGAUSSp(torch.nn.Module):
 
 
                     #Incremental clustering and cluster addition
-                    self.clusterer.increment_or_add_cluster(z, label)
+                    self.clusterer.increment_or_add_cluster(x, label)
 
                     # S_inv_ = torch.linalg.inv((self.S[:self.c]/
                     #             self.n[:self.c].view(-1, 1, 1))*
@@ -210,12 +217,11 @@ class eGAUSSp(torch.nn.Module):
             print(f"Cluster {cluster}: Accuracy = {accuracy:.2f}")
         '''
 
-
-    def forward(self, data):
+    def forward(self, x):
         
         # Assuming compute_activation can handle batch data
-        self.matching_clusters = torch.arange(self.c).repeat(data.shape[0], 1)
-        self.Gamma = self.mathematician.compute_batched_activation(data)
+        self.matching_clusters = torch.arange(self.c).repeat(x.shape[0], 1)
+        self.Gamma = self.mathematician.compute_batched_activation(x)
     
         #self.Gamma *= self.score[:self.c].unsqueeze(0)
         #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
@@ -223,7 +229,7 @@ class eGAUSSp(torch.nn.Module):
         #Evolving mechanisms can be handled here if they can be batch processed
 
         # Defuzzify label scores for the entire batch
-        label_scores, preds_max = self.consequence.defuzzify_batch()  # Adapt this method for batch processing
+        label_scores, preds_max = self.consequence.defuzzify_batch(x)  # Adapt this method for batch processing
 
         # Assuming defuzzify returns batched scores and predictions
         scores = label_scores.clone().detach().requires_grad_(False)
@@ -231,44 +237,3 @@ class eGAUSSp(torch.nn.Module):
         clusters = self.Gamma.argmax(dim=1)  # Get the cluster indices for the entire batch
 
         return scores, preds_max, clusters
-
-    '''
-    def forward(self, data, labels):
-
-        scores = []  # List to store scores of the positive class
-        pred = []    # List to store predicted class labels
-        clusters = []    # List to store predicted class labels
-        for (z, _ ) in zip(data, labels):
-
-            # Check if the model is in evaluation mode
-            #if not self.training: #In evaluation mode
-                
-            # In evaluation mode, match all clusters
-            self.matching_clusters = torch.arange(self.c, dtype=torch.int32, device=self.device)
-            #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
-                
-            #else: #In training mode
-                
-                # Update global statistics
-                #self.clusterer.update_global_statistics(z)
-                
-                # In training mode, match clusters based on the label
-            #    self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
-
-            # Compute activation
-            self.Gamma = self.mathematician.compute_activation(z)
-
-            # Defuzzify label scores
-            # Normalize Gamma by dividing each element by the sum of all elements)
-            label_scores, pred_max = self.consequence.defuzzify()
-
-            scores.append(label_scores)  # Extract and store scores for the positive class
-            pred.append(pred_max)  # Extract and store class predictions
-            clusters.append(self.Gamma.argmax())  # Extract and store class predictions
-
-        scores = torch.vstack(scores).clone().detach().requires_grad_(True)
-        pred = torch.tensor(pred)
-        clusters = torch.tensor(clusters)
-
-        return scores, pred, clusters
-    '''

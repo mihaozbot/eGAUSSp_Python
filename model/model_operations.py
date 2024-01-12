@@ -43,9 +43,13 @@ class ModelOps:
         self.parent.score = self._resize_tensor(self.parent.score, (new_capacity,))
         self.parent.num_pred = self._resize_tensor(self.parent.num_pred, (new_capacity,))
         self.parent.age = self._resize_tensor(self.parent.age, (new_capacity,))
-
+        
+        self.parent.P = nn.Parameter(self._resize_tensor(self.parent.P, (new_capacity, self.parent.feature_dim+ 1, self.parent.feature_dim+ 1)), requires_grad=False)
+        self.parent.theta = nn.Parameter(self._resize_tensor(self.parent.theta, (new_capacity, self.parent.feature_dim + 1, self.parent.num_classes )), requires_grad=False)
+        
         self.parent.current_capacity = new_capacity
-
+        
+        
     def _resize_tensor(self, old_tensor, new_size):
         new_tensor = torch.empty(new_size, dtype=old_tensor.dtype, device=old_tensor.device) #Create new tensor
         new_tensor[:self.parent.c] = old_tensor[:self.parent.c] #Copy old tensor into the new tensor

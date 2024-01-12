@@ -142,11 +142,11 @@ class RemovalMechanism:
         if num_clusters_to_remove > 0:
             # Sort the clusters based on age, highest (oldest) first
             sorted_clusters_by_age = sorted(self.parent.matching_clusters, 
-                                            key=lambda idx: self.parent.age[idx], 
+                                            key=lambda idx: (self.parent.age[idx]), 
                                             reverse=True)
 
             # Get the indices of clusters to remove, oldest first
-            indices_to_remove = sorted_clusters_by_age[:num_clusters_to_remove]
+            indices_to_remove =  sorted(sorted_clusters_by_age[:num_clusters_to_remove], reverse=True)
 
             with torch.no_grad():
                 # Remove the selected clusters
@@ -230,11 +230,12 @@ class RemovalMechanism:
             self.parent.mu[cluster_index] = self.parent.mu[last_active_index]
             self.parent.S[cluster_index] = self.parent.S[last_active_index]
             self.parent.n[cluster_index] = self.parent.n[last_active_index]
-
             self.parent.S_inv[cluster_index] = self.parent.S_inv[last_active_index]
             
+            self.parent.P[cluster_index] = self.parent.P[last_active_index]
+            self.parent.theta[cluster_index] = self.parent.theta[last_active_index]
+            
             self.parent.age[cluster_index] = self.parent.age[last_active_index]
-
             self.parent.score[cluster_index] = self.parent.score[last_active_index]
             self.parent.num_pred[cluster_index] = self.parent.num_pred[last_active_index]
 

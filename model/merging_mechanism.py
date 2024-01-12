@@ -40,16 +40,24 @@ class MergingMechanism:
         score_ij = self.parent.score[i_all]* self.parent.score[j_all]
         num_pred_ij = self.parent.num_pred[i_all] + self.parent.num_pred[j_all]
 
+        P_ij = self.parent.P[i_all] + self.parent.P[j_all]
+        theta_ij = (self.parent.n[i_all] * self.parent.theta[i_all]+ self.parent.n[j_all] * self.parent.theta[j_all]) / n_ij
+        
         # Perform the merging operation
         self.parent.mu[i_all] = mu_ij
         self.parent.S[i_all] = S_ij
         self.parent.n[i_all] = n_ij
         self.parent.age[i_all] = torch.min(self.parent.age[i_all], self.parent.age[j_all])
 
+        #Merge consequence parameters
+        self.parent.P[i_all] = P_ij
+        self.parent.theta[i_all] = theta_ij
+
         #Merge score and number of predictions
         self.parent.score[i_all] = score_ij
         self.parent.num_pred[i_all] = num_pred_ij
 
+            
         # Update Gamma values 
         self.parent.Gamma[i_all] = 0 #self.parent.Gamma[i_all]
         

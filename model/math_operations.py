@@ -45,16 +45,16 @@ class MathOps():
             # Identify the indices of negative distances
             negative_distance_indices = torch.where(d2 < 0)[0]
 
+            # Filter out the negative distances
+            d2 = d2[d2 > 0]
+            
             # Remove corresponding clusters
             with torch.no_grad():
                 for index in negative_distance_indices:
                     self.parent.removal_mech.remove_cluster(index)
 
-            # Filter out the negative distances
-            d2 = d2[d2 >= 0]
-
             #This is not optimal, but it is required because remove_clusters is not made for different class labels
-            self.matching_clusters = torch.arange(self.parent.c, dtype=torch.int32, device=self.parent.device)
+            self.parent.matching_clusters = torch.arange(self.parent.c, dtype=torch.int32, device=self.parent.device)
 
         Gamma = torch.exp(-d2)
         full_Gamma = torch.zeros(self.parent.c, dtype=torch.float32, device=self.parent.device)

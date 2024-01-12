@@ -104,13 +104,17 @@ class FederalOps:
             self.parent.mu.data[new_indices] = model.mu.data[valid_indices]
             self.parent.S.data[new_indices] = model.S.data[valid_indices]
             self.parent.n.data[new_indices] = model.n.data[valid_indices]
-
             self.parent.S_inv.data[new_indices] = model.S_inv.data[valid_indices] 
+            
+            #Copy the concequence 
+            self.parent.P.data[new_indices] = model.P.data[valid_indices]
+            self.parent.theta.data[new_indices] = model.theta.data[valid_indices]
             
             # Update cluster labels
             self.parent.cluster_labels[new_indices] = model.cluster_labels[valid_indices]
 
             # Update scores
+            self.parent.age[new_indices] = model.age[valid_indices]
             self.parent.score[new_indices] = model.score[valid_indices]
             self.parent.num_pred[new_indices] = model.num_pred[valid_indices]
 
