@@ -38,6 +38,12 @@ class ClusteringOps:
         # Construct a diagonal matrix from these reciprocal values
         self.parent.S_inv[self.parent.c] = torch.diag(1.0 / (self.parent.S_0.diagonal()*self.parent.feature_dim))
 
+        #Consequence ARX local linear models 
+        self.parent.P[self.parent.c] = self.parent.P0.clone()
+        self.parent.theta[self.parent.c] = torch.zeros_like(self.parent.theta[self.parent.c])
+        #torch.zeros(self.feature_dim+1, self.parent.num_classes, dtype=torch.float32, device=self.parent.device, requires_grad=False)
+        
+        
         # Update cluster_labels
         # If cluster_labels is not a Parameter and does not require gradients, update as a regular tensor
         self.parent.cluster_labels[self.parent.c] = self.parent.one_hot_labels[label]
@@ -117,7 +123,7 @@ class ClusteringOps:
         
         # for i in range(self.parent.c):
         #     try:
-        #         eigenvalues = torch.linalg.eigvalsh(self.parent.S[i])
+        #         eigenvalues = torch.linalg.eigvalsh(self.parent.S[i])code
         #         if not torch.all(eigenvalues >= 0):
         #             print(f"Matrix of cluster {i} is not positive semidefinite. Minimum eigenvalue: {torch.min(eigenvalues)}")
         #     except RuntimeError as e:

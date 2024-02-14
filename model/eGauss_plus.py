@@ -45,7 +45,7 @@ class eGAUSSp(torch.nn.Module):
         self.num_pred = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize number of predictions
         self.age = torch.empty((self.current_capacity,), dtype=torch.float32, device=device) #Initialize cluster age
 
-        self.one_hot_labels = torch.eye(num_classes, dtype=torch.int32) #One hot labels 
+        self.one_hot_labels = torch.eye(num_classes, dtype=torch.int32, device=device) #One hot labels 
         
         # Trainable parameters
         #Antecedent clusters

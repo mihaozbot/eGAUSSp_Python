@@ -26,7 +26,7 @@ class ConsequenceOps():
             #max_label = torch.argmax(label_scores)
             
         else: #class1 
-            phi = torch.cat((z, torch.tensor([1]))).unsqueeze(1)  # Concatenating the two tensors
+            phi = torch.cat((z, torch.tensor([1],device=self.parent.device))).unsqueeze(1)  # Concatenating the two tensors
             label_scores = torch.softmax(torch.mm(phi.T, self.parent.theta[max_index]))
             max_label = label_scores
         
@@ -71,7 +71,7 @@ class ConsequenceOps():
             max_labels = torch.argmax(one_hot_max_labels, dim=1)
             
         else: #Class1
-            phi = torch.cat((z, torch.ones(z.shape[0],1)),dim=1)  # Concatenating the two tensors
+            phi = torch.cat((z, torch.ones(z.shape[0],1, device=self.parent.device)),dim=1)  # Concatenating the two tensors
             predicted_scores = torch.bmm(self.parent.theta[max_indices].transpose(1, 2), phi.unsqueeze(-1)).squeeze(-1)
             label_scores = torch.softmax(predicted_scores, dim = 1)
             max_labels = torch.argmax(label_scores, dim = 1)
@@ -111,29 +111,25 @@ class ConsequenceOps():
     def recursive_least_squares(self, z, y, j):
 
         normalized_gamma = self.compute_normalized_gamma()
-        phi = torch.cat((z, torch.tensor([1]))).unsqueeze(1)  # Concatenating the two tensors
+        phi = torch.cat((z, torch.tensor([1], device=self.parent.device))).unsqueeze(1)  # Concatenating the two tensors
         
         if 1:
-            gamma = torch.mm(self.parent.P[j], phi) / (torch.mm(torch.mm(phi.T, self.parent.P[j]), phi) + 1)
-            self.parent.P[j] = (torch.eye(self.parent.feature_dim+1 , device=self.parent.device) - torch.mm(gamma, phi.T)) * self.parent.P[j]
+            gain = torch.mm(self.parent.P[j], phi) / (torch.mm(torch.mm(phi.T, self.parent.P[j]), phi) + 1)
+            self.parent.P[j] = (torch.eye(self.parent.feature_dim+1 , device=self.parent.device) - torch.mm(gain, phi.T)) * self.parent.P[j]
             e_RLS = y - torch.mm(phi.T, self.parent.theta[j])
-            self.parent.theta[j] = self.parent.theta[j] + gamma * e_RLS
+            self.parent.theta[j] = self.parent.theta[j] + gain * e_RLS
         else:
 
-            # Compute gamma for each batch
-            phi_T = phi.T 
-            gamma_den = torch.matmul( torch.matmul(phi_T, self.parent.P[:self.parent.c]), phi) + normalized_gamma.unsqueeze(-1).unsqueeze(-1)
-            gamma = torch.matmul(self.parent.P[:self.parent.c], phi) / gamma_den
+            #Update the gain
+            gain_den = torch.matmul( torch.matmul(phi.T , self.parent.P[:self.parent.c]), phi) + 1/normalized_gamma.unsqueeze(-1).unsqueeze(-1)
+            gain = torch.matmul(self.parent.P[:self.parent.c], phi) / gain_den
 
             # Update P
             identity = torch.eye(self.parent.P[:self.parent.c].shape[1], device=self.parent.device).unsqueeze(0)
-            self.parent.P[:self.parent.c] = (identity - torch.matmul(gamma, phi_T)) * self.parent.P[:self.parent.c]
+            self.parent.P[:self.parent.c] = (identity - torch.matmul(gain, phi.T )) * self.parent.P[:self.parent.c]
 
             # Compute e_RLS and update theta
             theta_phi = torch.matmul(self.parent.theta[:self.parent.c].transpose(1, 2), phi).squeeze(-1)
             
             e_RLS = y.unsqueeze(0) - theta_phi  
-            self.parent.theta[:self.parent.c] = self.parent.theta[:self.parent.c] + torch.matmul(gamma, e_RLS.unsqueeze(1))
-            
-        # Compute the confidence interval
-       #phi_P_phi = torch.mm(torch.mm(phi.T, self.parent.P[j]), phi)
+            self.parent.theta[:self.parent.c] = self.parent.theta[:self.parent.c] + torch.matmul(gain, e_RLS.unsqueeze(1))
