@@ -55,7 +55,7 @@ class eGAUSSp(torch.nn.Module):
         self.S_inv = torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device)  # Initialize covariance matrices
         
         #Consequence ARX local linear models 
-        self.P0 = 1e10*torch.eye(feature_dim+1, dtype=torch.float32, device=device, requires_grad=False)
+        self.P0 = 1e-3*torch.eye(feature_dim+1, dtype=torch.float32, device=device, requires_grad=False)
         self.P = nn.Parameter(torch.zeros(self.current_capacity, feature_dim+1, feature_dim+1, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
         self.theta =  nn.Parameter(torch.zeros(self.current_capacity, feature_dim+1, self.num_classes, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
         

@@ -113,11 +113,12 @@ class ConsequenceOps():
         normalized_gamma = self.compute_normalized_gamma()
         phi = torch.cat((z, torch.tensor([1], device=self.parent.device))).unsqueeze(1)  # Concatenating the two tensors
         
-        if 1:
+        if 0:
             gain = torch.mm(self.parent.P[j], phi) / (torch.mm(torch.mm(phi.T, self.parent.P[j]), phi) + 1)
             self.parent.P[j] = (torch.eye(self.parent.feature_dim+1 , device=self.parent.device) - torch.mm(gain, phi.T)) * self.parent.P[j]
             e_RLS = y - torch.mm(phi.T, self.parent.theta[j])
             self.parent.theta[j] = self.parent.theta[j] + gain * e_RLS
+            
         else:
 
             #Update the gain
