@@ -30,6 +30,8 @@ class eGAUSSp(torch.nn.Module):
         self.N_r = N_r #Quantization number
         self.num_classes = num_classes #Max number of samples in clusters
         self.c_max = c_max #Max number of clusters
+        self.order = 1
+        self.n_phi = self.order*feature_dim + 1
         #self.omega = 0.1
         
         #Forgetting factor for the number of samples of the clusters
@@ -56,9 +58,9 @@ class eGAUSSp(torch.nn.Module):
         self.S_inv = torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device)  # Initialize covariance matrices
         
         #Consequence ARX local linear models 
-        self.P0 = (1e1)*torch.eye(feature_dim+1, dtype=torch.float32, device=device, requires_grad=False)
-        self.P = nn.Parameter(torch.zeros(self.current_capacity, feature_dim+1, feature_dim+1, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
-        self.theta =  nn.Parameter(torch.zeros(self.current_capacity, feature_dim+1, self.num_classes, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
+        self.P0 = (1e3)*torch.eye(self.n_phi, dtype=torch.float32, device=device, requires_grad=False)
+        self.P = nn.Parameter(torch.zeros(self.current_capacity, self.n_phi, self.n_phi, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
+        self.theta =  nn.Parameter(torch.zeros(self.current_capacity, self.n_phi, self.num_classes, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
         
         # Global statistics
         self.n_glo = torch.zeros((num_classes), dtype=torch.float32, device=device)  # Global number of sampels per class

@@ -57,7 +57,7 @@ def prepare_dataset(X, y, num_clients):
     :return: Training data for each client, the testing data, and the entire dataset.
     """
     # Split the dataset into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=None)
 
     # If balancing is required, apply balance_dataset
     #if balance:
@@ -110,7 +110,6 @@ def balance_dataset(X, y, techniques=['random']):
         'enn': AllKNN(),
         'CondensedNearestNeighbour':CondensedNearestNeighbour(n_neighbors=1),
         'smote': SMOTE(random_state=None),
-        'one_sided_selection': OneSidedSelection(random_state=None, n_neighbors=1, n_seeds_S=200),
         'ncr': NeighbourhoodCleaningRule()
     }
 

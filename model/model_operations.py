@@ -44,8 +44,8 @@ class ModelOps:
         self.parent.num_pred = self._resize_tensor(self.parent.num_pred, (new_capacity,))
         self.parent.age = self._resize_tensor(self.parent.age, (new_capacity,))
         
-        self.parent.P = nn.Parameter(self._resize_tensor(self.parent.P, (new_capacity, self.parent.feature_dim+ 1, self.parent.feature_dim+ 1)), requires_grad=False)
-        self.parent.theta = nn.Parameter(self._resize_tensor(self.parent.theta, (new_capacity, self.parent.feature_dim + 1, self.parent.num_classes )), requires_grad=False)
+        self.parent.P = nn.Parameter(self._resize_tensor(self.parent.P, (new_capacity, self.parent.n_phi, self.parent.n_phi)), requires_grad=False)
+        self.parent.theta = nn.Parameter(self._resize_tensor(self.parent.theta, (new_capacity, self.parent.n_phi, self.parent.num_classes )), requires_grad=False)
         
         self.parent.current_capacity = new_capacity
         
