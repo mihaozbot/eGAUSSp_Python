@@ -31,9 +31,9 @@ class ClusteringOps:
             self.parent.S.data[self.parent.c] = self.parent.S_0
             self.parent.n.data[self.parent.c] = 1.0
         
-        self.parent.score[self.parent.c] = 0
-        self.parent.num_pred[self.parent.c] = 0
-        self.parent.age[self.parent.c] = 0
+        self.parent.score[self.parent.c] = 1
+        self.parent.num_pred[self.parent.c] = 1
+        self.parent.age[self.parent.c] = 1
         
         # Construct a diagonal matrix from these reciprocal values
         self.parent.S_inv[self.parent.c] = torch.diag(1.0 / (self.parent.S_0.diagonal()*self.parent.feature_dim))
@@ -43,14 +43,10 @@ class ClusteringOps:
         self.parent.theta[self.parent.c] = torch.zeros_like(self.parent.theta[self.parent.c])
         #torch.zeros(self.feature_dim+1, self.parent.num_classes, dtype=torch.float32, device=self.parent.device, requires_grad=False)
         
-        
         # Update cluster_labels
         # If cluster_labels is not a Parameter and does not require gradients, update as a regular tensor
         self.parent.cluster_labels[self.parent.c] = self.parent.one_hot_labels[label]
 
-        #Consequence parameters
-        self.parent.P[self.parent.c] = self.parent.P0
-        
         #Add a new Gamma value for the new cluster equal to 1 (Gamma is the weight of the cluster) 
         self.parent.Gamma = torch.cat((self.parent.Gamma, torch.tensor([1.0], dtype=torch.float32, device=self.parent.device)))
         
@@ -85,7 +81,7 @@ class ClusteringOps:
     
         self.parent.S[j] = self.parent.S[j] + e.view(-1, 1) @ (z - self.parent.mu[j]).view(1, -1) # + self.parent.S_0
         self.parent.n[j] = self.parent.n[j] + 1 #*self.parent.forgeting_factor
-        self.parent.age[j] = 0
+        self.parent.age[j] -= 1
         
         #x_minus_c = z - self.parent.mu[j]  # Difference between data point and cluster center
         #term = torch.matmul(self.parent.S_inv[j], x_minus_c.unsqueeze(1))  # Adjust dimensions for matrix multiplication
@@ -113,13 +109,13 @@ class ClusteringOps:
         self.parent.mu[self.parent.matching_clusters] += NGamma.unsqueeze(1) / (self.parent.n[self.parent.matching_clusters].unsqueeze(1)) * e_c
 
         # e_c_transposed for matrix multiplication, shape [self.parent.current_capacity, feature_dim, 1]
-        e_c_transposed= []
+        e_c_transposed = []
         e_c_transposed = (NGamma.unsqueeze(1) *e_c).unsqueeze(-1)  # shape [self.parent.current_capacity, feature_dim, 1]
         self.parent.S[self.parent.matching_clusters] = self.parent.S[self.parent.matching_clusters] + torch.bmm((z_expanded - self.parent.mu[self.parent.matching_clusters]).unsqueeze(-1), e_c_transposed.transpose(1, 2))
     # * 
         # Update number of samples in each cluster
         self.parent.n[self.parent.matching_clusters] = self.parent.n[self.parent.matching_clusters] + NGamma
-        self.parent.age[j] = 0
+        self.parent.age[j] -= 1
         
         # for i in range(self.parent.c):
         #     try:
@@ -156,7 +152,7 @@ class ClusteringOps:
                 j = self.parent.c - 1
 
         #Update the consequence vector
-        self.parent.consequence.recursive_least_squares(z, self.parent.one_hot_labels[label], j)
+        self.parent.consequence.recursive_least_squares(z, self.parent.one_hot_labels[label],j)
         
         ''' ''' 
         # Compute S[j]/n[j]

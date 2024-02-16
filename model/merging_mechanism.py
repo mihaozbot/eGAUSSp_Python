@@ -41,7 +41,8 @@ class MergingMechanism:
         num_pred_ij = self.parent.num_pred[i_all] + self.parent.num_pred[j_all]
 
         P_ij = self.parent.P[i_all] + self.parent.P[j_all]
-        theta_ij = (self.parent.n[i_all] * self.parent.theta[i_all]+ self.parent.n[j_all] * self.parent.theta[j_all]) / n_ij
+        #theta_ij = (self.parent.n[i_all] * self.parent.theta[i_all]+ self.parent.n[j_all] * self.parent.theta[j_all]) / n_ij
+        theta_ij = (self.parent.theta[i_all]+ self.parent.theta[j_all]) / 2
         
         # Perform the merging operation
         self.parent.mu[i_all] = mu_ij

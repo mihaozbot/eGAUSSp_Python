@@ -30,7 +30,8 @@ class eGAUSSp(torch.nn.Module):
         self.N_r = N_r #Quantization number
         self.num_classes = num_classes #Max number of samples in clusters
         self.c_max = c_max #Max number of clusters
-
+        #self.omega = 0.1
+        
         #Forgetting factor for the number of samples of the clusters
         self.forgeting_factor = 1 - 1/num_samples
 
@@ -55,7 +56,7 @@ class eGAUSSp(torch.nn.Module):
         self.S_inv = torch.zeros(self.current_capacity, feature_dim, feature_dim, dtype=torch.float32, device=device)  # Initialize covariance matrices
         
         #Consequence ARX local linear models 
-        self.P0 = 1e-3*torch.eye(feature_dim+1, dtype=torch.float32, device=device, requires_grad=False)
+        self.P0 = (1e1)*torch.eye(feature_dim+1, dtype=torch.float32, device=device, requires_grad=False)
         self.P = nn.Parameter(torch.zeros(self.current_capacity, feature_dim+1, feature_dim+1, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
         self.theta =  nn.Parameter(torch.zeros(self.current_capacity, feature_dim+1, self.num_classes, dtype=torch.float32, device=device, requires_grad=False))  # Initialize covariance matrices
         
@@ -118,7 +119,7 @@ class eGAUSSp(torch.nn.Module):
             
             # Compute activation
             self.Gamma = self.mathematician.compute_activation(x)
-            #self.Gamma *= self.score[:self.c]
+            #self.Gamma = self.Gamma**self.omega
 
             self.matching_clusters = torch.where(self.cluster_labels[:self.c][:, label] == 1)[0]
             
@@ -222,7 +223,8 @@ class eGAUSSp(torch.nn.Module):
         # Assuming compute_activation can handle batch data
         self.matching_clusters = torch.arange(self.c).repeat(x.shape[0], 1)
         self.Gamma = self.mathematician.compute_batched_activation(x)
-    
+        #self.Gamma = self.Gamma**self.omega
+        
         #self.Gamma *= self.score[:self.c].unsqueeze(0)
         #self.matching_clusters = self.matching_clusters[self.n[:self.c]>=self.kappa_n]
 
