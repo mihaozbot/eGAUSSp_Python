@@ -83,8 +83,8 @@ class ConsequenceOps():
             #phi = torch.cat((torch.cat((Z, torch.ones(Z.shape[0], 1, device=self.parent.device)), dim=1), Z ** 2), dim=1)  # [batch_size, num_features*2+1]
 
             # Compute scores for all clusters
-            all_scores = self.logistic_function(torch.einsum('bf, cfo -> boc', phi, self.parent.theta[:self.parent.c]))  # [batch_size, output_dim, num_clusters]
-            #all_scores = torch.softmax(torch.einsum('bf, cfo -> boc', phi, self.parent.theta[:self.parent.c]), dim=1)  # [batch_size, num_classes]
+            #all_scores = self.logistic_function(torch.einsum('bf, cfo -> boc', phi, self.parent.theta[:self.parent.c]))  # [batch_size, output_dim, num_clusters]
+            all_scores = torch.softmax(torch.einsum('bf, cfo -> boc', phi, self.parent.theta[:self.parent.c]), dim=1)  # [batch_size, num_classes]
             # Weight scores by normalized_gamma and sum across clusters
             weighted_scores =  torch.sum(all_scores.transpose(1, 2) *normalized_gamma.unsqueeze(-1), dim=1) 
             
@@ -139,9 +139,9 @@ class ConsequenceOps():
         
         if 1:
             
-            gain = torch.mm(self.parent.P[j], phi) / (torch.mm(torch.mm(phi.T, self.parent.P[j]), phi) + 1)
-            self.parent.P[j] = (torch.eye(self.parent.n_phi , device=self.parent.device) - torch.mm(gain, phi.T)) * self.parent.P[j]
-            e_RLS = (y - torch.mm(phi.T, self.parent.theta[j]))#*self.parent.cluster_labels[j]
+            gain = torch.mm(self.parent.P[j], phi) / (torch.mm(torch.mm(phi.T, self.parent.P[j]), phi) + 1/normalized_gamma[j] )
+            self.parent.P[j] = (torch.eye(self.parent.n_phi, device=self.parent.device) - torch.mm(gain, phi.T)) * self.parent.P[j]
+            e_RLS = (y- torch.mm(phi.T, self.parent.theta[j]))#*self.parent.cluster_labels[j]
             self.parent.theta[j] = self.parent.theta[j] + gain * e_RLS
             
         else:
@@ -160,37 +160,6 @@ class ConsequenceOps():
             # Compute e_RLS and update theta for all clusters
             y_hat = torch.softmax(torch.matmul(self.parent.theta[:c].transpose(-2, -1), phi).squeeze(-1), dim=1)
             e_RLS = (y.unsqueeze(0) - y_hat)*self.parent.cluster_labels[:self.parent.c]
-            self.parent.theta[:c] = self.parent.theta[:c] + torch.matmul(gain, e_RLS.unsqueeze(1))
+            self.parent.theta[:c] = self.parent.theta[:c] + normalized_gamma.unsqueeze(-1).unsqueeze(-1)*torch.matmul(gain, e_RLS.unsqueeze(1))
             
             #print(y[torch.argmax(torch.sum(torch.matmul(self.parent.theta[:c].transpose(-2, -1), phi).squeeze(-1)* normalized_gamma.unsqueeze(-1),dim=0))])
-            '''
-            for cluster_idx in range(c):
-                # Update the gain for the current cluster
-                gain_den = torch.matmul(torch.matmul(phi.transpose(-2, -1), self.parent.P[cluster_idx]), phi) * normalized_gamma[cluster_idx] + 1
-                gain = torch.matmul(self.parent.P[cluster_idx], phi) * normalized_gamma[cluster_idx] / gain_den
-                
-                # Update P for the current cluster
-                identity = torch.eye(self.parent.P[cluster_idx].shape[-1], device=self.parent.device)
-                self.parent.P[cluster_idx] = (identity - torch.matmul(gain, phi.transpose(-2, -1))) * self.parent.P[cluster_idx] / forgetting_factor
-                
-                # Compute e_RLS and update theta for the current cluster
-                theta_phi = torch.matmul(self.parent.theta[cluster_idx].transpose(-2, -1), phi).squeeze(-1)
-                e_RLS = (y.unsqueeze(0) - theta_phi)*self.parent.cluster_labels[cluster_idx]
-                self.parent.theta[cluster_idx] = self.parent.theta[cluster_idx] + torch.matmul(gain, e_RLS.unsqueeze(1))
-            
-            '''
-            '''
-            #Update the gain
-            gain_den = torch.matmul( torch.matmul(phi.T , self.parent.P[:self.parent.c]), phi)*normalized_gamma.unsqueeze(-1).unsqueeze(-1) + forgetting_factor
-            gain = torch.matmul(self.parent.P[:self.parent.c], phi)*normalized_gamma.unsqueeze(-1).unsqueeze(-1) / gain_den
-
-            # Update P
-            identity = torch.eye(self.parent.P[:self.parent.c].shape[1], device=self.parent.device).unsqueeze(0)
-            self.parent.P[:self.parent.c] = (identity - torch.matmul(gain, phi.T )) * self.parent.P[:self.parent.c]/forgetting_factor
-
-            # Compute e_RLS and update theta
-            theta_phi = torch.matmul(self.parent.theta[:self.parent.c].transpose(1, 2), phi).squeeze(-1)
-            
-            e_RLS = (y.unsqueeze(0) - theta_phi)*self.parent.cluster_labels[:self.parent.c]
-            self.parent.theta[:self.parent.c] = self.parent.theta[:self.parent.c] + torch.matmul(gain, e_RLS.unsqueeze(1))
-            '''

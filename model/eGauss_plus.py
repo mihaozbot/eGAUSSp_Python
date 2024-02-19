@@ -132,7 +132,7 @@ class eGAUSSp(torch.nn.Module):
                     if self.c>0:
                         self.removal_mech.update_score(label)
 
-
+                    
                     #Incremental clustering and cluster addition
                     self.clusterer.increment_or_add_cluster(x, label)
 
@@ -143,6 +143,7 @@ class eGAUSSp(torch.nn.Module):
                     # if any(torch.sum(torch.sum(S_inv_-S_inv,dim=2), dim =1)>1e-4):
                     #     print("clustering?")
        
+
                     #Cluster merging
                     self.merging_mech.merging_mechanism()
     

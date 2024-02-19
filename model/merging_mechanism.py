@@ -60,7 +60,7 @@ class MergingMechanism:
 
             
         # Update Gamma values 
-        self.parent.Gamma[i_all] = 0 #self.parent.Gamma[i_all]
+        self.parent.Gamma[i_all] = torch.min(self.parent.Gamma[i_all],self.parent.Gamma[j_all])
         
         self.parent.S_inv[i_all] = torch.linalg.inv((self.parent.S[i_all] / self.parent.n[i_all]) * self.parent.feature_dim)
 
@@ -259,7 +259,7 @@ class MergingMechanism:
             
         return merge_occurred  # Return True if any merge happened, otherwise False
     
-    def merging_mechanism(self, max_iterations=1000):
+    def merging_mechanism(self, max_iterations=100):
     
         iteration = 0 # Iteration counter
         
@@ -269,8 +269,8 @@ class MergingMechanism:
         #    self.valid_clusters = self.parent.matching_clusters
         #else:
         threshold = np.exp(-(self.parent.num_sigma) ** 2)
-        self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)*
-                                                            (self.parent.n[self.parent.matching_clusters] >= self.parent.kappa_n)] #np.sqrt(
+        self.valid_clusters = self.parent.matching_clusters[(self.parent.Gamma[self.parent.matching_clusters] > threshold)]
+                                                            #(self.parent.n[self.parent.matching_clusters] >= self.parent.kappa_n)] #np.sqrt(
         if len(self.valid_clusters) < 2:
             return
 
